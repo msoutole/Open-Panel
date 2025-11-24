@@ -16,6 +16,8 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().min(1).max(65535))
     .default('3001')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1).max(65535))
     .transform(String),
 
   // Database
@@ -40,6 +42,8 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().min(1).max(65535))
     .default('6379')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1).max(65535))
     .transform(String),
 
   REDIS_PASSWORD: z
@@ -156,6 +160,8 @@ const envSchema = z.object({
     .transform((val) => val === 'true')
     .pipe(z.boolean())
     .default('true')
+    .transform((val) => val === 'true')
+    .pipe(z.boolean())
     .transform(String),
 
   ENABLE_AUTO_DEPLOY: z
@@ -163,6 +169,8 @@ const envSchema = z.object({
     .transform((val) => val === 'true')
     .pipe(z.boolean())
     .default('true')
+    .transform((val) => val === 'true')
+    .pipe(z.boolean())
     .transform(String),
 
   ENABLE_AGENTS: z
@@ -170,6 +178,8 @@ const envSchema = z.object({
     .transform((val) => val === 'true')
     .pipe(z.boolean())
     .default('true')
+    .transform((val) => val === 'true')
+    .pipe(z.boolean())
     .transform(String),
 })
 
@@ -188,7 +198,12 @@ export function validateEnv(): Env {
       const missingVars: string[] = []
       const invalidVars: string[] = []
 
-      error.errors.forEach((err) => {
+      console.error('Validation error details:', JSON.stringify(error, null, 2));
+      if (!error.issues) {
+        console.error('ZodError encountered but .issues property is missing!', error);
+        throw error;
+      }
+      error.issues.forEach((err) => {
         const path = err.path.join('.')
         if (err.code === 'invalid_type' && err.received === 'undefined') {
           missingVars.push(path)
