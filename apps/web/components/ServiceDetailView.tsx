@@ -60,8 +60,8 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 const error = simulateDockerError();
                 setNotification({
                     type: 'error',
-                    title: `${error.source} Error`,
-                    message: error.message
+                    title: `${error?.source || 'System'} Error`,
+                    message: error?.message || 'An unknown error occurred'
                 });
             }
 
@@ -87,8 +87,8 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 const error = simulateDockerError();
                 setNotification({
                     type: 'error',
-                    title: `${error.source} Error`,
-                    message: error.message
+                    title: `${error?.source || 'System'} Error`,
+                    message: error?.message || 'An unknown error occurred'
                 });
             }
 
