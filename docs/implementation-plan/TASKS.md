@@ -122,13 +122,17 @@ Corrigir erros de TypeScript e JSX no componente `ServiceDetailView.tsx` e integ
 
 **Critérios de Aceitação**
 
-- [ ] Resolver todos os erros de TypeScript (missing names, JSX tags)
-- [ ] Integrar EnvironmentTab (CRUD env vars)
-- [ ] Integrar NetworkingTab (Domains, Redirects)
-- [ ] Integrar ResourcesTab (CPU/Memory limits)
-- [ ] Integrar BackupsTab (Create, Restore, Delete)
-- [ ] Integrar AdvancedTab (Update image/command, Delete service)
-- [ ] Integrar SourceTab (Update source config)
+- [x] Resolver todos os erros de TypeScript (missing names, JSX tags)
+- [x] Integrar EnvironmentTab (CRUD env vars)
+- [x] Integrar NetworkingTab (Domains, Redirects)
+- [x] Integrar ResourcesTab (CPU/Memory limits)
+- [x] Integrar BackupsTab (Create, Restore, Delete)
+- [x] Integrar AdvancedTab (Update image/command, Delete service)
+- [x] Integrar SourceTab (Update source config)
+- [x] Implementar exposedPort save (database services)
+- [x] Testar startup completo (Docker + Backend + Frontend)
+- [ ] Resolver problemas de autenticação Redis
+- [ ] Configurar Docker socket para Windows
 
 **Arquivos Afetados**
 
