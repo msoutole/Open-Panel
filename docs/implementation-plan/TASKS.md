@@ -104,6 +104,37 @@ Adicionar circuit breaker para proteger contra falhas do Docker daemon.
 - `apps/api/src/lib/docker.ts`
 - `apps/api/src/services/docker.service.ts`
 
+- `apps/api/src/services/docker.service.ts`
+
+---
+
+### TASK-011: Fix ServiceDetailView Errors and Integrate APIs
+
+**ID**: TASK-011
+**Status**: 🔄 Em Progresso
+**Prioridade**: Crítica
+**Estimativa**: 1d
+**Atribuído a**: @msoutole
+
+**Descrição**
+
+Corrigir erros de TypeScript e JSX no componente `ServiceDetailView.tsx` e integrar todas as ações do frontend com a API backend.
+
+**Critérios de Aceitação**
+
+- [ ] Resolver todos os erros de TypeScript (missing names, JSX tags)
+- [ ] Integrar EnvironmentTab (CRUD env vars)
+- [ ] Integrar NetworkingTab (Domains, Redirects)
+- [ ] Integrar ResourcesTab (CPU/Memory limits)
+- [ ] Integrar BackupsTab (Create, Restore, Delete)
+- [ ] Integrar AdvancedTab (Update image/command, Delete service)
+- [ ] Integrar SourceTab (Update source config)
+
+**Arquivos Afetados**
+
+- `apps/web/components/ServiceDetailView.tsx`
+- `apps/web/services/api.ts`
+
 ---
 
 ## 🟠 ALTA PRIORIDADE
@@ -286,24 +317,25 @@ Adicionar Two-Factor Authentication usando TOTP.
 ### Por Status
 
 #### 🔄 Em Progresso (3 tasks)
+#### 🔄 Em Progresso (5 tasks)
 
-| ID | Nome | Atribuído | ETA |
-|----|------|-----------|-----|
-| TASK-001 | Memory Leak WebSocket | @msoutole | 2024-11-28 |
-| TASK-002 | Circuit Breaker | @msoutole | 2024-11-26 |
-| TASK-003 | Testes 80% Coverage | @team | 2024-12-08 |
-| TASK-008 | IA Chat Interface | @msoutole | 2024-11-30 |
+| ID       | Nome                    | Atribuído | ETA        |
+| -------- | ----------------------- | --------- | ---------- |
+| TASK-001 | Memory Leak WebSocket   | @msoutole | 2024-11-28 |
+| TASK-002 | Circuit Breaker         | @msoutole | 2024-11-26 |
+| TASK-003 | Testes 80% Coverage     | @team     | 2024-12-08 |
+| TASK-008 | IA Chat Interface       | @msoutole | 2024-11-30 |
+| TASK-011 | ServiceDetailView Fixes | @msoutole | 2024-11-25 |
 
 #### Não Iniciada (7 tasks)
 
-| ID | Nome | Prioridade | Estimativa |
-|----|------|-----------|-----------|
-| TASK-004 | DB Query Optimization | Alta | 3d |
-| TASK-005 | Error Boundary | Alta | 1d |
-| TASK-006 | Redis Cache | Média | 2d |
-| TASK-007 | Frontend Performance | Média | 3d |
-| TASK-009 | Storybook Docs | Baixa | 2d |
-| TASK-010 | 2FA | Baixa | 5d |
+| ID       | Nome                 | Prioridade | Estimativa |
+| -------- | -------------------- | ---------- | ---------- |
+| TASK-005 | Error Boundary       | Alta       | 1d         |
+| TASK-006 | Redis Cache          | Média      | 2d         |
+| TASK-007 | Frontend Performance | Média      | 3d         |
+| TASK-009 | Storybook Docs       | Baixa      | 2d         |
+| TASK-010 | 2FA                  | Baixa      | 5d         |
 
 ### Por Sprint
 

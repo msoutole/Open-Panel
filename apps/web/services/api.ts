@@ -227,7 +227,7 @@ export const getProjectDomains = async (projectId: string): Promise<Domain[]> =>
   return data.domains;
 };
 
-export const createDomain = async (data: { name: string; projectId: string; sslEnabled?: boolean }): Promise<Domain> => {
+export const createDomain = async (data: { domain: string; projectId: string; https?: boolean; targetPort?: number; targetProtocol?: 'HTTP' | 'HTTPS' | 'TCP' }): Promise<Domain> => {
   const response = await fetch(`${API_URL}/domains`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -237,7 +237,7 @@ export const createDomain = async (data: { name: string; projectId: string; sslE
   return result.domain;
 };
 
-export const updateDomain = async (id: string, data: { name?: string; sslEnabled?: boolean }): Promise<Domain> => {
+export const updateDomain = async (id: string, data: Partial<Domain>): Promise<Domain> => {
   const response = await fetch(`${API_URL}/domains/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -249,6 +249,24 @@ export const updateDomain = async (id: string, data: { name?: string; sslEnabled
 
 export const deleteDomain = async (id: string): Promise<void> => {
   const response = await fetch(`${API_URL}/domains/${id}`, { method: 'DELETE' });
+  await handleResponse(response);
+};
+
+// --- Redirects ---
+
+export const createRedirect = async (serviceId: string, data: { from: string; to: string; type: 301 | 302 }): Promise<any> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/redirects`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
+export const deleteRedirect = async (serviceId: string, redirectId: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/redirects/${redirectId}`, {
+    method: 'DELETE',
+  });
   await handleResponse(response);
 };
 

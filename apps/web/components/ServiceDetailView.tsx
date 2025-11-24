@@ -12,8 +12,9 @@ import {
     restartService, startService, stopService, getServiceLogs,
     createEnvVar, updateEnvVar, deleteEnvVar,
     createDomain, updateDomain, deleteDomain,
-    updateServiceResources,
-    listBackups, createBackup, restoreBackup, deleteBackup
+    updateServiceResources, updateService, deleteService,
+    listBackups, createBackup, restoreBackup, deleteBackup,
+    createRedirect, deleteRedirect
 } from '../services/api';
 
 export interface ServiceDetailViewProps {
@@ -273,11 +274,11 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                         {activeTab === 'overview' && <OverviewTab service={service} onOpenConsole={() => setIsWebConsoleOpen(true)} />}
 
                         {activeTab === 'environment' && <EnvironmentTab service={service} projectId={project.id} />}
-                        {activeTab === 'networking' && <NetworkingTab service={service} isDatabase={isDatabase} />}
-                        {activeTab === 'source' && <SourceTab service={service} />}
+                        {activeTab === 'networking' && <NetworkingTab service={service} projectId={project.id} isDatabase={isDatabase} />}
+                        {activeTab === 'source' && <SourceTab service={service} projectId={project.id} />}
                         {activeTab === 'deployments' && <DeploymentsTab service={service} />}
                         {activeTab === 'resources' && <ResourcesTab service={service} />}
-                        {activeTab === 'advanced' && <AdvancedTab service={service} />}
+                        {activeTab === 'advanced' && <AdvancedTab service={service} projectId={project.id} />}
 
                         {activeTab === 'credentials' && isDatabase && <CredentialsTab service={service} />}
                         {activeTab === 'backups' && isDatabase && <BackupsTab service={service} />}
@@ -395,7 +396,7 @@ const OverviewTab: React.FC<{ service: Service, onOpenConsole: () => void }> = (
                     <div className="text-slate-500">2023-10-27 10:00:02 [INFO] Connected to database at {service.credentials?.host || 'localhost'}</div>
                     {INITIAL_LOGS.slice(0, 6).map((log, i) => (
                         <div key={i} className="flex gap-2">
-                            <span className="text-slate-600 shrink-0">{log.timestamp.split('T')[1].split('.')[0]}</span>
+                            <span className="text-slate-600 shrink-0">{log.timestamp.split('T')[1]?.split('.')[0] || log.timestamp}</span>
                             <span className={log.level === 'ERROR' ? 'text-red-400' : 'text-slate-300'}>{log.message}</span>
                         </div>
                     ))}
@@ -464,40 +465,67 @@ const CredentialsTab: React.FC<{ service: Service }> = ({ service }) => {
     );
 };
 
-const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ service, isDatabase }) => {
+const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase: boolean }> = ({ service, projectId, isDatabase }) => {
     const [localDomains, setLocalDomains] = useState<Domain[]>(service.domains || []);
     const [isAddingDomain, setIsAddingDomain] = useState(false);
+    const [redirects, setRedirects] = useState<any[]>(service.redirects || []);
 
-    const handleAddDomain = () => {
+    const handleAddDomain = async () => {
         const domain = prompt("Enter domain (e.g., api.example.com):");
         if (!domain) return;
 
         setIsAddingDomain(true);
-        const newDomain: Domain = {
-            id: `d_${Date.now()}`,
-            domain,
-            https: true,
-            main: false,
-            targetPort: service.port,
-            targetProtocol: 'HTTP'
-        };
-
-        // In a real app, this would call createDomain API
-        setTimeout(() => {
+        try {
+            const newDomain = await createDomain({
+                domain,
+                projectId,
+                https: true,
+                targetPort: service.port,
+                targetProtocol: 'HTTP'
+            });
             setLocalDomains([...localDomains, newDomain]);
+        } catch (error) {
+            console.error('Failed to add domain:', error);
+            alert('Failed to add domain');
+        } finally {
             setIsAddingDomain(false);
-        }, 500);
+        }
     };
 
     const handleRemoveDomain = async (id: string) => {
         if (!confirm("Remove this domain routing?")) return;
 
         try {
-            // In a real app, this would call deleteDomain API
+            await deleteDomain(id);
             setLocalDomains(localDomains.filter(d => d.id !== id));
         } catch (error) {
             console.error('Failed to remove domain:', error);
             alert('Failed to remove domain');
+        }
+    };
+
+    const handleAddRedirect = async () => {
+        const from = prompt("Redirect from (e.g. /old):");
+        const to = prompt("Redirect to (e.g. /new):");
+        if (!from || !to) return;
+
+        try {
+            const redirect = await createRedirect(service.id, { from, to, type: 301 });
+            setRedirects([...redirects, redirect]);
+        } catch (error) {
+            console.error('Failed to add redirect:', error);
+            alert('Failed to add redirect');
+        }
+    };
+
+    const handleRemoveRedirect = async (id: string) => {
+        if (!confirm("Remove this redirect?")) return;
+        try {
+            await deleteRedirect(service.id, id);
+            setRedirects(redirects.filter(r => r.id !== id));
+        } catch (error) {
+            console.error('Failed to remove redirect:', error);
+            alert('Failed to remove redirect');
         }
     };
 
@@ -510,9 +538,10 @@ const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ se
                         <h3 className="text-lg font-semibold text-slate-700">Domains</h3>
                         <button
                             onClick={handleAddDomain}
-                            className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200"
+                            disabled={isAddingDomain}
+                            className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200 disabled:opacity-70"
                         >
-                            Add Domain
+                            {isAddingDomain ? 'Adding...' : 'Add Domain'}
                         </button>
                     </div>
                     <div className="space-y-3">
@@ -528,7 +557,7 @@ const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ se
                                         </a>
                                         <span className="text-xs text-slate-400 flex items-center gap-1">
                                             <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                            TLS Active • {domain.targetProtocol} {'->'} {domain.targetPort}
+                                            TLS Active • {domain.targetProtocol || 'HTTP'} {'->'} {domain.targetPort || service.port}
                                         </span>
                                     </div>
                                 </div>
@@ -550,10 +579,36 @@ const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ se
                     </div>
 
                     <div className="mt-8">
-                        <h3 className="text-lg font-semibold text-slate-700 mb-4">Redirects</h3>
-                        <button className="w-full py-2 bg-white border border-dashed border-slate-300 rounded-lg text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
-                            Add Redirect Rule
-                        </button>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-slate-700">Redirects</h3>
+                            <button
+                                onClick={handleAddRedirect}
+                                className="text-sm bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                            >
+                                Add Redirect
+                            </button>
+                        </div>
+
+                        <div className="space-y-2">
+                            {redirects.map((r: any) => (
+                                <div key={r.id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <span className="font-mono text-slate-600">{r.from}</span>
+                                        <ArrowLeft size={14} className="rotate-180 text-slate-400" />
+                                        <span className="font-mono text-slate-600">{r.to}</span>
+                                        <span className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">{r.type}</span>
+                                    </div>
+                                    <button onClick={() => handleRemoveRedirect(r.id)} className="text-slate-400 hover:text-red-500">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                            {redirects.length === 0 && (
+                                <div className="text-center p-4 bg-slate-50 rounded-lg border border-dashed border-slate-200 text-slate-400 text-xs">
+                                    No redirects configured.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </>
             ) : (
@@ -593,59 +648,111 @@ const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ se
     );
 };
 
-const AdvancedTab: React.FC<{ service: Service }> = ({ service }) => (
-    <div className="space-y-6">
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+const AdvancedTab: React.FC<{ service: Service, projectId: string }> = ({ service, projectId }) => {
+    const [image, setImage] = useState(service.image);
+    const [command, setCommand] = useState(service.command || '');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            await updateService(projectId, service.id, {
+                image,
+                command
+            });
+            alert("Changes saved");
+        } catch (error: any) {
+            console.error('Failed to save:', error);
+            alert('Failed to save changes: ' + error.message);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) {
+            return;
+        }
+        try {
+            await deleteService(projectId, service.id);
+            window.location.reload();
+        } catch (error: any) {
+            console.error('Failed to delete service:', error);
+            alert('Failed to delete service: ' + error.message);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Docker Image</label>
+                        <input
+                            type="text"
+                            value={image}
+                            onChange={(e) => setImage(e.target.value)}
+                            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Container User</label>
+                        <input
+                            type="text"
+                            placeholder="root"
+                            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
+                        />
+                    </div>
+                </div>
+
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Docker Image</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Command / Entrypoint</label>
                     <input
                         type="text"
-                        defaultValue={service.image}
+                        value={command}
+                        onChange={(e) => setCommand(e.target.value)}
+                        placeholder="e.g. npm start"
                         className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
                     />
                 </div>
-                <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Container User</label>
-                    <input
-                        type="text"
-                        placeholder="root"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
-                    />
+
+                <div className="pt-4 border-t border-slate-100">
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm disabled:opacity-70"
+                    >
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
                 </div>
             </div>
 
-            <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Command / Entrypoint</label>
-                <input
-                    type="text"
-                    defaultValue={service.command || ''}
-                    placeholder="e.g. npm start"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
-                />
-            </div>
-
-            <div className="pt-4 border-t border-slate-100">
-                <button onClick={() => alert("Changes saved")} className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm">
-                    Save Changes
-                </button>
-            </div>
-        </div>
-
-        <div className="bg-red-50 border border-red-100 rounded-xl p-6">
-            <h3 className="text-red-800 font-bold mb-2">Danger Zone</h3>
-            <p className="text-red-600 text-sm mb-4">Irreversible actions that affect the availability of your service.</p>
-            <div className="flex gap-3">
-                <button className="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
-                    Delete Service
-                </button>
-                <button className="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
-                    Force Rebuild
-                </button>
+            <div className="bg-red-50 border border-red-100 rounded-xl p-6">
+                <h3 className="text-red-800 font-bold mb-2">Danger Zone</h3>
+                <p className="text-red-600 text-sm mb-4">Irreversible actions that affect the availability of your service.</p>
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleDelete}
+                        className="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                    >
+                        Delete Service
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if (confirm('Force rebuild?')) {
+                                await restartService(service.id);
+                                alert('Rebuild triggered');
+                            }
+                        }}
+                        className="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                    >
+                        Force Rebuild
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
     const [isCreatingBackup, setIsCreatingBackup] = useState(false);
@@ -653,7 +760,6 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
     const [backups, setBackups] = useState<any[]>(service.backups || []);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Load backups on mount
     React.useEffect(() => {
         const loadBackups = async () => {
             setIsLoading(true);
@@ -810,7 +916,6 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                 )}
             </div>
 
-            {/* Notification Toast */}
             {backupNotification && (
                 <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
                     <div className={`rounded-xl shadow-2xl border p-4 min-w-[400px] ${backupNotification.type === 'success'
@@ -858,9 +963,8 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
 };
 
 const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
-    // Simulated host capabilities (in a real app, this would come from the backend)
-    const HOST_MAX_CPU = 16; // cores
-    const HOST_MAX_MEMORY = 32768; // MB (32 GB)
+    const HOST_MAX_CPU = 16;
+    const HOST_MAX_MEMORY = 32768;
 
     const [memoryReservation, setMemoryReservation] = useState(service.resources?.memoryReservation || 0);
     const [memoryLimit, setMemoryLimit] = useState(service.resources?.memoryLimit || 0);
@@ -872,39 +976,17 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
     const validateResources = (): boolean => {
         const newErrors: { [key: string]: string } = {};
 
-        // Memory validation
-        if (memoryReservation < 0) {
-            newErrors.memoryReservation = 'Memory reservation cannot be negative';
-        }
-        if (memoryLimit < 0) {
-            newErrors.memoryLimit = 'Memory limit cannot be negative';
-        }
-        if (memoryLimit > 0 && memoryReservation > memoryLimit) {
-            newErrors.memoryReservation = 'Reservation cannot exceed limit';
-        }
-        if (memoryReservation > HOST_MAX_MEMORY) {
-            newErrors.memoryReservation = `Exceeds host capacity (${HOST_MAX_MEMORY} MB available)`;
-        }
-        if (memoryLimit > HOST_MAX_MEMORY) {
-            newErrors.memoryLimit = `Exceeds host capacity (${HOST_MAX_MEMORY} MB available)`;
-        }
+        if (memoryReservation < 0) newErrors.memoryReservation = 'Memory reservation cannot be negative';
+        if (memoryLimit < 0) newErrors.memoryLimit = 'Memory limit cannot be negative';
+        if (memoryLimit > 0 && memoryReservation > memoryLimit) newErrors.memoryReservation = 'Reservation cannot exceed limit';
+        if (memoryReservation > HOST_MAX_MEMORY) newErrors.memoryReservation = `Exceeds host capacity (${HOST_MAX_MEMORY} MB available)`;
+        if (memoryLimit > HOST_MAX_MEMORY) newErrors.memoryLimit = `Exceeds host capacity (${HOST_MAX_MEMORY} MB available)`;
 
-        // CPU validation
-        if (cpuReservation < 0) {
-            newErrors.cpuReservation = 'CPU reservation cannot be negative';
-        }
-        if (cpuLimit < 0) {
-            newErrors.cpuLimit = 'CPU limit cannot be negative';
-        }
-        if (cpuLimit > 0 && cpuReservation > cpuLimit) {
-            newErrors.cpuReservation = 'Reservation cannot exceed limit';
-        }
-        if (cpuReservation > HOST_MAX_CPU) {
-            newErrors.cpuReservation = `Exceeds host capacity (${HOST_MAX_CPU} cores available)`;
-        }
-        if (cpuLimit > HOST_MAX_CPU) {
-            newErrors.cpuLimit = `Exceeds host capacity (${HOST_MAX_CPU} cores available)`;
-        }
+        if (cpuReservation < 0) newErrors.cpuReservation = 'CPU reservation cannot be negative';
+        if (cpuLimit < 0) newErrors.cpuLimit = 'CPU limit cannot be negative';
+        if (cpuLimit > 0 && cpuReservation > cpuLimit) newErrors.cpuReservation = 'Reservation cannot exceed limit';
+        if (cpuReservation > HOST_MAX_CPU) newErrors.cpuReservation = `Exceeds host capacity (${HOST_MAX_CPU} cores available)`;
+        if (cpuLimit > HOST_MAX_CPU) newErrors.cpuLimit = `Exceeds host capacity (${HOST_MAX_CPU} cores available)`;
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -939,7 +1021,6 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Memory */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
                             <HardDrive size={18} className="text-purple-500" />
@@ -1009,7 +1090,6 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                         </div>
                     </div>
 
-                    {/* CPU */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
                             <Cpu size={18} className="text-blue-500" />
@@ -1097,16 +1177,31 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
     );
 };
 
-const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
-    const [activeSourceType, setActiveSourceType] = useState<'docker' | 'git'>((service.source?.type as 'docker' | 'git') || 'docker');
+const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service, projectId }) => {
+    const [activeSourceType, setActiveSourceType] = useState<'docker' | 'git'>(service.source?.type || 'docker');
+    const [image, setImage] = useState(service.image || '');
+    const [repo, setRepo] = useState(service.source?.repo || '');
+    const [branch, setBranch] = useState(service.source?.branch || '');
     const [isSaving, setIsSaving] = useState(false);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsSaving(true);
-        setTimeout(() => {
+        try {
+            await updateService(projectId, service.id, {
+                image: activeSourceType === 'docker' ? image : undefined,
+                source: activeSourceType === 'git' ? {
+                    type: 'git',
+                    repo,
+                    branch
+                } : undefined
+            });
+            alert('Source configuration saved');
+        } catch (error: any) {
+            console.error('Failed to save source:', error);
+            alert('Failed to save source: ' + error.message);
+        } finally {
             setIsSaving(false);
-            alert("Source Configuration Saved!");
-        }, 1000);
+        }
     };
 
     return (
@@ -1140,7 +1235,8 @@ const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Image Name</label>
                             <input
                                 type="text"
-                                defaultValue={service.image}
+                                value={image}
+                                onChange={(e) => setImage(e.target.value)}
                                 placeholder="e.g. nginx:latest"
                                 className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                             />
@@ -1152,7 +1248,8 @@ const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
                                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Repository URL</label>
                                     <input
                                         type="text"
-                                        defaultValue={service.source?.repo || ''}
+                                        value={repo}
+                                        onChange={(e) => setRepo(e.target.value)}
                                         placeholder="https://github.com/org/repo"
                                         className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                                     />
@@ -1163,7 +1260,8 @@ const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
                                         <GitBranch size={16} className="absolute ml-3 text-slate-400" />
                                         <input
                                             type="text"
-                                            defaultValue={service.source?.branch || 'main'}
+                                            value={branch}
+                                            onChange={(e) => setBranch(e.target.value)}
                                             placeholder="main"
                                             className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                                         />
@@ -1204,8 +1302,8 @@ const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
                         disabled={isSaving}
                         className="bg-slate-900 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2"
                     >
-                        {isSaving && <Loader2 size={16} className="animate-spin" />}
-                        {isSaving ? 'Saving...' : 'Save Configuration'}
+                        {isSaving ? <Loader2 size={14} className="animate-spin" /> : null}
+                        {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             </div>
@@ -1318,180 +1416,3 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
         </div>
     );
 };
-
-const EnvironmentTab: React.FC<{ service: Service; projectId: string }> = ({ service, projectId }) => {
-    const [mode, setMode] = useState<'simple' | 'raw'>('simple');
-    const [localEnvVars, setLocalEnvVars] = useState<EnvVar[]>(service.envVars || []);
-    const [isSaving, setIsSaving] = useState(false);
-    const [saveSuccess, setSaveSuccess] = useState(false);
-    const [saveError, setSaveError] = useState<string | null>(null);
-
-    const handleUpdate = (index: number, key: string, value: string) => {
-        const newVars = [...localEnvVars];
-        newVars[index] = { ...newVars[index], key, value };
-        setLocalEnvVars(newVars);
-    };
-
-    const handleDelete = async (index: number) => {
-        const envVar = localEnvVars[index];
-        if (!envVar) return;
-
-        if (envVar.locked) {
-            alert('Cannot delete locked environment variable');
-            return;
-        }
-
-        // If it has an id, delete from backend
-        if (envVar.id) {
-            try {
-                await deleteEnvVar(projectId, envVar.id);
-                setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
-            } catch (error) {
-                console.error('Failed to delete env var:', error);
-                alert('Failed to delete environment variable');
-            }
-        } else {
-            // Just remove from local state if not saved yet
-            setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
-        }
-    };
-
-    const handleAdd = () => {
-        setLocalEnvVars([...localEnvVars, { key: '', value: '' }]);
-    };
-
-    const handleSave = async () => {
-        setIsSaving(true);
-        setSaveSuccess(false);
-        setSaveError(null);
-
-        try {
-            // Validate env vars
-            const hasInvalidVars = localEnvVars.some(v => !v.key.trim() && v.value.trim());
-            if (hasInvalidVars) {
-                setSaveError('All environment variables must have a key');
-                setIsSaving(false);
-                return;
-            }
-
-            // Filter out empty entries
-            const validVars = localEnvVars.filter(v => v.key.trim() && v.value.trim());
-
-            // Process each var: create new ones, update existing ones
-            for (const envVar of validVars) {
-                if (envVar.id) {
-                    // Update existing
-                    await updateEnvVar(projectId, envVar.id, {
-                        key: envVar.key,
-                        value: envVar.value,
-                        isSecret: envVar.isSecret
-                    });
-                } else {
-                    // Create new
-                    const created = await createEnvVar(projectId, {
-                        key: envVar.key,
-                        value: envVar.value,
-                        isSecret: envVar.isSecret
-                    });
-                    // Update local state with the returned id
-                    envVar.id = created.id;
-                }
-            }
-
-            setLocalEnvVars(validVars);
-            setSaveSuccess(true);
-            setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (error: any) {
-            console.error('Failed to save environment variables:', error);
-            setSaveError(error.message || 'Failed to save environment variables');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex bg-slate-200 p-1 rounded-lg">
-                    <button
-                        onClick={() => setMode('simple')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'simple' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
-                    >
-                        Simple
-                    </button>
-                    <button
-                        onClick={() => setMode('raw')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'raw' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
-                    >
-                        Raw .env
-                    </button>
-                </div>
-                <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 ${saveSuccess
-                        ? 'bg-green-500 text-white'
-                        : 'bg-primary text-white hover:bg-blue-600 shadow-blue-200'
-                        } disabled:opacity-70`}
-                >
-                    {isSaving && <Loader2 size={14} className="animate-spin" />}
-                    {saveSuccess && <Check size={14} />}
-                    {saveSuccess ? 'Saved!' : isSaving ? 'Saving...' : 'Save Variables'}
-                </button>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                {mode === 'simple' ? (
-                    <div className="divide-y divide-slate-100">
-                        {localEnvVars.map((env, i) => (
-                            <div key={i} className="p-3 flex items-start gap-3 group hover:bg-slate-50 transition-colors">
-                                <div className="flex-1 space-y-1">
-                                    <input
-                                        type="text"
-                                        value={env.key}
-                                        onChange={(e) => handleUpdate(i, e.target.value, env.value)}
-                                        className="w-full text-xs font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 placeholder-slate-300"
-                                        placeholder="KEY"
-                                        readOnly={env.locked}
-                                    />
-                                    <input
-                                        type="text"
-                                        value={env.value}
-                                        onChange={(e) => handleUpdate(i, env.key, e.target.value)}
-                                        className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded px-2 py-1.5 focus:border-primary focus:outline-none"
-                                        placeholder="Value"
-                                        readOnly={env.locked}
-                                    />
-                                </div>
-                                <div className="pt-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                    {env.locked ? (
-                                        <LockIcon size={16} className="text-amber-500" />
-                                    ) : (
-                                        <button onClick={() => handleDelete(i)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                        <div className="p-3">
-                            <button onClick={handleAdd} className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors uppercase tracking-wide">
-                                <Plus size={14} /> Add Variable
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="relative">
-                        <textarea
-                            defaultValue={localEnvVars.map(e => `${e.key}=${e.value}`).join('\n')}
-                            className="w-full h-96 p-4 font-mono text-xs text-slate-700 leading-relaxed resize-none focus:outline-none"
-                            spellCheck={false}
-                        />
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-const LockIcon = ({ size, className }: { size: number, className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-);
