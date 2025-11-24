@@ -8,7 +8,13 @@ import {
 } from 'lucide-react';
 import { WebTerminal } from './WebTerminal';
 import { INITIAL_LOGS } from '../constants';
-import { restartService, startService, stopService, getServiceLogs } from '../services/api';
+import {
+    restartService, startService, stopService, getServiceLogs,
+    createEnvVar, updateEnvVar, deleteEnvVar,
+    createDomain, updateDomain, deleteDomain,
+    updateServiceResources,
+    listBackups, createBackup, restoreBackup, deleteBackup
+} from '../services/api';
 
 export interface ServiceDetailViewProps {
     service: Service;
@@ -266,7 +272,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                     <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {activeTab === 'overview' && <OverviewTab service={service} onOpenConsole={() => setIsWebConsoleOpen(true)} />}
 
-                        {activeTab === 'environment' && <EnvironmentTab service={service} />}
+                        {activeTab === 'environment' && <EnvironmentTab service={service} projectId={project.id} />}
                         {activeTab === 'networking' && <NetworkingTab service={service} isDatabase={isDatabase} />}
                         {activeTab === 'source' && <SourceTab service={service} />}
                         {activeTab === 'deployments' && <DeploymentsTab service={service} />}
@@ -644,38 +650,96 @@ const AdvancedTab: React.FC<{ service: Service }> = ({ service }) => (
 const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
     const [isCreatingBackup, setIsCreatingBackup] = useState(false);
     const [backupNotification, setBackupNotification] = useState<ErrorNotification | null>(null);
+    const [backups, setBackups] = useState<any[]>(service.backups || []);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleCreateBackup = () => {
+    // Load backups on mount
+    React.useEffect(() => {
+        const loadBackups = async () => {
+            setIsLoading(true);
+            try {
+                const data = await listBackups(service.id);
+                setBackups(data);
+            } catch (error) {
+                console.error('Failed to load backups:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadBackups();
+    }, [service.id]);
+
+    const handleCreateBackup = async () => {
         setIsCreatingBackup(true);
         setBackupNotification(null);
 
-        setTimeout(() => {
-            setIsCreatingBackup(false);
-            // Simulate random success/failure for backup creation
-            if (Math.random() > 0.2) {
-                const backupId = Math.random().toString(36).substr(2, 9);
-                setBackupNotification({
-                    type: 'success',
-                    title: 'Backup Created',
-                    message: `Backup ${service.name}-${backupId}.sql created successfully. Size: ${(Math.random() * 500 + 50).toFixed(2)} MB`
-                });
-            } else {
-                const errors = [
-                    'S3 connection failed: Invalid credentials or expired token',
-                    'Insufficient storage space in bucket: 95% capacity reached',
-                    'Database connection timeout: Unable to acquire lock after 30 seconds',
-                    'Backup failed: Transaction log is full, increase retention policy',
-                ];
-                setBackupNotification({
-                    type: 'error',
-                    title: 'Backup Failed',
-                    message: errors[Math.floor(Math.random() * errors.length)]
-                });
-            }
+        try {
+            const backupName = `${service.name}-${new Date().toISOString().split('T')[0]}`;
+            const backup = await createBackup(service.id, backupName);
 
-            // Auto-dismiss after 5 seconds
+            setBackups([backup, ...backups]);
+            setBackupNotification({
+                type: 'success',
+                title: 'Backup Created',
+                message: `Backup ${backup.filename || backup.name} created successfully.`
+            });
+        } catch (error: any) {
+            setBackupNotification({
+                type: 'error',
+                title: 'Backup Failed',
+                message: error.message || 'Failed to create backup'
+            });
+        } finally {
+            setIsCreatingBackup(false);
             setTimeout(() => setBackupNotification(null), 5000);
-        }, 2000);
+        }
+    };
+
+    const handleRestoreBackup = async (backupId: string) => {
+        if (!confirm('Are you sure you want to restore this backup? This will overwrite the current database.')) {
+            return;
+        }
+
+        try {
+            await restoreBackup(service.id, backupId);
+            setBackupNotification({
+                type: 'success',
+                title: 'Backup Restored',
+                message: 'Database restored successfully from backup.'
+            });
+        } catch (error: any) {
+            setBackupNotification({
+                type: 'error',
+                title: 'Restore Failed',
+                message: error.message || 'Failed to restore backup'
+            });
+        } finally {
+            setTimeout(() => setBackupNotification(null), 5000);
+        }
+    };
+
+    const handleDeleteBackup = async (backupId: string) => {
+        if (!confirm('Are you sure you want to delete this backup? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await deleteBackup(service.id, backupId);
+            setBackups(backups.filter(b => b.id !== backupId));
+            setBackupNotification({
+                type: 'success',
+                title: 'Backup Deleted',
+                message: 'Backup deleted successfully.'
+            });
+        } catch (error: any) {
+            setBackupNotification({
+                type: 'error',
+                title: 'Delete Failed',
+                message: error.message || 'Failed to delete backup'
+            });
+        } finally {
+            setTimeout(() => setBackupNotification(null), 5000);
+        }
     };
 
     return (
@@ -693,7 +757,12 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                {service.backups && service.backups.length > 0 ? (
+                {isLoading ? (
+                    <div className="p-12 text-center text-slate-500">
+                        <Loader2 size={32} className="mx-auto mb-3 text-slate-300 animate-spin" />
+                        <p>Loading backups...</p>
+                    </div>
+                ) : backups && backups.length > 0 ? (
                     <table className="w-full text-sm text-left">
                         <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
                             <tr>
@@ -705,18 +774,29 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {service.backups.map(bk => (
+                            {backups.map(bk => (
                                 <tr key={bk.id} className="hover:bg-slate-50/50">
-                                    <td className="px-6 py-4 font-mono text-slate-600">{bk.filename}</td>
-                                    <td className="px-6 py-4 text-slate-600">{bk.size}</td>
-                                    <td className="px-6 py-4 text-slate-600">{bk.timestamp}</td>
+                                    <td className="px-6 py-4 font-mono text-slate-600">{bk.filename || bk.name}</td>
+                                    <td className="px-6 py-4 text-slate-600">{bk.size || 'N/A'}</td>
+                                    <td className="px-6 py-4 text-slate-600">{bk.timestamp || bk.createdAt}</td>
                                     <td className="px-6 py-4">
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                            {bk.status}
+                                            {bk.status || 'Complete'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className="text-primary hover:underline font-medium">Download</button>
+                                    <td className="px-6 py-4 text-right space-x-2">
+                                        <button
+                                            onClick={() => handleRestoreBackup(bk.id)}
+                                            className="text-primary hover:underline font-medium"
+                                        >
+                                            Restore
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteBackup(bk.id)}
+                                            className="text-red-600 hover:underline font-medium"
+                                        >
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -830,13 +910,23 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleUpdate = () => {
+    const handleUpdate = async () => {
         if (validateResources()) {
             setIsSaving(true);
-            setTimeout(() => {
-                setIsSaving(false);
+            try {
+                await updateServiceResources(service.id, {
+                    cpuLimit,
+                    cpuReservation,
+                    memoryLimit,
+                    memoryReservation
+                });
                 alert(`Resources updated successfully for ${service.name}`);
-            }, 1500);
+            } catch (error: any) {
+                console.error('Failed to update resources:', error);
+                alert(`Failed to update resources: ${error.message || 'Unknown error'}`);
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -1229,11 +1319,12 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
     );
 };
 
-const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
+const EnvironmentTab: React.FC<{ service: Service; projectId: string }> = ({ service, projectId }) => {
     const [mode, setMode] = useState<'simple' | 'raw'>('simple');
     const [localEnvVars, setLocalEnvVars] = useState<EnvVar[]>(service.envVars || []);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     const handleUpdate = (index: number, key: string, value: string) => {
         const newVars = [...localEnvVars];
@@ -1241,12 +1332,28 @@ const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
         setLocalEnvVars(newVars);
     };
 
-    const handleDelete = (index: number) => {
-        if (localEnvVars[index].locked) {
+    const handleDelete = async (index: number) => {
+        const envVar = localEnvVars[index];
+        if (!envVar) return;
+
+        if (envVar.locked) {
             alert('Cannot delete locked environment variable');
             return;
         }
-        setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
+
+        // If it has an id, delete from backend
+        if (envVar.id) {
+            try {
+                await deleteEnvVar(projectId, envVar.id);
+                setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
+            } catch (error) {
+                console.error('Failed to delete env var:', error);
+                alert('Failed to delete environment variable');
+            }
+        } else {
+            // Just remove from local state if not saved yet
+            setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
+        }
     };
 
     const handleAdd = () => {
@@ -1256,12 +1363,13 @@ const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
     const handleSave = async () => {
         setIsSaving(true);
         setSaveSuccess(false);
+        setSaveError(null);
 
         try {
             // Validate env vars
             const hasInvalidVars = localEnvVars.some(v => !v.key.trim() && v.value.trim());
             if (hasInvalidVars) {
-                alert('All environment variables must have a key');
+                setSaveError('All environment variables must have a key');
                 setIsSaving(false);
                 return;
             }
@@ -1269,14 +1377,33 @@ const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
             // Filter out empty entries
             const validVars = localEnvVars.filter(v => v.key.trim() && v.value.trim());
 
-            // In a real app, this would call updateEnvVars API
-            await new Promise(resolve => setTimeout(resolve, 800));
+            // Process each var: create new ones, update existing ones
+            for (const envVar of validVars) {
+                if (envVar.id) {
+                    // Update existing
+                    await updateEnvVar(projectId, envVar.id, {
+                        key: envVar.key,
+                        value: envVar.value,
+                        isSecret: envVar.isSecret
+                    });
+                } else {
+                    // Create new
+                    const created = await createEnvVar(projectId, {
+                        key: envVar.key,
+                        value: envVar.value,
+                        isSecret: envVar.isSecret
+                    });
+                    // Update local state with the returned id
+                    envVar.id = created.id;
+                }
+            }
 
+            setLocalEnvVars(validVars);
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save environment variables:', error);
-            alert('Failed to save environment variables');
+            setSaveError(error.message || 'Failed to save environment variables');
         } finally {
             setIsSaving(false);
         }
@@ -1302,11 +1429,10 @@ const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 ${
-                        saveSuccess
-                            ? 'bg-green-500 text-white'
-                            : 'bg-primary text-white hover:bg-blue-600 shadow-blue-200'
-                    } disabled:opacity-70`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 ${saveSuccess
+                        ? 'bg-green-500 text-white'
+                        : 'bg-primary text-white hover:bg-blue-600 shadow-blue-200'
+                        } disabled:opacity-70`}
                 >
                     {isSaving && <Loader2 size={14} className="animate-spin" />}
                     {saveSuccess && <Check size={14} />}

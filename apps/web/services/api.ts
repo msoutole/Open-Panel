@@ -144,6 +144,16 @@ export const createEnvVar = async (projectId: string, data: { key: string; value
   return result.envVar;
 };
 
+export const updateEnvVar = async (projectId: string, envVarId: string, data: { key?: string; value?: string; isSecret?: boolean }): Promise<EnvVar> => {
+  const response = await fetch(`${API_URL}/projects/${projectId}/env-vars/${envVarId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<{ envVar: EnvVar }>(response);
+  return result.envVar;
+};
+
 export const deleteEnvVar = async (projectId: string, envVarId: string): Promise<void> => {
   const response = await fetch(`${API_URL}/projects/${projectId}/env-vars/${envVarId}`, {
     method: 'DELETE',
@@ -227,7 +237,63 @@ export const createDomain = async (data: { name: string; projectId: string; sslE
   return result.domain;
 };
 
+export const updateDomain = async (id: string, data: { name?: string; sslEnabled?: boolean }): Promise<Domain> => {
+  const response = await fetch(`${API_URL}/domains/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<{ domain: Domain }>(response);
+  return result.domain;
+};
+
 export const deleteDomain = async (id: string): Promise<void> => {
   const response = await fetch(`${API_URL}/domains/${id}`, { method: 'DELETE' });
+  await handleResponse(response);
+};
+
+// --- Resources ---
+
+export const updateServiceResources = async (
+  serviceId: string,
+  data: { cpuLimit?: number; cpuReservation?: number; memoryLimit?: number; memoryReservation?: number }
+): Promise<void> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/resources`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  await handleResponse(response);
+};
+
+// --- Backups (for database services) ---
+
+export const listBackups = async (serviceId: string): Promise<any[]> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/backups`);
+  const data = await handleResponse<{ backups: any[] }>(response);
+  return data.backups;
+};
+
+export const createBackup = async (serviceId: string, name?: string): Promise<any> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/backups`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  const result = await handleResponse<{ backup: any }>(response);
+  return result.backup;
+};
+
+export const restoreBackup = async (serviceId: string, backupId: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/backups/${backupId}/restore`, {
+    method: 'POST',
+  });
+  await handleResponse(response);
+};
+
+export const deleteBackup = async (serviceId: string, backupId: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/backups/${backupId}`, {
+    method: 'DELETE',
+  });
   await handleResponse(response);
 };

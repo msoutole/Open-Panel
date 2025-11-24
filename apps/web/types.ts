@@ -19,6 +19,7 @@ export interface EnvVar {
   key: string;
   value: string;
   locked?: boolean;
+  isSecret?: boolean;
 }
 
 export interface Deployment {
