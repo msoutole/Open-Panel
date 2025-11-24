@@ -39,30 +39,30 @@ export interface Backup {
 }
 
 export interface ServiceSource {
-    type: 'git' | 'docker';
-    image?: string;
-    repo?: string;
-    branch?: string;
-    autoDeploy?: boolean;
-    gitCredentialId?: string;
-    dockerCredentialId?: string;
+  type: 'git' | 'docker';
+  image?: string;
+  repo?: string;
+  branch?: string;
+  autoDeploy?: boolean;
+  gitCredentialId?: string;
+  dockerCredentialId?: string;
 }
 
 export interface RedirectRule {
-    id: string;
-    from: string;
-    to: string;
-    type: 301 | 302;
+  id: string;
+  from: string;
+  to: string;
+  type: 301 | 302;
 }
 
 export interface Domain {
-    id: string;
-    domain: string;
-    path?: string;
-    https: boolean;
-    main: boolean;
-    targetPort?: number;
-    targetProtocol?: 'HTTP' | 'HTTPS' | 'TCP';
+  id: string;
+  domain: string;
+  path?: string;
+  https: boolean;
+  main: boolean;
+  targetPort?: number;
+  targetProtocol?: 'HTTP' | 'HTTPS' | 'TCP';
 }
 
 export interface Service {
@@ -78,7 +78,7 @@ export interface Service {
   deploymentToken?: string;
   command?: string;
   exposedPort?: number;
-  
+
   // Enhanced Fields
   source?: ServiceSource;
   deployments?: Deployment[];
@@ -98,10 +98,10 @@ export interface Service {
     ipAllowList: string[];
   };
   resources?: {
-      cpuLimit: number;
-      memoryLimit: number;
-      cpuReservation: number;
-      memoryReservation: number;
+    cpuLimit: number;
+    memoryLimit: number;
+    cpuReservation: number;
+    memoryReservation: number;
   };
 }
 
@@ -183,8 +183,44 @@ export interface AgentConfig {
   responseStyle: AgentResponseStyle;
 }
 
+
 export interface MCPTool {
   name: string;
   description: string;
   inputSchema: Record<string, any>;
 }
+
+// --- Service Creation Types ---
+
+export type SourceType = 'docker' | 'git';
+export type DatabaseType = 'postgres' | 'mysql' | 'mongodb' | 'redis';
+
+export interface CreateServiceData {
+  name: string;
+  type: ServiceType;
+  source?: {
+    type: SourceType;
+    image?: string;
+    repository?: string;
+    branch?: string;
+    buildCommand?: string;
+    startCommand?: string;
+  };
+  port?: number;
+  exposedPort?: number;
+  env?: Record<string, string>;
+  database?: {
+    type: DatabaseType;
+    version: string;
+    username: string;
+    password: string;
+    database: string;
+  };
+  resources?: {
+    cpuLimit?: number;
+    memoryLimit?: number;
+    cpuReservation?: number;
+    memoryReservation?: number;
+  };
+}
+

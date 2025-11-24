@@ -1,4 +1,4 @@
-import { Project, Service, EnvVar, Domain, Deployment } from '../types';
+import { Project, Service, EnvVar, Domain, Deployment, CreateServiceData } from '../types';
 
 const API_URL = 'http://localhost:3001';
 
@@ -47,6 +47,41 @@ export const updateProject = async (id: string, data: Partial<Project>): Promise
 
 export const deleteProject = async (id: string): Promise<void> => {
   const response = await fetch(`${API_URL}/projects/${id}`, {
+    method: 'DELETE',
+  });
+  await handleResponse(response);
+};
+
+// --- Services ---
+
+export const createService = async (projectId: string, data: CreateServiceData): Promise<Service> => {
+  const response = await fetch(`${API_URL}/projects/${projectId}/services`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<{ service: Service }>(response);
+  return result.service;
+};
+
+export const getService = async (projectId: string, serviceId: string): Promise<Service> => {
+  const response = await fetch(`${API_URL}/projects/${projectId}/services/${serviceId}`);
+  const data = await handleResponse<{ service: Service }>(response);
+  return data.service;
+};
+
+export const updateService = async (projectId: string, serviceId: string, data: Partial<Service>): Promise<Service> => {
+  const response = await fetch(`${API_URL}/projects/${projectId}/services/${serviceId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<{ service: Service }>(response);
+  return result.service;
+};
+
+export const deleteService = async (projectId: string, serviceId: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/projects/${projectId}/services/${serviceId}`, {
     method: 'DELETE',
   });
   await handleResponse(response);
