@@ -216,8 +216,8 @@ After a tool runs, interpret the JSON output into a human-readable summary.`;
 
 // Google Adapter
 const callGoogle = async (config: AgentConfig, history: Message[], userMsg: string, imagePart?: any) => {
-    const apiKey = config.apiKey || process.env.API_KEY || '';
-    if (!apiKey) throw new Error("API Key is missing for Gemini.");
+    const apiKey = config.apiKey || '';
+    if (!apiKey) throw new Error("API Key is missing for Gemini. Please enter your API key in the settings.");
 
     const ai = new GoogleGenAI({ apiKey });
     
@@ -269,9 +269,6 @@ export const GeminiChat: React.FC = () => {
           mcpPort: 8080,
           responseStyle: 'friendly'
       };
-      if (!saved && process.env.API_KEY) {
-          defaults.apiKey = process.env.API_KEY;
-      }
       return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });
 

@@ -11,7 +11,13 @@ export const SecurityView: React.FC = () => {
     setAnalyzing(true);
     setAnalysis(null);
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        // NOTE: AI analysis requires Gemini API key
+        // In production, this should call a backend endpoint that securely uses the API key
+        const apiKey = localStorage.getItem('gemini_api_key') || '';
+        if (!apiKey) {
+            throw new Error('Gemini API key not configured. Please set it in the settings first.');
+        }
+        const ai = new GoogleGenAI({ apiKey });
         
         // Prepare detailed context data for the AI
         const contextData = {
