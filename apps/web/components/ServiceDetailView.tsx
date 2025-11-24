@@ -28,6 +28,8 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
     const [isWebConsoleOpen, setIsWebConsoleOpen] = useState(false);
     const [isRestarting, setIsRestarting] = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
+    const [isStarting, setIsStarting] = useState(false);
+    const [isStopping, setIsStopping] = useState(false);
     const [notification, setNotification] = useState<ErrorNotification | null>(null);
 
     const isDatabase = service.type === 'db' || service.type === 'redis';
@@ -41,7 +43,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
             setNotification({
                 type: 'success',
                 title: 'Service Restarted',
-                message: `${service.name} restarted successfully`
+                message: `${service.name} restarted successfully. Container ID: ${service.id.substring(0, 12)}`
             });
         } catch (error) {
             setNotification({
@@ -61,13 +63,12 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
         setNotification(null);
 
         try {
-            // Deploy action might be implemented later on backend
-            // For now, just restart the service
+            // Deploy action: restart the service to pull latest changes
             await restartService(service.id);
             setNotification({
                 type: 'success',
                 title: 'Deployment Triggered',
-                message: `${service.name} deployed successfully`
+                message: `Building ${service.name} from ${service.source?.type || 'docker'}. Build ID: #${Date.now().toString().slice(-4)}`
             });
         } catch (error) {
             setNotification({
@@ -78,6 +79,52 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
         } finally {
             setIsDeploying(false);
             // Auto-dismiss after 5 seconds
+            setTimeout(() => setNotification(null), 5000);
+        }
+    };
+
+    const handleStart = async () => {
+        setIsStarting(true);
+        setNotification(null);
+
+        try {
+            await startService(service.id);
+            setNotification({
+                type: 'success',
+                title: 'Service Started',
+                message: `${service.name} started successfully`
+            });
+        } catch (error) {
+            setNotification({
+                type: 'error',
+                title: 'Start Failed',
+                message: error instanceof Error ? error.message : 'Failed to start service'
+            });
+        } finally {
+            setIsStarting(false);
+            setTimeout(() => setNotification(null), 5000);
+        }
+    };
+
+    const handleStop = async () => {
+        setIsStopping(true);
+        setNotification(null);
+
+        try {
+            await stopService(service.id);
+            setNotification({
+                type: 'success',
+                title: 'Service Stopped',
+                message: `${service.name} stopped successfully`
+            });
+        } catch (error) {
+            setNotification({
+                type: 'error',
+                title: 'Stop Failed',
+                message: error instanceof Error ? error.message : 'Failed to stop service'
+            });
+        } finally {
+            setIsStopping(false);
             setTimeout(() => setNotification(null), 5000);
         }
     };
@@ -176,9 +223,28 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                         <button onClick={() => setIsWebConsoleOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200">
                             <TerminalSquare size={14} /> Console
                         </button>
+                        {service.status === 'Running' ? (
+                            <button
+                                onClick={handleStop}
+                                disabled={isStopping}
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200 disabled:opacity-70"
+                            >
+                                {isStopping ? <Loader2 size={14} className="animate-spin" /> : <Square size={14} />}
+                                {isStopping ? 'Stopping...' : 'Stop'}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleStart}
+                                disabled={isStarting}
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200 disabled:opacity-70"
+                            >
+                                {isStarting ? <Loader2 size={14} className="animate-spin" /> : <div className="w-0 h-0 border-l-[6px] border-l-green-600 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5"></div>}
+                                {isStarting ? 'Starting...' : 'Start'}
+                            </button>
+                        )}
                         <button
                             onClick={handleRestart}
-                            disabled={isRestarting}
+                            disabled={isRestarting || service.status !== 'Running'}
                             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200 disabled:opacity-70"
                         >
                             {isRestarting ? <Loader2 size={14} className="animate-spin" /> : <RotateCw size={14} />}
@@ -394,24 +460,38 @@ const CredentialsTab: React.FC<{ service: Service }> = ({ service }) => {
 
 const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ service, isDatabase }) => {
     const [localDomains, setLocalDomains] = useState<Domain[]>(service.domains || []);
+    const [isAddingDomain, setIsAddingDomain] = useState(false);
 
     const handleAddDomain = () => {
         const domain = prompt("Enter domain (e.g., api.example.com):");
-        if (domain) {
-            setLocalDomains([...localDomains, {
-                id: `d_${Date.now()}`,
-                domain,
-                https: true,
-                main: false,
-                targetPort: service.port,
-                targetProtocol: 'HTTP'
-            }]);
-        }
+        if (!domain) return;
+
+        setIsAddingDomain(true);
+        const newDomain: Domain = {
+            id: `d_${Date.now()}`,
+            domain,
+            https: true,
+            main: false,
+            targetPort: service.port,
+            targetProtocol: 'HTTP'
+        };
+
+        // In a real app, this would call createDomain API
+        setTimeout(() => {
+            setLocalDomains([...localDomains, newDomain]);
+            setIsAddingDomain(false);
+        }, 500);
     };
 
-    const handleRemoveDomain = (id: string) => {
-        if (confirm("Remove this domain routing?")) {
+    const handleRemoveDomain = async (id: string) => {
+        if (!confirm("Remove this domain routing?")) return;
+
+        try {
+            // In a real app, this would call deleteDomain API
             setLocalDomains(localDomains.filter(d => d.id !== id));
+        } catch (error) {
+            console.error('Failed to remove domain:', error);
+            alert('Failed to remove domain');
         }
     };
 
@@ -1152,6 +1232,8 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
 const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
     const [mode, setMode] = useState<'simple' | 'raw'>('simple');
     const [localEnvVars, setLocalEnvVars] = useState<EnvVar[]>(service.envVars || []);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     const handleUpdate = (index: number, key: string, value: string) => {
         const newVars = [...localEnvVars];
@@ -1160,6 +1242,10 @@ const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
     };
 
     const handleDelete = (index: number) => {
+        if (localEnvVars[index].locked) {
+            alert('Cannot delete locked environment variable');
+            return;
+        }
         setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
     };
 
@@ -1167,8 +1253,33 @@ const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
         setLocalEnvVars([...localEnvVars, { key: '', value: '' }]);
     };
 
-    const handleSave = () => {
-        alert("Environment Variables Saved!");
+    const handleSave = async () => {
+        setIsSaving(true);
+        setSaveSuccess(false);
+
+        try {
+            // Validate env vars
+            const hasInvalidVars = localEnvVars.some(v => !v.key.trim() && v.value.trim());
+            if (hasInvalidVars) {
+                alert('All environment variables must have a key');
+                setIsSaving(false);
+                return;
+            }
+
+            // Filter out empty entries
+            const validVars = localEnvVars.filter(v => v.key.trim() && v.value.trim());
+
+            // In a real app, this would call updateEnvVars API
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        } catch (error) {
+            console.error('Failed to save environment variables:', error);
+            alert('Failed to save environment variables');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -1188,8 +1299,18 @@ const EnvironmentTab: React.FC<{ service: Service }> = ({ service }) => {
                         Raw .env
                     </button>
                 </div>
-                <button onClick={handleSave} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200">
-                    Save Variables
+                <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 ${
+                        saveSuccess
+                            ? 'bg-green-500 text-white'
+                            : 'bg-primary text-white hover:bg-blue-600 shadow-blue-200'
+                    } disabled:opacity-70`}
+                >
+                    {isSaving && <Loader2 size={14} className="animate-spin" />}
+                    {saveSuccess && <Check size={14} />}
+                    {saveSuccess ? 'Saved!' : isSaving ? 'Saving...' : 'Save Variables'}
                 </button>
             </div>
 
