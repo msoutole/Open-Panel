@@ -469,6 +469,23 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
     const [localDomains, setLocalDomains] = useState<Domain[]>(service.domains || []);
     const [isAddingDomain, setIsAddingDomain] = useState(false);
     const [redirects, setRedirects] = useState<any[]>(service.redirects || []);
+    const [exposedPort, setExposedPort] = useState(service.exposedPort || 0);
+    const [isSavingPort, setIsSavingPort] = useState(false);
+
+    const handleSaveExposedPort = async () => {
+        setIsSavingPort(true);
+        try {
+            await updateService(projectId, service.id, {
+                exposedPort
+            });
+            alert('Exposed port updated successfully');
+        } catch (error: any) {
+            console.error('Failed to update exposed port:', error);
+            alert('Failed to update exposed port: ' + error.message);
+        } finally {
+            setIsSavingPort(false);
+        }
+    };
 
     const handleAddDomain = async () => {
         const domain = prompt("Enter domain (e.g., api.example.com):");
@@ -631,11 +648,18 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
                                     <div className="flex gap-2">
                                         <input
                                             type="number"
-                                            defaultValue={service.exposedPort || 0}
+                                            value={exposedPort}
+                                            onChange={(e) => setExposedPort(Number(e.target.value))}
                                             placeholder="e.g. 5432"
                                             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                                         />
-                                        <button className="bg-slate-900 text-white px-4 rounded-lg text-sm font-medium hover:bg-slate-800">Save</button>
+                                        <button
+                                            onClick={handleSaveExposedPort}
+                                            disabled={isSavingPort}
+                                            className="bg-slate-900 text-white px-4 rounded-lg text-sm font-medium hover:bg-slate-800 disabled:opacity-70"
+                                        >
+                                            {isSavingPort ? 'Saving...' : 'Save'}
+                                        </button>
                                     </div>
                                     <p className="text-xs text-slate-400 mt-1">Set to 0 to disable public access.</p>
                                 </div>
@@ -1416,3 +1440,172 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
         </div>
     );
 };
+
+const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ service, projectId }) => {
+    const [localEnvVars, setLocalEnvVars] = useState<EnvVar[]>(service.envVars || []);
+    const [mode, setMode] = useState<'simple' | 'raw'>('simple');
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+
+    const handleUpdate = (index: number, key: string, value: string) => {
+        const newVars = [...localEnvVars];
+        newVars[index] = { ...newVars[index], key, value };
+        setLocalEnvVars(newVars);
+    };
+
+    const handleDelete = async (index: number) => {
+        const envVar = localEnvVars[index];
+        if (!envVar) return;
+
+        if (envVar.locked) {
+            alert('Cannot delete locked environment variable');
+            return;
+        }
+
+        if (envVar.id) {
+            try {
+                await deleteEnvVar(projectId, envVar.id);
+                setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
+            } catch (error) {
+                console.error('Failed to delete env var:', error);
+                alert('Failed to delete environment variable');
+            }
+        } else {
+            setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
+        }
+    };
+
+    const handleAdd = () => {
+        setLocalEnvVars([...localEnvVars, { key: '', value: '', isSecret: false }]);
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        setSaveSuccess(false);
+        setSaveError(null);
+
+        try {
+            const hasInvalidVars = localEnvVars.some(v => !v.key.trim() && v.value.trim());
+            if (hasInvalidVars) {
+                setSaveError('All environment variables must have a key');
+                setIsSaving(false);
+                return;
+            }
+
+            const validVars = localEnvVars.filter(v => v.key.trim() && v.value.trim());
+
+            for (const envVar of validVars) {
+                if (envVar.id) {
+                    await updateEnvVar(projectId, envVar.id, {
+                        key: envVar.key,
+                        value: envVar.value,
+                        isSecret: envVar.isSecret
+                    });
+                } else {
+                    const created = await createEnvVar(projectId, {
+                        key: envVar.key,
+                        value: envVar.value,
+                        isSecret: envVar.isSecret
+                    });
+                    envVar.id = created.id;
+                }
+            }
+
+            setLocalEnvVars(validVars);
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        } catch (error: any) {
+            console.error('Failed to save environment variables:', error);
+            setSaveError(error.message || 'Failed to save environment variables');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div className="flex bg-slate-200 p-1 rounded-lg">
+                    <button
+                        onClick={() => setMode('simple')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'simple' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
+                    >
+                        Simple
+                    </button>
+                    <button
+                        onClick={() => setMode('raw')}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'raw' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
+                    >
+                        Raw .env
+                    </button>
+                </div>
+                <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 ${saveSuccess
+                        ? 'bg-green-500 text-white'
+                        : 'bg-primary text-white hover:bg-blue-600 shadow-blue-200'
+                        } disabled:opacity-70`}
+                >
+                    {isSaving && <Loader2 size={14} className="animate-spin" />}
+                    {saveSuccess && <Check size={14} />}
+                    {saveSuccess ? 'Saved!' : isSaving ? 'Saving...' : 'Save Variables'}
+                </button>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                {mode === 'simple' ? (
+                    <div className="divide-y divide-slate-100">
+                        {localEnvVars.map((env, i) => (
+                            <div key={i} className="p-3 flex items-start gap-3 group hover:bg-slate-50 transition-colors">
+                                <div className="flex-1 space-y-1">
+                                    <input
+                                        type="text"
+                                        value={env.key}
+                                        onChange={(e) => handleUpdate(i, e.target.value, env.value)}
+                                        className="w-full text-xs font-bold text-slate-700 bg-transparent border-none p-0 focus:ring-0 placeholder-slate-300"
+                                        placeholder="KEY"
+                                        readOnly={env.locked}
+                                    />
+                                    <input
+                                        type="text"
+                                        value={env.value}
+                                        onChange={(e) => handleUpdate(i, env.key, e.target.value)}
+                                        className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded px-2 py-1.5 focus:border-primary focus:outline-none"
+                                        placeholder="Value"
+                                        readOnly={env.locked}
+                                    />
+                                </div>
+                                <div className="pt-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                    {env.locked ? (
+                                        <LockIcon size={16} className="text-amber-500" />
+                                    ) : (
+                                        <button onClick={() => handleDelete(i)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                        <div className="p-3">
+                            <button onClick={handleAdd} className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors uppercase tracking-wide">
+                                <Plus size={14} /> Add Variable
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="relative">
+                        <textarea
+                            defaultValue={localEnvVars.map(e => `${e.key}=${e.value}`).join('\n')}
+                            className="w-full h-96 p-4 font-mono text-xs text-slate-700 leading-relaxed resize-none focus:outline-none"
+                            spellCheck={false}
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const LockIcon = ({ size, className }: { size: number, className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+);
