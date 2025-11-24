@@ -15,6 +15,7 @@ export interface TraefikConfig {
 }
 
 export interface EnvVar {
+  id?: string;
   key: string;
   value: string;
   locked?: boolean;
