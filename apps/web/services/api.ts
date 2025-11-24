@@ -87,6 +87,45 @@ export const deleteService = async (projectId: string, serviceId: string): Promi
   await handleResponse(response);
 };
 
+// --- Service/Container Control ---
+
+export const restartService = async (serviceId: string, timeout: number = 10): Promise<void> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/restart`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ timeout }),
+  });
+  await handleResponse(response);
+};
+
+export const startService = async (serviceId: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/start`, {
+    method: 'POST',
+  });
+  await handleResponse(response);
+};
+
+export const stopService = async (serviceId: string, timeout: number = 10): Promise<void> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/stop`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ timeout }),
+  });
+  await handleResponse(response);
+};
+
+export const getServiceLogs = async (serviceId: string, tail: number = 100): Promise<string> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/logs?tail=${tail}`);
+  const data = await handleResponse<{ logs: string }>(response);
+  return data.logs;
+};
+
+export const getServiceStats = async (serviceId: string): Promise<any> => {
+  const response = await fetch(`${API_URL}/containers/${serviceId}/stats`);
+  const data = await handleResponse<{ stats: any }>(response);
+  return data.stats;
+};
+
 // --- Environment Variables ---
 
 export const getProjectEnvVars = async (projectId: string): Promise<EnvVar[]> => {

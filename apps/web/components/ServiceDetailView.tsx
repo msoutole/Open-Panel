@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { WebTerminal } from './WebTerminal';
 import { INITIAL_LOGS } from '../constants';
+import { restartService, startService, stopService, getServiceLogs } from '../services/api';
 
 export interface ServiceDetailViewProps {
     service: Service;
@@ -31,70 +32,54 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
 
     const isDatabase = service.type === 'db' || service.type === 'redis';
 
-    // Simulate Docker/Traefik errors (30% chance of failure for demonstration)
-    const simulateDockerError = () => {
-        const errors = [
-            { source: 'Docker Engine', message: 'Failed to allocate memory: insufficient memory available on host' },
-            { source: 'Docker Engine', message: 'Container port 8080 is already in use by another service' },
-            { source: 'Traefik', message: 'Failed to configure route: domain example.com already exists' },
-            { source: 'Docker Engine', message: 'Image pull failed: registry timeout after 30 seconds' },
-            { source: 'Traefik', message: 'SSL certificate validation failed for domain example.com' },
-        ];
-        return errors[Math.floor(Math.random() * errors.length)];
-    };
-
-    const handleRestart = () => {
+    const handleRestart = async () => {
         setIsRestarting(true);
         setNotification(null);
 
-        setTimeout(() => {
+        try {
+            await restartService(service.id);
+            setNotification({
+                type: 'success',
+                title: 'Service Restarted',
+                message: `${service.name} restarted successfully`
+            });
+        } catch (error) {
+            setNotification({
+                type: 'error',
+                title: 'Restart Failed',
+                message: error instanceof Error ? error.message : 'Failed to restart service'
+            });
+        } finally {
             setIsRestarting(false);
-            // Simulate random success/failure
-            if (Math.random() > 0.3) {
-                setNotification({
-                    type: 'success',
-                    title: 'Service Restarted',
-                    message: `${service.name} restarted successfully. Container ID: ${Math.random().toString(36).substr(2, 12)}`
-                });
-            } else {
-                const error = simulateDockerError();
-                setNotification({
-                    type: 'error',
-                    title: `${error?.source || 'System'} Error`,
-                    message: error?.message || 'An unknown error occurred'
-                });
-            }
-
             // Auto-dismiss after 5 seconds
             setTimeout(() => setNotification(null), 5000);
-        }, 2000);
+        }
     };
 
-    const handleDeploy = () => {
+    const handleDeploy = async () => {
         setIsDeploying(true);
         setNotification(null);
 
-        setTimeout(() => {
+        try {
+            // Deploy action might be implemented later on backend
+            // For now, just restart the service
+            await restartService(service.id);
+            setNotification({
+                type: 'success',
+                title: 'Deployment Triggered',
+                message: `${service.name} deployed successfully`
+            });
+        } catch (error) {
+            setNotification({
+                type: 'error',
+                title: 'Deploy Failed',
+                message: error instanceof Error ? error.message : 'Failed to deploy service'
+            });
+        } finally {
             setIsDeploying(false);
-            // Simulate random success/failure
-            if (Math.random() > 0.3) {
-                setNotification({
-                    type: 'success',
-                    title: 'Deployment Triggered',
-                    message: `Building ${service.name} from ${service.source?.type || 'docker'}. Build ID: #${Math.floor(Math.random() * 1000)}`
-                });
-            } else {
-                const error = simulateDockerError();
-                setNotification({
-                    type: 'error',
-                    title: `${error?.source || 'System'} Error`,
-                    message: error?.message || 'An unknown error occurred'
-                });
-            }
-
             // Auto-dismiss after 5 seconds
             setTimeout(() => setNotification(null), 5000);
-        }, 2000);
+        }
     };
 
     const appTabs = [
