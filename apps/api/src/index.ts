@@ -1,3 +1,5 @@
+import './instrumentation'
+
 // ============================================
 // ENVIRONMENT VALIDATION (must be first!)
 // ============================================

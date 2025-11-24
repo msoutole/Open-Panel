@@ -1,0 +1,8 @@
+{"query": "How do I deploy a new Node.js application?", "context": "User wants to deploy a Node.js app using Docker."}
+{"query": "Check the status of the database container.", "context": "User is asking about the health of the postgres container."}
+{"query": "Why is my build failing?", "context": "User is encountering a build error in the CI/CD pipeline."}
+{"query": "Show me the logs for the web service.", "context": "User needs to see the last 100 lines of logs for the 'web' container."}
+{"query": "How can I backup my database?", "context": "User wants to know the procedure for creating a manual backup."}
+{"query": "Is the server healthy?", "context": "User is asking for the overall system health status."}
+{"query": "I need to update the environment variables for my project.", "context": "User wants to know how to change env vars in the settings."}
+{"query": "Can you help me configure SSL for my domain?", "context": "User needs assistance with setting up Let's Encrypt SSL."}
