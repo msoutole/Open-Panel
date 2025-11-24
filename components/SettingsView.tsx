@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { USERS_MOCK } from '../constants';
-import { Shield, Key, User, HardDrive, GitBranch, Terminal, Cpu, Box, Trash2, Plus, Brain, Sparkles, Network, Zap, Server, Activity, Command, Github, Gitlab, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Shield, Key, User, HardDrive, GitBranch, Terminal, Cpu, Box, Trash2, Plus, Server, Activity, Github, Gitlab, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { DockerBuilder, GitToken } from '../types';
 
 interface SettingsViewProps {
@@ -22,19 +23,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
   const [userSearch, setUserSearch] = useState('');
 
   // Form States
-  const [aiProvider, setAiProvider] = useState('google');
-  const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
   const [isBackupTesting, setIsBackupTesting] = useState(false);
-  const [isAiTesting, setIsAiTesting] = useState(false);
   const [showGitForm, setShowGitForm] = useState(false);
-
-  const providers = [
-      { id: 'google', name: 'Google Gemini', icon: Sparkles, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', desc: 'Multimodal, high context window.' },
-      { id: 'openai', name: 'OpenAI GPT-4', icon:  Brain, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', desc: 'Standard reasoning & logic.' },
-      { id: 'anthropic', name: 'Anthropic Claude', icon: Box, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', desc: 'Best for coding & creative.' },
-      { id: 'groq', name: 'Groq Cloud', icon: Zap, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', desc: 'Ultra-low latency inference.' },
-      { id: 'ollama', name: 'Ollama (Local)', icon: Server, color: 'text-slate-800', bg: 'bg-slate-100', border: 'border-slate-300', desc: 'Privacy-first local LLMs.' },
-  ];
 
   // Actions
   const handleInviteUser = () => {
@@ -61,14 +51,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
       }, 1500);
   };
 
-  const handleTestAi = () => {
-      setIsAiTesting(true);
-      setTimeout(() => {
-          setIsAiTesting(false);
-          alert("AI Provider Connected Successfully!");
-      }, 1500);
-  };
-
   const handleAddGitToken = () => {
       setGitTokens([...gitTokens, {
           id: `gt_${Date.now()}`,
@@ -86,6 +68,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
       if (confirm("Revoke this token?")) {
           setGitTokens(gitTokens.filter(t => t.id !== id));
       }
+  };
+
+  const handleAddBuilder = () => {
+      const name = prompt("Builder Name (e.g., Heavy Worker):");
+      if (!name) return;
+      setBuilders([...builders, {
+          id: `b_${Date.now()}`,
+          name,
+          cpuLimitCores: 2,
+          memoryLimitMB: 4096,
+          swapLimitMB: 8192,
+          status: 'Ready'
+      }]);
+  };
+
+  const handleRemoveBuilder = (id: string) => {
+    if (confirm("Remove this build environment?")) {
+        setBuilders(builders.filter(b => b.id !== id));
+    }
   };
 
   const filteredUsers = users.filter(u => 
@@ -292,197 +293,58 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
       {/* Infrastructure Section - Only shown when view is 'settings' */}
       {view === 'settings' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            
-            {/* AI Provider Section */}
-            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-                
-                <div className="p-8">
-                    <div className="flex items-start justify-between mb-8">
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Sparkles className="text-indigo-500" size={24} />
-                                <h3 className="text-xl font-bold text-slate-800">Intelligence Provider</h3>
-                            </div>
-                            <p className="text-slate-500 text-sm max-w-xl">Select the underlying LLM engine for the Nexus Agent. This controls cost, speed, and reasoning capabilities.</p>
-                        </div>
-                        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold uppercase rounded-full border border-indigo-100">
-                            Active: {providers.find(p => p.id === aiProvider)?.name}
-                        </span>
+            {/* Builders Section */}
+            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full">
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Box className="text-slate-500" size={18} />
+                        <h3 className="font-semibold text-slate-700">Build Environments</h3>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                        {providers.map((provider) => (
-                            <button
-                                key={provider.id}
-                                onClick={() => setAiProvider(provider.id)}
-                                className={`relative p-4 rounded-xl border-2 text-left transition-all duration-200 group hover:shadow-md ${
-                                    aiProvider === provider.id 
-                                    ? `${provider.bg} ${provider.border} ring-1 ring-offset-0 ring-indigo-500/20` 
-                                    : 'bg-white border-slate-100 hover:border-slate-300'
-                                }`}
-                            >
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className={`p-2.5 rounded-lg ${provider.bg}`}>
-                                        <provider.icon size={20} className={provider.color} />
+                    <button 
+                        onClick={handleAddBuilder}
+                        className="flex items-center gap-1.5 text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors shadow-sm"
+                    >
+                        <Plus size={14} /> New Builder
+                    </button>
+                </div>
+                <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {builders.map(builder => (
+                            <div key={builder.id} className="border border-slate-200 rounded-xl p-5 flex flex-col justify-between group hover:border-primary/50 transition-colors bg-white hover:shadow-md cursor-pointer h-32">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2">
+                                        <h4 className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors">{builder.name}</h4>
                                     </div>
-                                    {aiProvider === provider.id && (
-                                        <div className="w-4 h-4 bg-indigo-500 rounded-full border-2 border-white shadow-sm"></div>
-                                    )}
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border ${builder.status === 'Ready' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                                        {builder.status}
+                                    </span>
                                 </div>
-                                <h4 className={`font-bold text-sm mb-1 ${aiProvider === provider.id ? 'text-slate-900' : 'text-slate-700'}`}>{provider.name}</h4>
-                                <p className="text-xs text-slate-500 leading-relaxed">{provider.desc}</p>
-                            </button>
+                                <div className="flex items-center justify-between mt-auto">
+                                    <div className="flex gap-3 text-xs text-slate-500 font-medium">
+                                        <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded"><Cpu size={12}/> {builder.cpuLimitCores} vCPU</span>
+                                        <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded"><HardDrive size={12}/> {builder.memoryLimitMB / 1024}GB</span>
+                                    </div>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleRemoveBuilder(builder.id); }}
+                                            className="p-1.5 text-slate-400 hover:text-red-500 rounded"
+                                        >
+                                            <Trash2 size={14}/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         ))}
-                    </div>
-
-                    {/* Conditional Configuration for Providers */}
-                    <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                        {aiProvider === 'ollama' ? (
-                            <div className="flex items-center gap-4 animate-in fade-in">
-                                <div className="flex-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 block">Ollama Endpoint</label>
-                                    <input 
-                                        type="text" 
-                                        value={ollamaUrl}
-                                        onChange={(e) => setOllamaUrl(e.target.value)}
-                                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-mono text-slate-700 focus:ring-2 focus:ring-slate-200 outline-none" 
-                                    />
-                                </div>
-                                <div className="pt-5">
-                                    <button 
-                                        onClick={handleTestAi}
-                                        disabled={isAiTesting}
-                                        className="bg-slate-900 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex gap-2"
-                                    >
-                                        {isAiTesting && <Loader2 size={16} className="animate-spin" />}
-                                        Test Connection
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-4 animate-in fade-in">
-                                <div className="flex-1">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5 block">API Key ({providers.find(p => p.id === aiProvider)?.name})</label>
-                                    <div className="relative">
-                                        <Key size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                        <input 
-                                            type="password" 
-                                            placeholder="sk-..." 
-                                            className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-4 py-2.5 text-sm font-mono text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all" 
-                                        />
-                                    </div>
-                                </div>
-                                <div className="pt-5">
-                                    <button 
-                                        onClick={() => alert("Secret saved securely.")}
-                                        className="bg-white border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm"
-                                    >
-                                        Save Secret
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                        <button 
+                            onClick={handleAddBuilder}
+                            className="border-2 border-dashed border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center text-slate-400 hover:text-primary hover:border-primary/50 hover:bg-slate-50/50 transition-all h-32"
+                        >
+                            <Plus size={24} className="mb-2 opacity-50" />
+                            <span className="text-xs font-bold">Add Environment</span>
+                        </button>
                     </div>
                 </div>
             </section>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* MCP Status Panel */}
-                <div className="lg:col-span-1">
-                    <section className="bg-slate-900 rounded-2xl shadow-lg border border-slate-800 overflow-hidden h-full flex flex-col">
-                        <div className="p-6 border-b border-slate-800/50 bg-slate-950/30">
-                            <div className="flex items-center gap-3 mb-2">
-                                <Network className="text-emerald-400" size={20} />
-                                <h3 className="font-bold text-white">MCP Protocol</h3>
-                            </div>
-                            <p className="text-slate-400 text-xs">Model Context Protocol Bridge Status</p>
-                        </div>
-                        
-                        <div className="p-6 flex-1 flex flex-col justify-between">
-                            <div className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-slate-400 text-sm font-medium">Server Status</span>
-                                    <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                                        <span className="relative flex h-2 w-2">
-                                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                        </span>
-                                        Online
-                                    </span>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <div className="flex justify-between text-xs">
-                                        <span className="text-slate-500">Listening Port</span>
-                                        <span className="font-mono text-slate-300">8080</span>
-                                    </div>
-                                    <div className="w-full bg-slate-800 h-px"></div>
-                                    <div className="flex justify-between text-xs">
-                                        <span className="text-slate-500">Registered Tools</span>
-                                        <span className="font-mono text-slate-300">7</span>
-                                    </div>
-                                    <div className="w-full bg-slate-800 h-px"></div>
-                                    <div className="flex justify-between text-xs">
-                                        <span className="text-slate-500">Capabilities</span>
-                                        <span className="text-slate-300">FS, Shell, Docker</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-8">
-                                <button className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors border border-slate-700 flex items-center justify-center gap-2">
-                                    <Terminal size={14} /> View Tool Definitions
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-
-                {/* Builders Section */}
-                <div className="lg:col-span-2">
-                    <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full">
-                        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Box className="text-slate-500" size={18} />
-                                <h3 className="font-semibold text-slate-700">Build Environments</h3>
-                            </div>
-                            <button className="flex items-center gap-1.5 text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors shadow-sm">
-                                <Plus size={14} /> New Builder
-                            </button>
-                        </div>
-                        <div className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {builders.map(builder => (
-                                    <div key={builder.id} className="border border-slate-200 rounded-xl p-5 flex flex-col justify-between group hover:border-primary/50 transition-colors bg-white hover:shadow-md cursor-pointer h-32">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="font-bold text-slate-800 text-sm group-hover:text-primary transition-colors">{builder.name}</h4>
-                                            </div>
-                                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border ${builder.status === 'Ready' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
-                                                {builder.status}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between mt-auto">
-                                            <div className="flex gap-3 text-xs text-slate-500 font-medium">
-                                                <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded"><Cpu size={12}/> {builder.cpuLimitCores} vCPU</span>
-                                                <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded"><HardDrive size={12}/> {builder.memoryLimitMB / 1024}GB</span>
-                                            </div>
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-1.5 text-slate-400 hover:text-red-500 rounded"><Trash2 size={14}/></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                                <button className="border-2 border-dashed border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center text-slate-400 hover:text-primary hover:border-primary/50 hover:bg-slate-50/50 transition-all h-32">
-                                    <Plus size={24} className="mb-2 opacity-50" />
-                                    <span className="text-xs font-bold">Add Environment</span>
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </div>
 
             {/* GitOps Integration Section */}
             <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -570,7 +432,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                 <Gitlab size={20} className="opacity-50" />
                             </div>
                             <span className="text-xs font-bold mb-1">Link New Account</span>
-                            <span className="text-[10px] text-slate-400">GitHub or GitLab Personal Access Token</span>
+                            <span className="text-xs text-slate-400">GitHub or GitLab Personal Access Token</span>
                          </button>
                      </div>
                 </div>

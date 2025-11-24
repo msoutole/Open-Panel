@@ -65,7 +65,7 @@ interface ProjectCardProps {
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   const activeServices = project.services.filter(s => s.status === 'Running').length;
   const totalServices = project.services.length;
-  const isHealthy = activeServices === totalServices;
+  const isHealthy = activeServices === totalServices && totalServices > 0;
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer relative overflow-hidden h-full flex flex-col" onClick={onClick}>
@@ -110,7 +110,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
 const ProjectListItem: React.FC<ProjectCardProps> = ({ project, onClick }) => {
     const activeServices = project.services.filter(s => s.status === 'Running').length;
     const totalServices = project.services.length;
-    const isHealthy = activeServices === totalServices;
+    const isHealthy = activeServices === totalServices && totalServices > 0;
   
     return (
       <div 
@@ -180,6 +180,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [projectSearch, setProjectSearch] = useState('');
   
+  // Use state for projects to allow adding new ones
+  const [projects, setProjects] = useState<Project[]>(PROJECTS);
+
   const [widgets, setWidgets] = useState<DashboardWidget[]>([
     { id: 'cpu', type: 'cpu', title: 'Host CPU Load', value: '1.24', subtext: 'avg', data: CPU_DATA, trend: 'up', color: 'bg-blue-500' },
     { id: 'mem', type: 'memory', title: 'Host RAM', value: '12.4 GB', subtext: '/ 32 GB', color: 'bg-purple-500' },
@@ -210,11 +213,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
   const handleCreateProject = () => {
       const name = window.prompt("Enter Project Name:");
       if (name) {
-          alert(`Project "${name}" creation simulation initiated. In a real app, this would open a wizard.`);
+          const newProject: Project = {
+            id: `proj_${Date.now()}`,
+            name: name,
+            description: 'New project initialized via dashboard',
+            status: 'Active',
+            lastDeploy: 'Never',
+            members: ['admin'],
+            envVars: [],
+            services: []
+          };
+          setProjects([...projects, newProject]);
       }
   };
 
-  const filteredProjects = PROJECTS.filter(p => 
+  const filteredProjects = projects.filter(p => 
       p.name.toLowerCase().includes(projectSearch.toLowerCase()) || 
       p.description.toLowerCase().includes(projectSearch.toLowerCase())
   );

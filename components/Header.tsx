@@ -1,9 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, User, ChevronDown, LogOut, Settings, UserCircle } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, LogOut, Settings, UserCircle, CheckCheck } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
   onLogout?: () => void;
+}
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
@@ -11,8 +19,16 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   
+  const [notifications, setNotifications] = useState<Notification[]>([
+    { id: '1', title: 'Deployment Failed', message: 'Project "chatwoot" failed to build.', time: '2 minutes ago', read: false },
+    { id: '2', title: 'Backup Successful', message: 'Database backup completed (124MB).', time: '1 hour ago', read: false }
+  ]);
+  
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLButtonElement>(null);
+  const notifPanelRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -20,7 +36,8 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false);
       }
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node) && 
+          notifPanelRef.current && !notifPanelRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
       }
     };
@@ -30,8 +47,15 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-        alert(`Global search for: "${searchValue}" (Not implemented in demo)`);
+        if (searchValue.trim()) {
+            alert(`Searching for: "${searchValue}"... \n(In a real app, this would route to a global search results page)`);
+        }
     }
+  };
+  
+  const handleMarkAllRead = () => {
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      // setTimeout(() => setIsNotifOpen(false), 300);
   };
 
   return (
@@ -58,26 +82,38 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
                 className={`relative text-slate-500 hover:text-slate-700 transition-colors p-2 rounded-full hover:bg-slate-50 ${isNotifOpen ? 'text-primary bg-slate-50' : ''}`}
             >
                 <Bell size={20} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                )}
             </button>
             
             {isNotifOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-100 py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
+                <div ref={notifPanelRef} className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-100 py-2 animate-in fade-in zoom-in-95 duration-200 z-50">
                     <div className="px-4 py-2 border-b border-slate-50 flex justify-between items-center">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Notifications</span>
-                        <button className="text-[10px] text-primary font-medium hover:underline">Mark all read</button>
+                        {unreadCount > 0 && (
+                            <button onClick={handleMarkAllRead} className="text-[10px] text-primary font-medium hover:underline flex items-center gap-1">
+                                <CheckCheck size={12} /> Mark all read
+                            </button>
+                        )}
                     </div>
                     <div className="max-h-64 overflow-y-auto">
-                        <div className="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 cursor-pointer transition-colors">
-                            <p className="text-sm font-medium text-slate-800">Deployment Failed</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Project "chatwoot" failed to build.</p>
-                            <p className="text-[10px] text-slate-400 mt-1.5">2 minutes ago</p>
-                        </div>
-                        <div className="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 cursor-pointer transition-colors">
-                            <p className="text-sm font-medium text-slate-800">Backup Successful</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Database backup completed (124MB).</p>
-                            <p className="text-[10px] text-slate-400 mt-1.5">1 hour ago</p>
-                        </div>
+                        {notifications.length === 0 ? (
+                            <div className="px-4 py-6 text-center text-slate-400 text-xs">
+                                No new notifications
+                            </div>
+                        ) : (
+                            notifications.map(notif => (
+                                <div key={notif.id} className={`px-4 py-3 hover:bg-slate-50 border-b border-slate-50 cursor-pointer transition-colors ${notif.read ? 'opacity-60' : ''}`}>
+                                    <div className="flex justify-between items-start mb-0.5">
+                                        <p className="text-sm font-medium text-slate-800">{notif.title}</p>
+                                        {!notif.read && <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5"></span>}
+                                    </div>
+                                    <p className="text-xs text-slate-500">{notif.message}</p>
+                                    <p className="text-[10px] text-slate-400 mt-1.5">{notif.time}</p>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             )}

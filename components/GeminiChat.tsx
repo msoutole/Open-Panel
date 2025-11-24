@@ -1,12 +1,13 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { 
     MessageSquare, X, Send, Zap, Sparkles, Brain, Bot, Loader2, 
     Image as ImageIcon, Terminal, Settings, ChevronDown,
-    ShieldAlert, Command, CheckCircle, BookOpen
+    ShieldAlert, Command, CheckCircle, BookOpen, Box, Server, Network
 } from 'lucide-react';
 import { PROJECTS, CPU_DATA } from '../constants';
-import { AgentConfig, MCPTool, AgentResponseStyle } from '../types';
+import { AgentConfig, MCPTool, AgentResponseStyle, LLMProvider } from '../types';
 
 interface Message {
   id: string;
@@ -22,6 +23,14 @@ interface PendingAction {
     toolName: string;
     toolArgs: any;
 }
+
+const MODELS_BY_PROVIDER: Record<LLMProvider, string[]> = {
+  google: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-pro-vision'],
+  openai: ['gpt-4-turbo', 'gpt-4o', 'gpt-3.5-turbo'],
+  anthropic: ['claude-3-5-sonnet', 'claude-3-opus', 'claude-3-haiku'],
+  groq: ['llama-3-70b', 'mixtral-8x7b'],
+  ollama: ['llama3', 'mistral', 'codellama', 'phi3']
+};
 
 // ----------------------------------------------------------------------
 // MCP SERVER & TOOLS IMPLEMENTATION
@@ -266,6 +275,9 @@ export const GeminiChat: React.FC = () => {
       return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });
 
+  const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
+  const [isAiTesting, setIsAiTesting] = useState(false);
+
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -287,9 +299,33 @@ export const GeminiChat: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const providers = [
+      { id: 'google', name: 'Google Gemini', icon: Sparkles, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', desc: 'Multimodal, high context window.' },
+      { id: 'openai', name: 'OpenAI GPT-4', icon:  Brain, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', desc: 'Standard reasoning & logic.' },
+      { id: 'anthropic', name: 'Anthropic Claude', icon: Box, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', desc: 'Best for coding & creative.' },
+      { id: 'groq', name: 'Groq Cloud', icon: Zap, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', desc: 'Ultra-low latency inference.' },
+      { id: 'ollama', name: 'Ollama (Local)', icon: Server, color: 'text-slate-800', bg: 'bg-slate-100', border: 'border-slate-300', desc: 'Privacy-first local LLMs.' },
+  ];
+
+  const handleTestAi = () => {
+      setIsAiTesting(true);
+      setTimeout(() => {
+          setIsAiTesting(false);
+          alert("AI Provider Connected Successfully!");
+      }, 1500);
+  };
+
   useEffect(() => {
       localStorage.setItem('agent_config', JSON.stringify(config));
   }, [config]);
+
+  // Sync model on provider change
+  useEffect(() => {
+      const validModels = MODELS_BY_PROVIDER[config.provider] || [];
+      if (!validModels.includes(config.model)) {
+          setConfig(prev => ({ ...prev, model: validModels[0] || 'gemini-2.5-flash' }));
+      }
+  }, [config.provider]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -568,20 +604,14 @@ export const GeminiChat: React.FC = () => {
                         className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 rounded-full text-xs font-bold text-slate-600 border border-slate-200 transition-colors group"
                      >
                         <Sparkles size={12} className="text-indigo-500 group-hover:text-indigo-600" />
-                        {config.model.split('-').slice(0,2).join(' ')}...
+                        {config.model.length > 20 ? config.model.substring(0, 18) + '...' : config.model}
                         <ChevronDown size={12} className="text-slate-400" />
                      </button>
                      
                      {showModelSelect && (
                          <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200">
-                             <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Model</div>
-                             {[
-                                 'gemini-2.5-flash', 
-                                 'gemini-1.5-pro',
-                                 'gpt-4-turbo',
-                                 'claude-3-5-sonnet',
-                                 'llama-3-70b'
-                            ].map(model => (
+                             <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Model ({config.provider})</div>
+                             {(MODELS_BY_PROVIDER[config.provider] || []).map(model => (
                                  <button 
                                     key={model}
                                     onClick={() => { setConfig({...config, model}); setShowModelSelect(false); }}
@@ -607,14 +637,15 @@ export const GeminiChat: React.FC = () => {
           {/* Settings Overlay */}
           {showSettings && (
               <div className="absolute inset-0 bg-white/90 backdrop-blur-xl z-20 top-[73px] flex flex-col animate-in fade-in duration-200">
-                  <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+                  <div className="p-6 space-y-8 flex-1 overflow-y-auto">
+                       {/* Agent Persona */}
                        <div>
                           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                              <Brain size={14} /> Agent Persona
                           </h4>
                           
                           <div className="mb-6">
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Response Style</label>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Response Style</label>
                             <div className="grid grid-cols-3 gap-2">
                                 {(['friendly', 'normal', 'technical'] as const).map(style => (
                                     <button
@@ -638,16 +669,115 @@ export const GeminiChat: React.FC = () => {
                           </div>
                        </div>
                        
+                       {/* Intelligence Provider */}
                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">API Configuration</label>
-                          <input 
-                              type="password" 
-                              value={config.apiKey} 
-                              onChange={(e) => setConfig({...config, apiKey: e.target.value})}
-                              placeholder={`sk-...`}
-                              className="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500"
-                          />
-                          <p className="text-[10px] text-slate-400 mt-2">Key for provider: {config.provider}</p>
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <Sparkles size={14} /> Intelligence Provider
+                            </h4>
+                            <div className="grid grid-cols-1 gap-3 mb-4">
+                                {providers.map((provider) => (
+                                    <button
+                                        key={provider.id}
+                                        onClick={() => setConfig({...config, provider: provider.id as LLMProvider})} 
+                                        className={`relative p-3 rounded-xl border text-left transition-all duration-200 group hover:shadow-sm ${
+                                            config.provider === provider.id
+                                            ? `${provider.bg} ${provider.border} ring-1 ring-offset-0 ring-indigo-500/20`
+                                            : 'bg-white border-slate-200 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${provider.bg} shrink-0`}>
+                                                <provider.icon size={16} className={provider.color} />
+                                            </div>
+                                            <div>
+                                                <h4 className={`font-bold text-sm ${config.provider === provider.id ? 'text-slate-900' : 'text-slate-700'}`}>{provider.name}</h4>
+                                                <p className="text-[10px] text-slate-500 leading-tight">{provider.desc}</p>
+                                            </div>
+                                            {config.provider === provider.id && (
+                                                <div className="ml-auto w-2 h-2 bg-indigo-500 rounded-full shadow-sm"></div>
+                                            )}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Dynamic Inputs */}
+                            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                {config.provider === 'ollama' ? (
+                                    <div className="animate-in fade-in">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 block">Ollama Endpoint</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={ollamaUrl}
+                                                onChange={(e) => setOllamaUrl(e.target.value)}
+                                                className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-slate-200 outline-none"
+                                            />
+                                            <button
+                                                onClick={handleTestAi}
+                                                disabled={isAiTesting}
+                                                className="bg-slate-900 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors flex items-center gap-2 whitespace-nowrap"
+                                            >
+                                                {isAiTesting ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
+                                                Test
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="animate-in fade-in">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5 block">API Key ({providers.find(p => p.id === config.provider)?.name})</label>
+                                        <div className="relative">
+                                            <input
+                                                type="password"
+                                                value={config.apiKey}
+                                                onChange={(e) => setConfig({...config, apiKey: e.target.value})}
+                                                placeholder="sk-..."
+                                                className="w-full bg-white border border-slate-300 rounded-lg pl-3 pr-8 py-2 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
+                                            />
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <CheckCircle size={12} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                       </div>
+
+                       {/* MCP Protocol */}
+                       <div>
+                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <Network size={14} /> MCP Protocol Bridge
+                            </h4>
+                            <div className="bg-slate-900 rounded-xl p-5 border border-slate-800 shadow-inner">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wide">System Online</span>
+                                    </div>
+                                    <span className="text-[10px] font-mono text-slate-500">v1.0.2</span>
+                                </div>
+
+                                <div className="space-y-3 mb-6">
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-slate-500">Listening Port</span>
+                                        <span className="font-mono text-slate-300">8080</span>
+                                    </div>
+                                    <div className="w-full bg-slate-800 h-px"></div>
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-slate-500">Registered Tools</span>
+                                        <span className="font-mono text-slate-300">7</span>
+                                    </div>
+                                    <div className="w-full bg-slate-800 h-px"></div>
+                                    <div className="flex justify-between text-xs">
+                                        <span className="text-slate-500">Capabilities</span>
+                                        <span className="text-slate-300">FS, Shell, Docker</span>
+                                    </div>
+                                </div>
+
+                                <button className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors border border-slate-700 flex items-center justify-center gap-2">
+                                    <Terminal size={12} /> View Tool Definitions
+                                </button>
+                            </div>
                        </div>
                   </div>
                   <div className="p-4 border-t border-slate-100 bg-slate-50">

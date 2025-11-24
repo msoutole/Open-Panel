@@ -171,7 +171,7 @@ export type ViewState = 'login' | 'dashboard' | 'project_details' | 'settings' |
 
 // --- AI Agent & MCP Types ---
 
-export type LLMProvider = 'google' | 'openai' | 'anthropic';
+export type LLMProvider = 'google' | 'openai' | 'anthropic' | 'groq' | 'ollama';
 export type AgentResponseStyle = 'friendly' | 'normal' | 'technical';
 
 export interface AgentConfig {

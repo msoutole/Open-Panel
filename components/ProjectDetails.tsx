@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Project, Service, EnvVar } from '../types';
+import { Project, Service, EnvVar, Domain } from '../types';
 import { 
     ArrowLeft, Box, Database, FileCode, SlidersHorizontal, 
     KeyRound, Gauge, Settings, Plus, LayoutDashboard, TerminalSquare, 
@@ -39,7 +39,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
           port: 80
       };
       setLocalServices([...localServices, newService]);
-      alert(`Service ${name} created successfully.`);
+      // alert(`Service ${name} created successfully.`);
   };
 
   if (selectedService) {
@@ -516,17 +516,45 @@ const CredentialsTab: React.FC<{ service: Service }> = ({ service }) => {
     );
 };
 
-const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ service, isDatabase }) => (
+const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ service, isDatabase }) => {
+    const [localDomains, setLocalDomains] = useState<Domain[]>(service.domains || []);
+
+    const handleAddDomain = () => {
+        const domain = prompt("Enter domain (e.g., api.example.com):");
+        if (domain) {
+            setLocalDomains([...localDomains, {
+                id: `d_${Date.now()}`,
+                domain,
+                https: true,
+                main: false,
+                targetPort: service.port,
+                targetProtocol: 'HTTP'
+            }]);
+        }
+    };
+
+    const handleRemoveDomain = (id: string) => {
+        if(confirm("Remove this domain routing?")) {
+            setLocalDomains(localDomains.filter(d => d.id !== id));
+        }
+    };
+
+    return (
     <div className="space-y-6">
         {!isDatabase ? (
             <>
                 {/* App Domains */}
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-slate-700">Domains</h3>
-                    <button className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200">Add Domain</button>
+                    <button 
+                        onClick={handleAddDomain}
+                        className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200"
+                    >
+                        Add Domain
+                    </button>
                 </div>
                 <div className="space-y-3">
-                    {service.domains?.map(domain => (
+                    {localDomains.map(domain => (
                             <div key={domain.id} className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-4 shadow-sm hover:border-primary/30 transition-colors">
                                 <div className="flex items-center gap-3 flex-1 overflow-hidden">
                                     <div className="bg-green-50 text-green-700 p-2 rounded-lg">
@@ -543,11 +571,16 @@ const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ se
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 border-l border-slate-100 pl-3">
-                                    <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                                    <button 
+                                        onClick={() => handleRemoveDomain(domain.id)}
+                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
                                 </div>
                             </div>
                     ))}
-                    {(!service.domains || service.domains.length === 0) && (
+                    {localDomains.length === 0 && (
                         <div className="text-center p-8 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 text-sm">
                             No domains configured.
                         </div>
@@ -595,7 +628,8 @@ const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ se
             </>
         )}
     </div>
-);
+    );
+};
 
 const AdvancedTab: React.FC<{ service: Service }> = ({ service }) => (
     <div className="space-y-6">
@@ -765,6 +799,15 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => (
 
 const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
     const [activeSourceType, setActiveSourceType] = useState<'docker' | 'git'>((service.source?.type as 'docker'|'git') || 'docker');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = () => {
+        setIsSaving(true);
+        setTimeout(() => {
+            setIsSaving(false);
+            alert("Source Configuration Saved!");
+        }, 1000);
+    };
     
     return (
     <div className="space-y-6">
@@ -858,8 +901,13 @@ const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
                     <p className="text-xs text-slate-500">Automatically deploy new versions when the {activeSourceType === 'docker' ? 'image' : 'code'} is updated.</p>
                 </div>
 
-                <button onClick={() => alert("Source Configuration Saved!")} className="bg-slate-900 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors">
-                    Save Configuration
+                <button 
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="bg-slate-900 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors flex items-center gap-2"
+                >
+                    {isSaving && <Loader2 size={16} className="animate-spin" />}
+                    {isSaving ? 'Saving...' : 'Save Configuration'}
                 </button>
             </div>
         </div>
