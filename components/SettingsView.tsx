@@ -25,6 +25,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
   // Form States
   const [isBackupTesting, setIsBackupTesting] = useState(false);
   const [showGitForm, setShowGitForm] = useState(false);
+  const [backupProvider, setBackupProvider] = useState<'s3' | 'backblaze' | 'local'>('s3');
+  const [backupConfig, setBackupConfig] = useState({
+    accessKeyId: '',
+    secretAccessKey: '',
+    bucketName: '',
+    region: '',
+    endpoint: ''
+  });
 
   // Actions
   const handleInviteUser = () => {
@@ -47,7 +55,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
       setIsBackupTesting(true);
       setTimeout(() => {
           setIsBackupTesting(false);
-          alert("Connection successful! S3 settings saved.");
+          const providerName = backupProvider === 's3' ? 'S3-compatible storage' :
+                               backupProvider === 'backblaze' ? 'Backblaze B2' : 'Local filesystem';
+          alert(`Connection successful! ${providerName} settings saved.`);
       }, 1500);
   };
 
@@ -209,43 +219,129 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-6">
                     <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Storage Provider</h4>
-                    
+
                     <div className="space-y-3">
-                        <label className="flex items-center gap-4 p-4 border border-blue-200 bg-blue-50/50 rounded-xl cursor-pointer ring-1 ring-blue-200 relative">
-                            <div className="w-4 h-4 rounded-full border-4 border-blue-500 bg-white"></div>
+                        <label
+                            className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${
+                                backupProvider === 's3'
+                                    ? 'border-blue-200 bg-blue-50/50 ring-1 ring-blue-200'
+                                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                            }`}
+                            onClick={() => setBackupProvider('s3')}
+                        >
+                            <div className={`w-4 h-4 rounded-full border-2 ${
+                                backupProvider === 's3'
+                                    ? 'border-4 border-blue-500 bg-white'
+                                    : 'border-slate-300'
+                            }`}></div>
                             <div className="flex-1">
                                 <div className="text-sm font-bold text-slate-800">S3 Compatible Storage</div>
                                 <div className="text-xs text-slate-500">AWS S3, MinIO, DigitalOcean Spaces</div>
                             </div>
-                            <HardDrive size={20} className="text-blue-500" />
+                            <HardDrive size={20} className={backupProvider === 's3' ? 'text-blue-500' : 'text-slate-400'} />
                         </label>
-                        
-                        <label className="flex items-center gap-4 p-4 border border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 hover:bg-slate-50 transition-colors opacity-60">
-                            <div className="w-4 h-4 rounded-full border-2 border-slate-300"></div>
+
+                        <label
+                            className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${
+                                backupProvider === 'backblaze'
+                                    ? 'border-orange-200 bg-orange-50/50 ring-1 ring-orange-200'
+                                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                            }`}
+                            onClick={() => setBackupProvider('backblaze')}
+                        >
+                            <div className={`w-4 h-4 rounded-full border-2 ${
+                                backupProvider === 'backblaze'
+                                    ? 'border-4 border-orange-500 bg-white'
+                                    : 'border-slate-300'
+                            }`}></div>
+                            <div className="flex-1">
+                                <div className="text-sm font-bold text-slate-800">Backblaze B2</div>
+                                <div className="text-xs text-slate-500">Cost-effective cloud storage</div>
+                            </div>
+                            <HardDrive size={20} className={backupProvider === 'backblaze' ? 'text-orange-500' : 'text-slate-400'} />
+                        </label>
+
+                        <label
+                            className={`flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all ${
+                                backupProvider === 'local'
+                                    ? 'border-slate-400 bg-slate-50 ring-1 ring-slate-300'
+                                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                            }`}
+                            onClick={() => setBackupProvider('local')}
+                        >
+                            <div className={`w-4 h-4 rounded-full border-2 ${
+                                backupProvider === 'local'
+                                    ? 'border-4 border-slate-500 bg-white'
+                                    : 'border-slate-300'
+                            }`}></div>
                             <div className="flex-1">
                                 <div className="text-sm font-bold text-slate-800">Local Filesystem</div>
                                 <div className="text-xs text-slate-500">Not recommended for production</div>
                             </div>
-                            <Server size={20} className="text-slate-400" />
+                            <Server size={20} className={backupProvider === 'local' ? 'text-slate-500' : 'text-slate-400'} />
                         </label>
                     </div>
 
-                    <div className="space-y-4 pt-2">
-                        <div className="grid grid-cols-2 gap-4">
+                    {(backupProvider === 's3' || backupProvider === 'backblaze') && (
+                        <div className="space-y-4 pt-2">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-slate-500">Bucket Name</label>
-                                <input type="text" placeholder="my-backups" className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                                <label className="text-xs font-semibold text-slate-500">
+                                    {backupProvider === 'backblaze' ? 'Application Key ID' : 'Access Key ID'}
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder={backupProvider === 'backblaze' ? 'Your B2 Application Key ID' : 'Your AWS Access Key ID'}
+                                    value={backupConfig.accessKeyId}
+                                    onChange={(e) => setBackupConfig({...backupConfig, accessKeyId: e.target.value})}
+                                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                                />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-slate-500">Region</label>
-                                <input type="text" placeholder="us-east-1" className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                                <label className="text-xs font-semibold text-slate-500">
+                                    {backupProvider === 'backblaze' ? 'Application Key' : 'Secret Access Key'}
+                                </label>
+                                <input
+                                    type="password"
+                                    placeholder={backupProvider === 'backblaze' ? 'Your B2 Application Key' : 'Your AWS Secret Access Key'}
+                                    value={backupConfig.secretAccessKey}
+                                    onChange={(e) => setBackupConfig({...backupConfig, secretAccessKey: e.target.value})}
+                                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-500">Bucket Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder={backupProvider === 'backblaze' ? 'my-b2-bucket' : 'my-s3-bucket'}
+                                        value={backupConfig.bucketName}
+                                        onChange={(e) => setBackupConfig({...backupConfig, bucketName: e.target.value})}
+                                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-500">Region</label>
+                                    <input
+                                        type="text"
+                                        placeholder={backupProvider === 'backblaze' ? 'us-west-004' : 'us-east-1'}
+                                        value={backupConfig.region}
+                                        onChange={(e) => setBackupConfig({...backupConfig, region: e.target.value})}
+                                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-500">Endpoint URL</label>
+                                <input
+                                    type="text"
+                                    placeholder={backupProvider === 'backblaze' ? 'https://s3.us-west-004.backblazeb2.com' : 'https://s3.amazonaws.com'}
+                                    value={backupConfig.endpoint}
+                                    onChange={(e) => setBackupConfig({...backupConfig, endpoint: e.target.value})}
+                                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                                />
                             </div>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-slate-500">Endpoint URL</label>
-                            <input type="text" placeholder="https://s3.amazonaws.com" className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
-                        </div>
-                    </div>
+                    )}
                 </div>
                 
                 <div className="space-y-6">

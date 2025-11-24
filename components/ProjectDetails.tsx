@@ -223,27 +223,84 @@ interface ServiceDetailViewProps {
     onSelectService: (service: Service) => void;
 }
 
+interface ErrorNotification {
+    type: 'success' | 'error';
+    title: string;
+    message: string;
+}
+
 const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, project, onBack, onSelectService }) => {
     const [activeTab, setActiveTab] = useState<string>('overview');
     const [isWebConsoleOpen, setIsWebConsoleOpen] = useState(false);
     const [isRestarting, setIsRestarting] = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
+    const [notification, setNotification] = useState<ErrorNotification | null>(null);
 
     const isDatabase = service.type === 'db' || service.type === 'redis';
 
+    // Simulate Docker/Traefik errors (30% chance of failure for demonstration)
+    const simulateDockerError = () => {
+        const errors = [
+            { source: 'Docker Engine', message: 'Failed to allocate memory: insufficient memory available on host' },
+            { source: 'Docker Engine', message: 'Container port 8080 is already in use by another service' },
+            { source: 'Traefik', message: 'Failed to configure route: domain example.com already exists' },
+            { source: 'Docker Engine', message: 'Image pull failed: registry timeout after 30 seconds' },
+            { source: 'Traefik', message: 'SSL certificate validation failed for domain example.com' },
+        ];
+        return errors[Math.floor(Math.random() * errors.length)];
+    };
+
     const handleRestart = () => {
         setIsRestarting(true);
+        setNotification(null);
+
         setTimeout(() => {
             setIsRestarting(false);
-            alert(`Service ${service.name} restarted successfully.`);
+            // Simulate random success/failure
+            if (Math.random() > 0.3) {
+                setNotification({
+                    type: 'success',
+                    title: 'Service Restarted',
+                    message: `${service.name} restarted successfully. Container ID: ${Math.random().toString(36).substr(2, 12)}`
+                });
+            } else {
+                const error = simulateDockerError();
+                setNotification({
+                    type: 'error',
+                    title: `${error.source} Error`,
+                    message: error.message
+                });
+            }
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => setNotification(null), 5000);
         }, 2000);
     };
 
     const handleDeploy = () => {
         setIsDeploying(true);
+        setNotification(null);
+
         setTimeout(() => {
             setIsDeploying(false);
-            alert(`Deployment triggered for ${service.name}.`);
+            // Simulate random success/failure
+            if (Math.random() > 0.3) {
+                setNotification({
+                    type: 'success',
+                    title: 'Deployment Triggered',
+                    message: `Building ${service.name} from ${service.source?.type || 'docker'}. Build ID: #${Math.floor(Math.random() * 1000)}`
+                });
+            } else {
+                const error = simulateDockerError();
+                setNotification({
+                    type: 'error',
+                    title: `${error.source} Error`,
+                    message: error.message
+                });
+            }
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => setNotification(null), 5000);
         }, 2000);
     };
 
@@ -383,6 +440,55 @@ const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, project,
 
              {isWebConsoleOpen && (
                 <WebTerminal serviceName={service.name} onClose={() => setIsWebConsoleOpen(false)} />
+            )}
+
+            {/* Notification Toast */}
+            {notification && (
+                <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+                    <div className={`rounded-xl shadow-2xl border p-4 min-w-[400px] ${
+                        notification.type === 'success'
+                            ? 'bg-green-50 border-green-200'
+                            : 'bg-red-50 border-red-200'
+                    }`}>
+                        <div className="flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${
+                                notification.type === 'success'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
+                            }`}>
+                                {notification.type === 'success' ? (
+                                    <Check size={18} />
+                                ) : (
+                                    <Info size={18} />
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <h4 className={`font-bold text-sm mb-1 ${
+                                    notification.type === 'success' ? 'text-green-900' : 'text-red-900'
+                                }`}>
+                                    {notification.title}
+                                </h4>
+                                <p className={`text-xs ${
+                                    notification.type === 'success' ? 'text-green-700' : 'text-red-700'
+                                }`}>
+                                    {notification.message}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setNotification(null)}
+                                className={`p-1 rounded hover:bg-opacity-50 transition-colors ${
+                                    notification.type === 'success'
+                                        ? 'text-green-700 hover:bg-green-200'
+                                        : 'text-red-700 hover:bg-red-200'
+                                }`}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
@@ -565,8 +671,8 @@ const NetworkingTab: React.FC<{ service: Service, isDatabase: boolean }> = ({ se
                                             {domain.domain}
                                          </a>
                                          <span className="text-xs text-slate-400 flex items-center gap-1">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div> 
-                                            TLS Active • {domain.targetProtocol} -> {domain.targetPort}
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                            TLS Active • {domain.targetProtocol} {'->'} {domain.targetPort}
                                          </span>
                                     </div>
                                 </div>
@@ -685,14 +791,56 @@ const AdvancedTab: React.FC<{ service: Service }> = ({ service }) => (
     </div>
 );
 
-const BackupsTab: React.FC<{ service: Service }> = ({ service }) => (
-    <div className="space-y-6">
-         <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-700">Backups</h3>
-            <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm">
-                Create Backup
-            </button>
-         </div>
+const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
+    const [isCreatingBackup, setIsCreatingBackup] = useState(false);
+    const [backupNotification, setBackupNotification] = useState<ErrorNotification | null>(null);
+
+    const handleCreateBackup = () => {
+        setIsCreatingBackup(true);
+        setBackupNotification(null);
+
+        setTimeout(() => {
+            setIsCreatingBackup(false);
+            // Simulate random success/failure for backup creation
+            if (Math.random() > 0.2) {
+                const backupId = Math.random().toString(36).substr(2, 9);
+                setBackupNotification({
+                    type: 'success',
+                    title: 'Backup Created',
+                    message: `Backup ${service.name}-${backupId}.sql created successfully. Size: ${(Math.random() * 500 + 50).toFixed(2)} MB`
+                });
+            } else {
+                const errors = [
+                    'S3 connection failed: Invalid credentials or expired token',
+                    'Insufficient storage space in bucket: 95% capacity reached',
+                    'Database connection timeout: Unable to acquire lock after 30 seconds',
+                    'Backup failed: Transaction log is full, increase retention policy',
+                ];
+                setBackupNotification({
+                    type: 'error',
+                    title: 'Backup Failed',
+                    message: errors[Math.floor(Math.random() * errors.length)]
+                });
+            }
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => setBackupNotification(null), 5000);
+        }, 2000);
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-700">Backups</h3>
+                <button
+                    onClick={handleCreateBackup}
+                    disabled={isCreatingBackup}
+                    className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
+                >
+                    {isCreatingBackup ? <Loader2 size={14} className="animate-spin"/> : null}
+                    {isCreatingBackup ? 'Creating...' : 'Create Backup'}
+                </button>
+            </div>
 
          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
              {service.backups && service.backups.length > 0 ? (
@@ -731,71 +879,288 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => (
                  </div>
              )}
          </div>
-    </div>
-);
 
-const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => (
-    <div className="space-y-6">
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 mb-6">Resource Limits</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Memory */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                        <HardDrive size={18} className="text-purple-500" />
-                        <span className="font-semibold text-slate-700">Memory</span>
-                    </div>
-                    
-                    <div>
-                        <div className="flex justify-between mb-1">
-                             <label className="text-xs font-medium text-slate-500">Reservation</label>
-                             <span className="text-xs font-bold text-slate-700">{service.resources?.memoryReservation || 0} MB</span>
+            {/* Notification Toast */}
+            {backupNotification && (
+                <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+                    <div className={`rounded-xl shadow-2xl border p-4 min-w-[400px] ${
+                        backupNotification.type === 'success'
+                            ? 'bg-green-50 border-green-200'
+                            : 'bg-red-50 border-red-200'
+                    }`}>
+                        <div className="flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${
+                                backupNotification.type === 'success'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
+                            }`}>
+                                {backupNotification.type === 'success' ? (
+                                    <Check size={18} />
+                                ) : (
+                                    <Info size={18} />
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <h4 className={`font-bold text-sm mb-1 ${
+                                    backupNotification.type === 'success' ? 'text-green-900' : 'text-red-900'
+                                }`}>
+                                    {backupNotification.title}
+                                </h4>
+                                <p className={`text-xs ${
+                                    backupNotification.type === 'success' ? 'text-green-700' : 'text-red-700'
+                                }`}>
+                                    {backupNotification.message}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setBackupNotification(null)}
+                                className={`p-1 rounded hover:bg-opacity-50 transition-colors ${
+                                    backupNotification.type === 'success'
+                                        ? 'text-green-700 hover:bg-green-200'
+                                        : 'text-red-700 hover:bg-red-200'
+                                }`}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                </svg>
+                            </button>
                         </div>
-                        <input type="range" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600" />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
+    // Simulated host capabilities (in a real app, this would come from the backend)
+    const HOST_MAX_CPU = 16; // cores
+    const HOST_MAX_MEMORY = 32768; // MB (32 GB)
+
+    const [memoryReservation, setMemoryReservation] = useState(service.resources?.memoryReservation || 0);
+    const [memoryLimit, setMemoryLimit] = useState(service.resources?.memoryLimit || 0);
+    const [cpuReservation, setCpuReservation] = useState(service.resources?.cpuReservation || 0);
+    const [cpuLimit, setCpuLimit] = useState(service.resources?.cpuLimit || 0);
+    const [errors, setErrors] = useState<{[key: string]: string}>({});
+    const [isSaving, setIsSaving] = useState(false);
+
+    const validateResources = (): boolean => {
+        const newErrors: {[key: string]: string} = {};
+
+        // Memory validation
+        if (memoryReservation < 0) {
+            newErrors.memoryReservation = 'Memory reservation cannot be negative';
+        }
+        if (memoryLimit < 0) {
+            newErrors.memoryLimit = 'Memory limit cannot be negative';
+        }
+        if (memoryLimit > 0 && memoryReservation > memoryLimit) {
+            newErrors.memoryReservation = 'Reservation cannot exceed limit';
+        }
+        if (memoryReservation > HOST_MAX_MEMORY) {
+            newErrors.memoryReservation = `Exceeds host capacity (${HOST_MAX_MEMORY} MB available)`;
+        }
+        if (memoryLimit > HOST_MAX_MEMORY) {
+            newErrors.memoryLimit = `Exceeds host capacity (${HOST_MAX_MEMORY} MB available)`;
+        }
+
+        // CPU validation
+        if (cpuReservation < 0) {
+            newErrors.cpuReservation = 'CPU reservation cannot be negative';
+        }
+        if (cpuLimit < 0) {
+            newErrors.cpuLimit = 'CPU limit cannot be negative';
+        }
+        if (cpuLimit > 0 && cpuReservation > cpuLimit) {
+            newErrors.cpuReservation = 'Reservation cannot exceed limit';
+        }
+        if (cpuReservation > HOST_MAX_CPU) {
+            newErrors.cpuReservation = `Exceeds host capacity (${HOST_MAX_CPU} cores available)`;
+        }
+        if (cpuLimit > HOST_MAX_CPU) {
+            newErrors.cpuLimit = `Exceeds host capacity (${HOST_MAX_CPU} cores available)`;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleUpdate = () => {
+        if (validateResources()) {
+            setIsSaving(true);
+            setTimeout(() => {
+                setIsSaving(false);
+                alert(`Resources updated successfully for ${service.name}`);
+            }, 1500);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                <div className="mb-6">
+                    <h3 className="font-bold text-slate-800">Resource Limits</h3>
+                    <p className="text-xs text-slate-500 mt-1">Host capacity: {HOST_MAX_CPU} CPU cores, {HOST_MAX_MEMORY} MB memory</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Memory */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <HardDrive size={18} className="text-purple-500" />
+                            <span className="font-semibold text-slate-700">Memory</span>
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-xs font-medium text-slate-500">Reservation</label>
+                                <input
+                                    type="number"
+                                    value={memoryReservation}
+                                    onChange={(e) => setMemoryReservation(Number(e.target.value))}
+                                    onBlur={validateResources}
+                                    className="w-20 text-xs font-bold text-slate-700 border border-slate-300 rounded px-2 py-1 text-right"
+                                    min="0"
+                                    max={HOST_MAX_MEMORY}
+                                />
+                                <span className="text-xs font-medium text-slate-500">MB</span>
+                            </div>
+                            <input
+                                type="range"
+                                value={memoryReservation}
+                                onChange={(e) => setMemoryReservation(Number(e.target.value))}
+                                onBlur={validateResources}
+                                min="0"
+                                max={HOST_MAX_MEMORY}
+                                step="128"
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                            />
+                            {errors.memoryReservation && (
+                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                    <Info size={12} /> {errors.memoryReservation}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-xs font-medium text-slate-500">Limit</label>
+                                <input
+                                    type="number"
+                                    value={memoryLimit}
+                                    onChange={(e) => setMemoryLimit(Number(e.target.value))}
+                                    onBlur={validateResources}
+                                    className="w-20 text-xs font-bold text-slate-700 border border-slate-300 rounded px-2 py-1 text-right"
+                                    min="0"
+                                    max={HOST_MAX_MEMORY}
+                                />
+                                <span className="text-xs font-medium text-slate-500">MB</span>
+                            </div>
+                            <input
+                                type="range"
+                                value={memoryLimit}
+                                onChange={(e) => setMemoryLimit(Number(e.target.value))}
+                                onBlur={validateResources}
+                                min="0"
+                                max={HOST_MAX_MEMORY}
+                                step="128"
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                            />
+                            {errors.memoryLimit && (
+                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                    <Info size={12} /> {errors.memoryLimit}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
-                    <div>
-                        <div className="flex justify-between mb-1">
-                             <label className="text-xs font-medium text-slate-500">Limit</label>
-                             <span className="text-xs font-bold text-slate-700">{service.resources?.memoryLimit || 'Unlimited'}</span>
+                    {/* CPU */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Cpu size={18} className="text-blue-500" />
+                            <span className="font-semibold text-slate-700">CPU</span>
                         </div>
-                        <input type="range" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600" />
+
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-xs font-medium text-slate-500">Reservation</label>
+                                <input
+                                    type="number"
+                                    value={cpuReservation}
+                                    onChange={(e) => setCpuReservation(Number(e.target.value))}
+                                    onBlur={validateResources}
+                                    className="w-20 text-xs font-bold text-slate-700 border border-slate-300 rounded px-2 py-1 text-right"
+                                    min="0"
+                                    max={HOST_MAX_CPU}
+                                    step="0.1"
+                                />
+                                <span className="text-xs font-medium text-slate-500">Cores</span>
+                            </div>
+                            <input
+                                type="range"
+                                value={cpuReservation}
+                                onChange={(e) => setCpuReservation(Number(e.target.value))}
+                                onBlur={validateResources}
+                                min="0"
+                                max={HOST_MAX_CPU}
+                                step="0.1"
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                            />
+                            {errors.cpuReservation && (
+                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                    <Info size={12} /> {errors.cpuReservation}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-xs font-medium text-slate-500">Limit</label>
+                                <input
+                                    type="number"
+                                    value={cpuLimit}
+                                    onChange={(e) => setCpuLimit(Number(e.target.value))}
+                                    onBlur={validateResources}
+                                    className="w-20 text-xs font-bold text-slate-700 border border-slate-300 rounded px-2 py-1 text-right"
+                                    min="0"
+                                    max={HOST_MAX_CPU}
+                                    step="0.1"
+                                />
+                                <span className="text-xs font-medium text-slate-500">Cores</span>
+                            </div>
+                            <input
+                                type="range"
+                                value={cpuLimit}
+                                onChange={(e) => setCpuLimit(Number(e.target.value))}
+                                onBlur={validateResources}
+                                min="0"
+                                max={HOST_MAX_CPU}
+                                step="0.1"
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                            />
+                            {errors.cpuLimit && (
+                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                    <Info size={12} /> {errors.cpuLimit}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* CPU */}
-                <div className="space-y-4">
-                     <div className="flex items-center gap-2 mb-2">
-                        <Cpu size={18} className="text-blue-500" />
-                        <span className="font-semibold text-slate-700">CPU</span>
-                    </div>
-                    
-                    <div>
-                        <div className="flex justify-between mb-1">
-                             <label className="text-xs font-medium text-slate-500">Reservation</label>
-                             <span className="text-xs font-bold text-slate-700">{service.resources?.cpuReservation || 0} Cores</span>
-                        </div>
-                        <input type="range" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
-                    </div>
-
-                    <div>
-                        <div className="flex justify-between mb-1">
-                             <label className="text-xs font-medium text-slate-500">Limit</label>
-                             <span className="text-xs font-bold text-slate-700">{service.resources?.cpuLimit || 'Unlimited'}</span>
-                        </div>
-                        <input type="range" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
-                    </div>
+                <div className="mt-8 pt-4 border-t border-slate-100 text-right">
+                    <button
+                        onClick={handleUpdate}
+                        disabled={isSaving || Object.keys(errors).length > 0}
+                        className="bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ml-auto"
+                    >
+                        {isSaving ? <Loader2 size={14} className="animate-spin"/> : null}
+                        {isSaving ? 'Updating...' : 'Update Resources'}
+                    </button>
                 </div>
-            </div>
-            
-            <div className="mt-8 pt-4 border-t border-slate-100 text-right">
-                <button onClick={() => alert("Resources Updated!")} className="bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors">
-                    Update Resources
-                </button>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
     const [activeSourceType, setActiveSourceType] = useState<'docker' | 'git'>((service.source?.type as 'docker'|'git') || 'docker');
@@ -885,7 +1250,7 @@ const SourceTab: React.FC<{ service: Service }> = ({ service }) => {
                                 </div>
                             </div>
                             <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                                <Info size={10} /> Add more credentials in System Settings > GitOps
+                                <Info size={10} /> Add more credentials in System Settings {'>'} GitOps
                             </p>
                         </div>
                     </>
