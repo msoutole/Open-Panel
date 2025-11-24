@@ -1,0 +1,109 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: ankane/pgvector:v0.5.1
+    container_name: openpanel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-openpanel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-openpanel}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openpanel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openpanel
+
+  redis:
+    image: redis:7-alpine
+    container_name: openpanel-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command:
+      - redis-server
+      - --appendonly yes
+      - --requirepass ${REDIS_PASSWORD:-changeme}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openpanel
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: openpanel-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - openpanel
+    # Uncomment the deploy section below if you have an NVIDIA GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  traefik:
+    image: traefik:v3.0
+    container_name: openpanel-traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=${TRAEFIK_DASHBOARD:-false}"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=openpanel"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik-data:/letsencrypt
+    networks:
+      - openpanel
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  ollama-data:
+    driver: local
+  traefik-data:
+    driver: local
+
+networks:
+  openpanel:
+    name: openpanel-network
+    driver: bridge

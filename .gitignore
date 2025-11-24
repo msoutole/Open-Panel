@@ -7,18 +7,72 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Runtime/Build artifacts
+node_modules/
+dist/
+dist-ssr/
+build/
 *.local
+*.tsbuildinfo
 
-# Editor directories and files
+# Environment variables
+.env
+.env.*
+!.env.example
+.env.local
+.env.*.local
+
+# IDE
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database/Docker volumes
+postgres-data/
+redis-data/
+traefik-data/
+
+# Docker/SSL
+acme.json
+letsencrypt/
+
+# Backups & Uploads
+backups/
+uploads/
+*.sql
+*.dump
+
+# Testing
+coverage/
+.nyc_output/
+.nyc_coverage/
+
+# Cache
+.cache/
+.turbo/
+.eslintcache
+.stylelintcache
+
+# Bun
+.bun/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Prisma
+prisma/.env
+prisma/migrations/

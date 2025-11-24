@@ -1,0 +1,532 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTHENTICATION & USERS
+// ============================================
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  name          String
+  password      String
+  avatar        String?
+  status        UserStatus  @default(ACTIVE)
+  emailVerified DateTime?
+
+  // Metadata
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  lastLoginAt   DateTime?
+
+  // Relations
+  teams         TeamMember[]
+  projects      Project[]    @relation("ProjectOwner")
+  apiKeys       ApiKey[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ============================================
+// TEAMS & COLLABORATION
+// ============================================
+
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  description String?
+  avatar      String?
+
+  // Metadata
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  members     TeamMember[]
+  projects    Project[]
+  invites     TeamInvite[]
+
+  @@index([slug])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String      @id @default(cuid())
+  role      UserRole    @default(MEMBER)
+
+  // Relations
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    String
+  team      Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  joinedAt  DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+  @@map("team_members")
+}
+
+model TeamInvite {
+  id        String   @id @default(cuid())
+  email     String
+  role      UserRole @default(MEMBER)
+  token     String   @unique
+  expiresAt DateTime
+
+  // Relations
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@map("team_invites")
+}
+
+// ============================================
+// PROJECTS & APPLICATIONS
+// ============================================
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  DEPLOYING
+  STOPPED
+}
+
+enum ProjectType {
+  WEB
+  API
+  WORKER
+  CRON
+  DATABASE
+  REDIS
+  MONGODB
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  type        ProjectType   @default(WEB)
+  status      ProjectStatus @default(STOPPED)
+
+  // Docker configuration
+  dockerImage String?
+  dockerTag   String?       @default("latest")
+  dockerfile  String?
+  buildContext String?      @default(".")
+
+  // Git configuration
+  gitProvider String?       // github, gitlab, bitbucket
+  gitUrl      String?
+  gitBranch   String?       @default("main")
+  gitAutoDeployEnabled Boolean @default(false)
+
+  // Deployment configuration
+  replicas    Int           @default(1)
+  cpuLimit    String?       @default("1000m")
+  memoryLimit String?       @default("512Mi")
+
+  // Environment
+  envVars     EnvVar[]
+
+  // Metadata
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  lastDeployedAt DateTime?
+
+  // Relations
+  ownerId     String
+  owner       User          @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  teamId      String?
+  team        Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  domains     Domain[]
+  deployments Deployment[]
+  logs        Log[]
+  backups     Backup[]
+  containers  Container[]
+
+  @@unique([teamId, slug])
+  @@index([ownerId])
+  @@index([teamId])
+  @@index([status])
+  @@map("projects")
+}
+
+model EnvVar {
+  id        String   @id @default(cuid())
+  key       String
+  value     String
+  isSecret  Boolean  @default(false)
+
+  // Relations
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, key])
+  @@index([projectId])
+  @@map("env_vars")
+}
+
+// ============================================
+// DOMAINS & SSL
+// ============================================
+
+enum DomainStatus {
+  PENDING
+  ACTIVE
+  ERROR
+  VERIFYING
+}
+
+model Domain {
+  id              String       @id @default(cuid())
+  name            String       @unique
+  status          DomainStatus @default(PENDING)
+
+  // SSL Configuration
+  sslEnabled      Boolean      @default(true)
+  sslAutoRenew    Boolean      @default(true)
+  sslExpiresAt    DateTime?
+
+  // DNS Configuration
+  dnsProvider     String?      // cloudflare, route53, digitalocean
+  dnsZoneId       String?
+  dnsRecordId     String?
+
+  // Metadata
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  verifiedAt      DateTime?
+
+  // Relations
+  projectId       String
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@map("domains")
+}
+
+// ============================================
+// DEPLOYMENTS & LOGS
+// ============================================
+
+enum DeploymentStatus {
+  PENDING
+  BUILDING
+  DEPLOYING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+model Deployment {
+  id              String           @id @default(cuid())
+  version         String
+  status          DeploymentStatus @default(PENDING)
+
+  // Build info
+  buildLogs       String?          @db.Text
+  buildDuration   Int?             // milliseconds
+
+  // Deploy info
+  deployLogs      String?          @db.Text
+  deployDuration  Int?             // milliseconds
+
+  // Git info
+  gitCommitHash   String?
+  gitCommitMessage String?
+  gitAuthor       String?
+
+  // Metadata
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Relations
+  projectId       String
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("deployments")
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  level     LogLevel @default(INFO)
+  message   String   @db.Text
+  metadata  Json?
+
+  // Relations
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  timestamp DateTime @default(now())
+
+  @@index([projectId])
+  @@index([level])
+  @@index([timestamp])
+  @@map("logs")
+}
+
+// ============================================
+// BACKUPS
+// ============================================
+
+enum BackupStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Backup {
+  id          String       @id @default(cuid())
+  filename    String
+  size        BigInt       // bytes
+  status      BackupStatus @default(PENDING)
+
+  // S3 info
+  s3Key       String?
+  s3Bucket    String?
+
+  // Metadata
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+  expiresAt   DateTime?
+
+  // Relations
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("backups")
+}
+
+// ============================================
+// API KEYS
+// ============================================
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  name        String
+  key         String   @unique
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([key])
+  @@map("api_keys")
+}
+
+// ============================================
+// AUDIT LOGS
+// ============================================
+
+enum AuditAction {
+  USER_LOGIN
+  USER_LOGOUT
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  PROJECT_DELETED
+  PROJECT_DEPLOYED
+  DOMAIN_ADDED
+  DOMAIN_REMOVED
+  TEAM_CREATED
+  TEAM_UPDATED
+  TEAM_MEMBER_ADDED
+  TEAM_MEMBER_REMOVED
+  BACKUP_CREATED
+  BACKUP_RESTORED
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      AuditAction
+  resourceId  String?
+  resourceType String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+
+  // Relations
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType @default(INFO)
+  title     String
+  message   String           @db.Text
+  read      Boolean          @default(false)
+  metadata  Json?
+
+  // Relations
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================
+// CONTAINERS & DOCKER
+// ============================================
+
+enum ContainerStatus {
+  CREATED
+  RUNNING
+  PAUSED
+  RESTARTING
+  REMOVING
+  EXITED
+  DEAD
+}
+
+model Container {
+  id              String          @id @default(cuid())
+  dockerId        String          @unique // Docker container ID
+  name            String
+  image           String
+  imageTag        String          @default("latest")
+  status          ContainerStatus @default(CREATED)
+
+  // Container configuration
+  command         String?
+  entrypoint      String[]        @default([])
+  workingDir      String?
+
+  // Resources
+  cpuLimit        String?         @default("1000m")
+  memoryLimit     String?         @default("512Mi")
+
+  // Networking
+  ports           Json?           // Port mappings: [{host: 8080, container: 80, protocol: "tcp"}]
+  networkMode     String?         @default("bridge")
+  hostname        String?
+
+  // Volumes
+  volumes         Json?           // Volume mounts: [{source: "/host/path", target: "/container/path", mode: "rw"}]
+
+  // Environment
+  envVars         Json?           // Environment variables: {KEY: "value"}
+
+  // Statistics (cached)
+  cpuUsage        Float?          // CPU usage percentage
+  memoryUsage     BigInt?         // Memory usage in bytes
+  networkRx       BigInt?         // Network bytes received
+  networkTx       BigInt?         // Network bytes transmitted
+
+  // State
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  exitCode        Int?
+
+  // Metadata
+  labels          Json?           // Docker labels
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  projectId       String?
+  project         Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([dockerId])
+  @@index([projectId])
+  @@index([status])
+  @@map("containers")
+}
+
+// Update Project model to include containers relation
+// This will be added to the Project model above
