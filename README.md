@@ -1,5 +1,19 @@
 # OpenPanel
 
+## Quick Start
+
+### Linux / macOS
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+### Windows
+```powershell
+./setup.ps1
+```
+
+
 Modern self-hosted server control panel with AI-powered assistance.
 
 ## Overview
