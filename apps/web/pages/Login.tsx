@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box } from 'lucide-react';
 
 interface LoginProps {
@@ -6,6 +6,25 @@ interface LoginProps {
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Store credentials if remember me is checked
+    if (rememberMe) {
+      localStorage.setItem('openpanel_remember', 'true');
+      localStorage.setItem('openpanel_email', email);
+    } else {
+      localStorage.removeItem('openpanel_remember');
+      localStorage.removeItem('openpanel_email');
+    }
+
+    onLogin();
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10 transform transition-all hover:scale-[1.01]">
@@ -18,22 +37,30 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <h2 className="text-center text-lg font-medium text-slate-600 mb-8">Sign In to your account</h2>
 
-        <form onSubmit={(e) => { e.preventDefault(); onLogin(); }} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <div className="relative">
-              <input 
-                type="email" 
+              <input
+                type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email Address"
+                required
                 className="w-full pl-4 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
-          
+
           <div>
              <div className="relative">
-              <input 
-                type="password" 
+              <input
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
+                required
                 className="w-full pl-4 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
@@ -41,13 +68,18 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary" />
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
+              />
               <span className="text-slate-600">Remember Me</span>
             </label>
             <a href="#" className="text-primary hover:underline">Forgot your password?</a>
           </div>
 
-          <button 
+          <button
             type="submit"
             className="w-full bg-primary hover:bg-blue-700 text-white font-semibold py-3.5 rounded-lg shadow-lg shadow-blue-200 transition-all transform active:scale-95 duration-200"
           >
