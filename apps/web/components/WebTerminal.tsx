@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
 import { X, Maximize2, Minimize2, Terminal as TerminalIcon, Power, Play, Square } from 'lucide-react';
 
 interface WebTerminalProps {

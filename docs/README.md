@@ -1,66 +1,57 @@
 # 📚 OpenPanel Documentation
 
-Bem-vindo à documentação completa do OpenPanel! Este é seu guia central para entender, usar e desenvolver a plataforma.
+Welcome to the complete OpenPanel documentation! This is your central guide to understanding, using, and developing the platform.
 
-## 🎯 O que é OpenPanel?
+## 🎯 What is OpenPanel?
 
-OpenPanel é um **painel de controle moderno e auto-hospedado** para gerenciar aplicações containerizadas com suporte integrado a IA.
+OpenPanel is a **modern, self-hosted control panel** for managing containerized applications with integrated AI support.
 
-## 📖 Começar Aqui
+## 📖 Start Here
 
-### 👤 Usuários
+### 👤 Users
 
-1. **[Guia de Primeiros Passos](./walkthrough/01-getting-started.md)** ⭐ - Setup inicial em 10 minutos
-2. **[Walkthroughs](./walkthrough/)** - Guias passo-a-passo para cada feature
+1. **[Main README](../README.md)** ⭐ - Quick start guide
+2. **[Environment Setup](.env.example)** - Configuration guide
 
-### 👨‍💻 Desenvolvedores
+### 👨‍💻 Developers
 
-1. **[CLAUDE.md](../CLAUDE.md)** ⭐ - Informações técnicas da arquitetura
-2. **[System Architecture](./architecture/01-system-architecture.md)** ⭐ - Visão geral da arquitetura
-3. **[Features Detalhadas](./features/)** - Documentação técnica
+1. **[CLAUDE.md](../CLAUDE.md)** ⭐ - Technical architecture and development guide
+2. **[System Architecture](./architecture/01-system-architecture.md)** - Architecture overview
+3. **[Features](./features/)** - Detailed feature documentation
 
-### 📋 Product & Planning
+## 📚 Documentation Index
 
-1. **[User Stories](./user-stories/)** - Requisitos de cada feature
-2. **[Implementation Plan](./implementation-plan/)** - Roadmap e tasks
-3. **[ROADMAP.md](./implementation-plan/ROADMAP.md)** - Fases de desenvolvimento
+### Architecture - Technical Design
+- [01-system-architecture.md](./architecture/01-system-architecture.md) - System architecture overview
 
-## 📚 Índice Completo
+### Features - Implementation Details
+- [01-authentication.md](./features/01-authentication.md) - Authentication system
+- [02-project-management.md](./features/02-project-management.md) - Project management
+- [03-docker-integration.md](./features/03-docker-integration.md) - Docker integration
+- [04-deployment-pipeline.md](./features/04-deployment-pipeline.md) - Deployment pipeline
+- [05-domain-management.md](./features/05-domain-management.md) - Domain management
+- [06-ssl-management.md](./features/06-ssl-management.md) - SSL/TLS management
+- [07-backup-system.md](./features/07-backup-system.md) - Backup system
+- [08-rbac-security.md](./features/08-rbac-security.md) - RBAC and security
+- [09-ai-assistant.md](./features/09-ai-assistant.md) - AI assistant
+- [10-monitoring.md](./features/10-monitoring.md) - Monitoring and observability
 
-### Walkthrough - Guias Práticos
-- [01-getting-started.md](./walkthrough/01-getting-started.md)
-- [02-project-management.md](./walkthrough/02-project-management.md)
+## 📊 Project Status
 
-### User Stories - Requisitos
-- [README.md](./user-stories/README.md)
-- [authentication.md](./user-stories/authentication.md)
+| Aspect | Status |
+|--------|--------|
+| Core Features | ✅ Complete |
+| Documentation | ✅ Complete |
+| Testing | 🔄 In Progress |
 
-### Architecture - Design Técnico
-- [01-system-architecture.md](./architecture/01-system-architecture.md)
+## 🔗 Quick Links
 
-### Features - Implementação
-- [01-authentication.md](./features/01-authentication.md)
-
-### Implementation Plan
-- [ROADMAP.md](./implementation-plan/ROADMAP.md)
-- [TASKS.md](./implementation-plan/TASKS.md)
-
-## 📊 Status do Projeto
-
-| Aspecto | Status | Progress |
-|---------|--------|----------|
-| MVP | ✅ Completo | 95% |
-| Testing | 🔄 Em Progresso | 60% |
-| Documentation | ✅ Completo | 100% |
-
-## 🔗 Links Rápidos
-
-- [CLAUDE.md](../CLAUDE.md) - Informações técnicas
-- [GitHub](https://github.com/msoutole/openpanel) - Repositório
-- [Roadmap](./implementation-plan/ROADMAP.md) - Plano de desenvolvimento
+- [CLAUDE.md](../CLAUDE.md) - Technical documentation
+- [GitHub](https://github.com/msoutole/openpanel) - Repository
+- [README](../README.md) - Main project README
 
 ---
 
-**Bem-vindo ao OpenPanel! 🎉**
+**Welcome to OpenPanel! 🎉**
 
-Versão: 0.1.0 | Última atualização: 2024-11-24
+Version: 0.1.0 | Last updated: 2025-11-26
