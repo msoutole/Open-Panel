@@ -68,11 +68,10 @@ coverage/
 # Bun
 .bun/
 
-# Lock files
-package-lock.json
+# Lock files (keep package-lock.json for reproducible builds)
+# package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
 # Prisma
 prisma/.env
-prisma/migrations/

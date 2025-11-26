@@ -13,7 +13,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      # - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro  # Commented: scripts directory doesn't exist
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openpanel}"]
       interval: 10s

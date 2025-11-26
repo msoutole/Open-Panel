@@ -1,66 +1,107 @@
 # 📚 OpenPanel Documentation
 
-Bem-vindo à documentação completa do OpenPanel! Este é seu guia central para entender, usar e desenvolver a plataforma.
+Welcome to the complete OpenPanel documentation!
 
-## 🎯 O que é OpenPanel?
+## 🎯 What is OpenPanel?
 
-OpenPanel é um **painel de controle moderno e auto-hospedado** para gerenciar aplicações containerizadas com suporte integrado a IA.
-
-## 📖 Começar Aqui
-
-### 👤 Usuários
-
-1. **[Guia de Primeiros Passos](./walkthrough/01-getting-started.md)** ⭐ - Setup inicial em 10 minutos
-2. **[Walkthroughs](./walkthrough/)** - Guias passo-a-passo para cada feature
-
-### 👨‍💻 Desenvolvedores
-
-1. **[CLAUDE.md](../CLAUDE.md)** ⭐ - Informações técnicas da arquitetura
-2. **[System Architecture](./architecture/01-system-architecture.md)** ⭐ - Visão geral da arquitetura
-3. **[Features Detalhadas](./features/)** - Documentação técnica
-
-### 📋 Product & Planning
-
-1. **[User Stories](./user-stories/)** - Requisitos de cada feature
-2. **[Implementation Plan](./implementation-plan/)** - Roadmap e tasks
-3. **[ROADMAP.md](./implementation-plan/ROADMAP.md)** - Fases de desenvolvimento
-
-## 📚 Índice Completo
-
-### Walkthrough - Guias Práticos
-- [01-getting-started.md](./walkthrough/01-getting-started.md)
-- [02-project-management.md](./walkthrough/02-project-management.md)
-
-### User Stories - Requisitos
-- [README.md](./user-stories/README.md)
-- [authentication.md](./user-stories/authentication.md)
-
-### Architecture - Design Técnico
-- [01-system-architecture.md](./architecture/01-system-architecture.md)
-
-### Features - Implementação
-- [01-authentication.md](./features/01-authentication.md)
-
-### Implementation Plan
-- [ROADMAP.md](./implementation-plan/ROADMAP.md)
-- [TASKS.md](./implementation-plan/TASKS.md)
-
-## 📊 Status do Projeto
-
-| Aspecto | Status | Progress |
-|---------|--------|----------|
-| MVP | ✅ Completo | 95% |
-| Testing | 🔄 Em Progresso | 60% |
-| Documentation | ✅ Completo | 100% |
-
-## 🔗 Links Rápidos
-
-- [CLAUDE.md](../CLAUDE.md) - Informações técnicas
-- [GitHub](https://github.com/msoutole/openpanel) - Repositório
-- [Roadmap](./implementation-plan/ROADMAP.md) - Plano de desenvolvimento
+OpenPanel is a **modern, self-hosted control panel** for managing containerized applications with integrated AI support.
 
 ---
 
-**Bem-vindo ao OpenPanel! 🎉**
+## 🚀 Quick Start
 
-Versão: 0.1.0 | Última atualização: 2024-11-24
+### 👤 For Users
+1. **[Main README](../README.md)** ⭐ - Installation and quick start
+2. **[Environment Setup](../.env.example)** - Configuration guide
+
+### 👨‍💻 For Developers
+1. **[CLAUDE.md](../CLAUDE.md)** ⭐ - Complete technical guide
+2. **[Domain Documentation](./domains/)** ⭐⭐⭐ - **Domain-driven docs (optimized for LLMs)**
+3. **[System Architecture](./architecture/01-system-architecture.md)** - Architecture overview
+
+---
+
+## 📂 Documentation Structure
+
+### 🎯 **NEW: Domain-Driven Documentation** (Recommended)
+
+**Location**: [`docs/domains/`](./domains/)
+
+**Why?** Each domain file contains **100% of the context** needed - from business rules to implementation code - in a single file. Perfect for LLMs!
+
+**Available Domains**:
+- **[authentication.md](./domains/authentication.md)** - Login, JWT, users, API keys
+- **[projects-teams.md](./domains/projects-teams.md)** - Projects and team collaboration
+- **[containers.md](./domains/containers.md)** - Docker, builds, deployments
+- **[networking.md](./domains/networking.md)** - Domains, SSL, Traefik
+- **[storage.md](./domains/storage.md)** - Backups and databases
+
+**Full Index**: [domains/INDEX.md](./domains/INDEX.md)
+
+---
+
+### 🏗️ Architecture Documentation
+
+**Location**: [`docs/architecture/`](./architecture/)
+
+- **[01-system-architecture.md](./architecture/01-system-architecture.md)** - High-level system design
+- Monorepo structure (apps/api, apps/web, packages/shared)
+- Tech stack decisions
+
+---
+
+## 📊 Project Status
+
+| Aspect | Status |
+|--------|--------|
+| Core Features | ✅ 85% Complete |
+| Domain Docs | ✅ Complete |
+| Testing | 🔄 In Progress |
+
+---
+
+## 🧭 Navigation Guide
+
+### If you want to...
+
+**...understand how a feature works end-to-end:**
+→ Read the corresponding **[domain doc](./domains/)**
+
+**...get started quickly:**
+→ Read **[Main README](../README.md)**
+
+**...develop a new feature:**
+→ Read **[CLAUDE.md](../CLAUDE.md)** + relevant **[domain doc](./domains/)**
+
+**...understand the big picture:**
+→ Read **[System Architecture](./architecture/01-system-architecture.md)**
+
+---
+
+## 🔗 Quick Links
+
+- **[CLAUDE.md](../CLAUDE.md)** - Development guide
+- **[Domain Index](./domains/INDEX.md)** - All domains
+- **[GitHub](https://github.com/msoutole/openpanel)** - Repository
+- **[Main README](../README.md)** - Project README
+
+---
+
+## 💡 About Domain-Driven Documentation
+
+Traditional docs separate content by type (user stories, API docs, architecture). This creates fragmentation.
+
+**Domain-Driven approach**: Everything about a feature in ONE file.
+
+**Benefits for LLMs**:
+- ✅ Single file read = 100% context
+- ✅ Less hallucination (business rules + code together)
+- ✅ Faster responses (no file hopping)
+
+See **[domains/INDEX.md](./domains/INDEX.md)** for more details.
+
+---
+
+**Welcome to OpenPanel! 🎉**
+
+Version: 0.1.0 | Last updated: 2025-11-26
