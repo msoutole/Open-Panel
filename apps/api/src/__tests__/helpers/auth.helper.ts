@@ -61,7 +61,12 @@ export async function createTestTeam(ownerId: string, name?: string) {
     data: {
       name: name || `Test Team ${Date.now()}`,
       slug: `test-team-${Date.now()}`,
-      ownerId,
+      members: {
+        create: {
+          userId: ownerId,
+          role: 'OWNER',
+        },
+      },
     },
   })
 }

@@ -1,7 +1,7 @@
 # 📚 OpenPanel - Knowledge Base
 
-> **Versão**: 0.1.0 (Pré-Alpha)  
-> **Última Atualização**: 2025-11-23  
+> **Versão**: 0.2.0 (Alpha)  
+> **Última Atualização**: 2025-11-25  
 > **Objetivo**: Documentação completa do conhecimento do projeto OpenPanel
 
 ---

@@ -7,7 +7,7 @@ import { logInfo, logError, logWarn } from '../lib/logger'
 interface TraefikConfig {
   http: {
     routers: Record<string, TraefikRouter>
-    services: Record<string, TraefikService>
+    services: Record<string, TraefikServiceConfig>
     middlewares?: Record<string, any>
   }
   tcp?: {
@@ -37,7 +37,7 @@ interface TraefikRouter {
   }
 }
 
-interface TraefikService {
+interface TraefikServiceConfig {
   loadBalancer: {
     servers: Array<{
       url: string

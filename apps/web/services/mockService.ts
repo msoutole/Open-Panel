@@ -23,14 +23,14 @@ export const streamLogs = (callback: (log: LogEntry) => void) => {
     const randomLevel = levels[Math.floor(Math.random() * levels.length)];
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     const now = new Date();
-    
+
     const newLog: LogEntry = {
       id: Math.random().toString(36).substr(2, 9),
       timestamp: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`,
-      level: randomLevel,
-      message: randomMessage
+      level: randomLevel || 'INFO',
+      message: randomMessage || ''
     };
-    
+
     callback(newLog);
   }, 3000);
 

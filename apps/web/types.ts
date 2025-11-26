@@ -110,7 +110,9 @@ export interface Service {
 export interface Project {
   id: string;
   name: string;
+  slug: string;
   description: string;
+  type?: string;
   status: 'Active' | 'Archived';
   services: Service[];
   envVars: EnvVar[];

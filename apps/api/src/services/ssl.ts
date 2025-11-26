@@ -271,7 +271,7 @@ export class SSLService {
   async getCertificate(domainId: string): Promise<{
     certificate: string
     privateKey: string
-    chain: string
+    chain?: string
   } | null> {
     try {
       const domain = await prisma.domain.findUnique({
@@ -284,7 +284,7 @@ export class SSLService {
       }
 
       // Decrypt certificate
-      const decrypted = decryptSSLCertificate(domain.sslCertificate)
+      const decrypted = decryptSSLCertificate(domain.sslCertificate as string)
 
       return decrypted
     } catch (error) {

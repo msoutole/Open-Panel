@@ -298,7 +298,7 @@ export class BackupService {
       const containers = await prisma.container.findMany({
         where: {
           status: {
-            in: ['running', 'created', 'paused'],
+            in: ['RUNNING', 'CREATED', 'PAUSED'],
           },
         },
       })
@@ -358,7 +358,7 @@ export class BackupService {
 
             backups.push({
               id: file.replace(/\.(sql\.gz|tar\.gz)$/, ''),
-              type: backupType,
+              type: backupType as Backup['type'],
               name: file,
               path: filePath,
               size: stats.size,

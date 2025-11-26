@@ -52,7 +52,7 @@ builds.post('/', zValidator('json', createBuildSchema), async (c) => {
     const project = await prisma.project.findFirst({
       where: {
         id: data.projectId,
-        ownerId: user.id,
+        ownerId: (user as any).id,
       },
     })
 
@@ -111,7 +111,7 @@ builds.get('/:id', async (c) => {
       where: {
         id,
         project: {
-          ownerId: user.id,
+          ownerId: (user as any).id,
         },
       },
       include: {
@@ -154,7 +154,7 @@ builds.get('/project/:projectId', async (c) => {
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        ownerId: user.id,
+        ownerId: (user as any).id,
       },
     })
 
@@ -199,11 +199,15 @@ builds.post('/:id/rollback', async (c) => {
       where: {
         id,
         project: {
-          ownerId: user.id,
+          ownerId: (user as any).id,
         },
       },
       include: {
-        project: true,
+        project: {
+          include: {
+            envVars: true,
+          },
+        },
       },
     })
 
@@ -223,10 +227,8 @@ builds.post('/:id/rollback', async (c) => {
       data: {
         projectId: deployment.projectId,
         version: `rollback-${deployment.version}`,
-        commitHash: deployment.commitHash,
-        commitMessage: `[ROLLBACK] ${deployment.commitMessage}`,
-        branch: deployment.branch,
-        buildMethod: deployment.buildMethod,
+        gitCommitHash: deployment.gitCommitHash,
+        gitCommitMessage: `[ROLLBACK] ${deployment.gitCommitMessage}`,
         status: 'BUILDING',
       },
     })
@@ -253,12 +255,18 @@ builds.post('/:id/rollback', async (c) => {
       const imageTag = deployment.version
 
       const containerName = `${deployment.project.slug}-${Date.now()}`
+
+      const envVars = deployment.project.envVars.reduce((acc, curr) => ({
+        ...acc,
+        [curr.key]: curr.value
+      }), {} as Record<string, string>)
+
       const newContainer = await dockerService.createContainer({
         name: containerName,
         image: imageName,
         tag: imageTag,
         projectId: deployment.projectId,
-        env: deployment.project.envVars as Record<string, string> | undefined,
+        env: envVars,
       })
 
       await dockerService.startContainer(newContainer.dockerId)
@@ -364,7 +372,7 @@ builds.post('/webhooks/github', async (c) => {
     }
 
     // Handle webhook and trigger deployments
-    const result = await gitService.handleWebhook('github', webhookData)
+    const result = await gitService.handleWebhookEvent(webhookData)
 
     return c.json({
       message: `Triggered ${result.triggered} deployment(s)`,
@@ -408,7 +416,7 @@ builds.post('/webhooks/gitlab', async (c) => {
     }
 
     // Handle webhook and trigger deployments
-    const result = await gitService.handleWebhook('gitlab', webhookData)
+    const result = await gitService.handleWebhookEvent(webhookData)
 
     return c.json({
       message: `Triggered ${result.triggered} deployment(s)`,
@@ -442,7 +450,7 @@ builds.post('/webhooks/bitbucket', async (c) => {
     }
 
     // Handle webhook and trigger deployments
-    const result = await gitService.handleWebhook('bitbucket', webhookData)
+    const result = await gitService.handleWebhookEvent(webhookData)
 
     return c.json({
       message: `Triggered ${result.triggered} deployment(s)`,

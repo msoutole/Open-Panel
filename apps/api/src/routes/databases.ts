@@ -67,7 +67,7 @@ const deploySchema = z.object({
   type: z.enum(['postgresql', 'mysql', 'mongodb', 'redis', 'mariadb']),
   name: z.string().min(1).max(100),
   projectId: z.string().optional(),
-  customEnv: z.record(z.string()).optional(),
+  customEnv: z.record(z.string(), z.string()).optional(),
   customPort: z.number().min(1).max(65535).optional(),
   tag: z.string().optional(),
 })
@@ -77,7 +77,7 @@ databases.post('/deploy', zValidator('json', deploySchema), async (c) => {
     const { type, name, projectId, customEnv, customPort, tag } = c.req.valid('json')
     const user = c.get('user')
 
-    logInfo(`Deploying ${type} database`, { name, type, userId: user?.userId })
+    logInfo(`Deploying ${type} database`, { name, type, userId: user?.userId } as any)
 
     const result = await DatabaseTemplatesService.deployDatabase({
       type,

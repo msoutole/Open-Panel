@@ -155,7 +155,6 @@ ssl.delete('/revoke/:domainId', async (c) => {
       where: { id: domainId },
       data: {
         sslEnabled: false,
-        sslCertificate: null,
         sslExpiresAt: null,
         sslAutoRenew: false,
       },
@@ -254,8 +253,8 @@ ssl.get('/list', async (c) => {
           ? daysUntilExpiry !== null && daysUntilExpiry < 0
             ? 'expired'
             : daysUntilExpiry !== null && daysUntilExpiry < 30
-            ? 'expiring_soon'
-            : 'active'
+              ? 'expiring_soon'
+              : 'active'
           : 'disabled',
       }
     })

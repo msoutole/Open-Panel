@@ -77,7 +77,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
         } else if (category === 'database' && dbType) {
             setFormData(prev => ({
                 ...prev,
-                type: dbType,
+                type: dbType === 'redis' ? 'redis' : 'db',
                 database: {
                     type: dbType,
                     version: getDefaultVersion(dbType),
@@ -222,8 +222,8 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                             <div
                                 onClick={() => setAppSource('docker')}
                                 className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${appSource === 'docker'
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -242,8 +242,8 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                             <div
                                 onClick={() => setAppSource('git')}
                                 className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${appSource === 'git'
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -278,8 +278,8 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                         key={db}
                                         onClick={() => setDbType(db)}
                                         className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${dbType === db
-                                                ? 'border-amber-500 bg-amber-50'
-                                                : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50/30'
+                                            ? 'border-amber-500 bg-amber-50'
+                                            : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50/30'
                                             }`}
                                     >
                                         <div className="flex flex-col items-center text-center gap-2">

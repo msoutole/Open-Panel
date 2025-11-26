@@ -45,12 +45,12 @@ const containerActionSchema = z.object({
 })
 
 const logsQuerySchema = z.object({
-  stdout: z.string().transform((v) => v === 'true').optional().default('true'),
-  stderr: z.string().transform((v) => v === 'true').optional().default('true'),
+  stdout: z.string().default('true').transform((v) => v === 'true'),
+  stderr: z.string().default('true').transform((v) => v === 'true'),
   tail: z.string().transform((v) => parseInt(v)).optional(),
   since: z.string().transform((v) => parseInt(v)).optional(),
   until: z.string().transform((v) => parseInt(v)).optional(),
-  timestamps: z.string().transform((v) => v === 'true').optional().default('true'),
+  timestamps: z.string().default('true').transform((v) => v === 'true'),
 })
 
 // ============================================

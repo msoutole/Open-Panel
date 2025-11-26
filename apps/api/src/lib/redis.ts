@@ -28,7 +28,7 @@ const getRedisConfig = () => {
   // Otherwise, use individual env vars as config object
   return {
     host: env.REDIS_HOST,
-    port: parseInt(env.REDIS_PORT),
+    port: env.REDIS_PORT,
     password: env.REDIS_PASSWORD || undefined,
     maxRetriesPerRequest: null, // Required for BullMQ
   };

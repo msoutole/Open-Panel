@@ -84,7 +84,7 @@ webhooks.post('/github', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments.map(d => ({
+      deployments: result.deployments.map((d: any) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
@@ -140,7 +140,7 @@ webhooks.post('/gitlab', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments.map(d => ({
+      deployments: result.deployments.map((d: any) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
@@ -189,7 +189,7 @@ webhooks.post('/bitbucket', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments.map(d => ({
+      deployments: result.deployments.map((d: any) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,

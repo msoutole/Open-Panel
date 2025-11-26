@@ -344,7 +344,7 @@ export class DatabaseTemplatesService {
    */
   static async getDatabaseMetrics(containerId: string, type: DatabaseType) {
     try {
-      const stats = await dockerService.getStats(containerId)
+      const stats = await dockerService.getContainerStats(containerId)
 
       // Type-specific metrics
       const typeMetrics: Record<string, any> = {}

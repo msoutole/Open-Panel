@@ -13,12 +13,9 @@ const envSchema = z.object({
   // Server configuration
   API_PORT: z
     .string()
-    .transform((val) => parseInt(val, 10))
-    .pipe(z.number().min(1).max(65535))
     .default('3001')
     .transform((val) => parseInt(val, 10))
-    .pipe(z.number().min(1).max(65535))
-    .transform(String),
+    .pipe(z.number().min(1).max(65535)),
 
   // Database
   DATABASE_URL: z
@@ -39,12 +36,9 @@ const envSchema = z.object({
 
   REDIS_PORT: z
     .string()
-    .transform((val) => parseInt(val, 10))
-    .pipe(z.number().min(1).max(65535))
     .default('6379')
     .transform((val) => parseInt(val, 10))
-    .pipe(z.number().min(1).max(65535))
-    .transform(String),
+    .pipe(z.number().min(1).max(65535)),
 
   REDIS_PASSWORD: z
     .string()
@@ -84,8 +78,7 @@ const envSchema = z.object({
     .string()
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().min(1).max(65535))
-    .optional()
-    .transform((val) => val?.toString()),
+    .optional(),
 
   // Git
   GIT_WORKSPACE_PATH: z
@@ -156,31 +149,19 @@ const envSchema = z.object({
 
   // Feature flags
   ENABLE_WEBHOOKS: z
-    .string()
-    .transform((val) => val === 'true')
-    .pipe(z.boolean())
+    .enum(['true', 'false'])
     .default('true')
-    .transform((val) => val === 'true')
-    .pipe(z.boolean())
-    .transform(String),
+    .transform((val) => val === 'true'),
 
   ENABLE_AUTO_DEPLOY: z
-    .string()
-    .transform((val) => val === 'true')
-    .pipe(z.boolean())
+    .enum(['true', 'false'])
     .default('true')
-    .transform((val) => val === 'true')
-    .pipe(z.boolean())
-    .transform(String),
+    .transform((val) => val === 'true'),
 
   ENABLE_AGENTS: z
-    .string()
-    .transform((val) => val === 'true')
-    .pipe(z.boolean())
+    .enum(['true', 'false'])
     .default('true')
-    .transform((val) => val === 'true')
-    .pipe(z.boolean())
-    .transform(String),
+    .transform((val) => val === 'true'),
 })
 
 // Type for validated environment variables
@@ -205,7 +186,7 @@ export function validateEnv(): Env {
       }
       error.issues.forEach((err) => {
         const path = err.path.join('.')
-        if (err.code === 'invalid_type' && err.received === 'undefined') {
+        if (err.code === 'invalid_type' && (err as any).received === 'undefined') {
           missingVars.push(path)
         } else {
           invalidVars.push(`${path}: ${err.message}`)

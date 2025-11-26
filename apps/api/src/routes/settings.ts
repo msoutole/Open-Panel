@@ -50,7 +50,8 @@ const settingsSchema = z.object({
  * Get current system settings
  */
 app.get('/', async (c) => {
-  const userId = c.get('userId')
+  const currentUser = c.get('user')
+  const userId = currentUser?.userId
 
   if (!userId) {
     throw new HTTPException(401, { message: 'Unauthorized' })
@@ -100,7 +101,8 @@ app.get('/', async (c) => {
  * Update system settings
  */
 app.put('/', async (c) => {
-  const userId = c.get('userId')
+  const currentUser = c.get('user')
+  const userId = currentUser?.userId
 
   if (!userId) {
     throw new HTTPException(401, { message: 'Unauthorized' })
@@ -146,7 +148,8 @@ app.put('/', async (c) => {
  * Configure AI providers (used by onboarding)
  */
 app.post('/ai-providers', async (c) => {
-  const userId = c.get('userId')
+  const currentUser = c.get('user')
+  const userId = currentUser?.userId
 
   if (!userId) {
     throw new HTTPException(401, { message: 'Unauthorized' })
@@ -179,7 +182,8 @@ app.post('/ai-providers', async (c) => {
  * Check if onboarding is completed
  */
 app.get('/onboarding-status', async (c) => {
-  const userId = c.get('userId')
+  const currentUser = c.get('user')
+  const userId = currentUser?.userId
 
   if (!userId) {
     throw new HTTPException(401, { message: 'Unauthorized' })
@@ -197,8 +201,8 @@ app.get('/onboarding-status', async (c) => {
   // You can add a field to the User model to track onboarding status
   // For now, we'll just check if any AI provider is configured
   const hasAIProvider = process.env.GEMINI_API_KEY ||
-                        process.env.GROQ_API_KEY ||
-                        process.env.OLLAMA_ENABLED === 'true'
+    process.env.GROQ_API_KEY ||
+    process.env.OLLAMA_ENABLED === 'true'
 
   return c.json({
     completed: !!hasAIProvider,

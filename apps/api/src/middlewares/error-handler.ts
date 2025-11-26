@@ -80,14 +80,16 @@ export const errorHandler = (err: Error, c: Context) => {
 
   // Custom App Errors
   if (err instanceof AppError) {
-    return c.json(
-      {
-        error: err.message,
-        code: err.code,
-        ...(err instanceof ValidationError && { details: err.details }),
-      },
-      err.statusCode
-    )
+    const response: any = {
+      error: err.message,
+      code: err.code,
+    }
+
+    if (err instanceof ValidationError) {
+      response.details = err.details
+    }
+
+    return c.json(response, err.statusCode as any)
   }
 
   // Zod Validation Errors
@@ -96,11 +98,11 @@ export const errorHandler = (err: Error, c: Context) => {
       {
         error: 'Validation failed',
         code: 'VALIDATION_ERROR',
-        details: err.errors.map((e) => ({
+        details: (err as any).errors.map((e: any) => ({
           path: e.path.join('.'),
           message: e.message,
         })),
-      },
+      } as any,
       400
     )
   }

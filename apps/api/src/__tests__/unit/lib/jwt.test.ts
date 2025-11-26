@@ -33,8 +33,8 @@ describe('JWT Utilities', () => {
       const token = generateAccessToken(testPayload)
       const decoded = verifyToken(token)
 
-      expect(decoded.exp).toBeDefined()
-      expect(decoded.exp).toBeGreaterThan(Date.now() / 1000)
+      expect((decoded as any).exp).toBeDefined()
+      expect((decoded as any).exp).toBeGreaterThan(Date.now() / 1000)
     })
   })
 
@@ -54,7 +54,7 @@ describe('JWT Utilities', () => {
       const accessDecoded = verifyToken(accessToken)
       const refreshDecoded = verifyToken(refreshToken)
 
-      expect(refreshDecoded.exp).toBeGreaterThan(accessDecoded.exp!)
+      expect((refreshDecoded as any).exp).toBeGreaterThan((accessDecoded as any).exp!)
     })
   })
 
@@ -99,9 +99,9 @@ describe('JWT Utilities', () => {
       const afterTime = Math.floor(Date.now() / 1000)
       const decoded = verifyToken(token)
 
-      expect(decoded.iat).toBeDefined()
-      expect(decoded.iat).toBeGreaterThanOrEqual(beforeTime)
-      expect(decoded.iat).toBeLessThanOrEqual(afterTime)
+      expect((decoded as any).iat).toBeDefined()
+      expect((decoded as any).iat).toBeGreaterThanOrEqual(beforeTime)
+      expect((decoded as any).iat).toBeLessThanOrEqual(afterTime)
     })
   })
 })

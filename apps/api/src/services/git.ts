@@ -276,8 +276,7 @@ export class GitService {
   /**
    * Handle webhook event and trigger deployment
    */
-  async handleWebhook(
-    provider: 'github' | 'gitlab' | 'bitbucket',
+  async handleWebhookEvent(
     payload: WebhookPayload
   ): Promise<any> {
     // Extract branch from ref

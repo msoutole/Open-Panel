@@ -228,6 +228,7 @@ model Domain {
   sslEnabled      Boolean      @default(true)
   sslAutoRenew    Boolean      @default(true)
   sslExpiresAt    DateTime?
+  sslCertificate  String?      @db.Text
 
   // DNS Configuration
   dnsProvider     String?      // cloudflare, route53, digitalocean
@@ -278,6 +279,8 @@ model Deployment {
   gitCommitHash   String?
   gitCommitMessage String?
   gitAuthor       String?
+  gitUrl          String?
+  gitBranch       String?
 
   // Metadata
   createdAt       DateTime         @default(now())
@@ -386,6 +389,7 @@ model ApiKey {
 // ============================================
 
 enum AuditAction {
+  USER_REGISTER
   USER_LOGIN
   USER_LOGOUT
   USER_CREATED
@@ -396,13 +400,24 @@ enum AuditAction {
   PROJECT_DELETED
   PROJECT_DEPLOYED
   DOMAIN_ADDED
+  DOMAIN_UPDATED
   DOMAIN_REMOVED
   TEAM_CREATED
   TEAM_UPDATED
+  TEAM_DELETED
   TEAM_MEMBER_ADDED
   TEAM_MEMBER_REMOVED
+  TEAM_MEMBER_ROLE_UPDATED
   BACKUP_CREATED
   BACKUP_RESTORED
+  CONTAINER_CREATED
+  CONTAINER_STARTED
+  CONTAINER_STOPPED
+  CONTAINER_RESTARTED
+  CONTAINER_DELETED
+  DEPLOYMENT_CREATED
+  DEPLOYMENT_ROLLBACK
+  SETTINGS_UPDATED
 }
 
 model AuditLog {

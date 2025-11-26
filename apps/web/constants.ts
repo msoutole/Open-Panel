@@ -5,6 +5,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'proj_ecommerce',
     name: 'chatwoot',
+    slug: 'chatwoot',
     description: 'Customer engagement suite',
     status: 'Active',
     lastDeploy: '2023-10-27 14:30',
@@ -36,41 +37,41 @@ export const PROJECTS: Project[] = [
           }
         },
         source: {
-            type: 'docker',
-            image: 'chatwoot/chatwoot:v3.9.0',
-            autoDeploy: true
+          type: 'docker',
+          image: 'chatwoot/chatwoot:v3.9.0',
+          autoDeploy: true
         },
         envVars: [
-            { key: 'SECRET_KEY_BASE', value: '89d39ef377e473e69780f7434b303792', locked: false },
-            { key: 'FRONTEND_URL', value: 'https://$(PRIMARY_DOMAIN)', locked: false },
-            { key: 'DEFAULT_LOCALE', value: 'en', locked: false },
-            { key: 'FORCE_SSL', value: 'false', locked: false },
-            { key: 'ENABLE_ACCOUNT_SIGNUP', value: 'true', locked: false },
-            { key: 'REDIS_URL', value: 'redis://default@$(PROJECT_NAME)_chatwoot-redis:6379', locked: false },
-            { key: 'REDIS_PASSWORD', value: 'bd95105642ea39ba7f90', locked: false },
-            { key: 'REDIS_OPENSSL_VERIFY_MODE', value: 'none', locked: false },
-            { key: 'POSTGRES_DATABASE', value: '$(PROJECT_NAME)', locked: false },
-            { key: 'POSTGRES_HOST', value: '$(PROJECT_NAME)_chatwoot-db', locked: false },
-            { key: 'POSTGRES_USERNAME', value: 'postgres', locked: false },
-            { key: 'POSTGRES_PASSWORD', value: '8f9c96541b262a65f24e', locked: false },
-            { key: 'RAILS_MAX_THREADS', value: '5', locked: false },
-            { key: 'NODE_ENV', value: 'production', locked: false },
-            { key: 'RAILS_ENV', value: 'production', locked: false },
-            { key: 'INSTALLATION_ENV', value: 'docker', locked: false },
-            { key: 'TRUSTED_PROXIES', value: '*', locked: false }
+          { key: 'SECRET_KEY_BASE', value: '89d39ef377e473e69780f7434b303792', locked: false },
+          { key: 'FRONTEND_URL', value: 'https://$(PRIMARY_DOMAIN)', locked: false },
+          { key: 'DEFAULT_LOCALE', value: 'en', locked: false },
+          { key: 'FORCE_SSL', value: 'false', locked: false },
+          { key: 'ENABLE_ACCOUNT_SIGNUP', value: 'true', locked: false },
+          { key: 'REDIS_URL', value: 'redis://default@$(PROJECT_NAME)_chatwoot-redis:6379', locked: false },
+          { key: 'REDIS_PASSWORD', value: 'bd95105642ea39ba7f90', locked: false },
+          { key: 'REDIS_OPENSSL_VERIFY_MODE', value: 'none', locked: false },
+          { key: 'POSTGRES_DATABASE', value: '$(PROJECT_NAME)', locked: false },
+          { key: 'POSTGRES_HOST', value: '$(PROJECT_NAME)_chatwoot-db', locked: false },
+          { key: 'POSTGRES_USERNAME', value: 'postgres', locked: false },
+          { key: 'POSTGRES_PASSWORD', value: '8f9c96541b262a65f24e', locked: false },
+          { key: 'RAILS_MAX_THREADS', value: '5', locked: false },
+          { key: 'NODE_ENV', value: 'production', locked: false },
+          { key: 'RAILS_ENV', value: 'production', locked: false },
+          { key: 'INSTALLATION_ENV', value: 'docker', locked: false },
+          { key: 'TRUSTED_PROXIES', value: '*', locked: false }
         ],
         domains: [
-            { id: 'd1', domain: 'chatwoot-chatwoot.nvm1fj.easypanel.host', https: true, main: true, targetPort: 3000, targetProtocol: 'HTTP', path: '/' }
+          { id: 'd1', domain: 'chatwoot-chatwoot.nvm1fj.easypanel.host', https: true, main: true, targetPort: 3000, targetProtocol: 'HTTP', path: '/' }
         ],
         deployments: [
-            { id: 'dep_1', commit: 'No description', message: 'No description', status: 'Success', timestamp: '1 minuto / há 1 ano', branch: 'main', author: 'system' },
-            { id: 'dep_2', commit: 'No description', message: 'No description', status: 'Building', timestamp: '16 minutos / há 1 ano', branch: 'main', author: 'system' }
+          { id: 'dep_1', commit: 'No description', message: 'No description', status: 'Success', timestamp: '1 minuto / há 1 ano', branch: 'main', author: 'system' },
+          { id: 'dep_2', commit: 'No description', message: 'No description', status: 'Building', timestamp: '16 minutos / há 1 ano', branch: 'main', author: 'system' }
         ],
         resources: {
-            cpuLimit: 0,
-            memoryLimit: 0,
-            cpuReservation: 0,
-            memoryReservation: 0
+          cpuLimit: 0,
+          memoryLimit: 0,
+          cpuReservation: 0,
+          memoryReservation: 0
         }
       },
       {
@@ -84,20 +85,20 @@ export const PROJECTS: Project[] = [
         port: 5432,
         exposedPort: 5432,
         credentials: {
-            host: 'chatwoot_chatwoot-db',
-            user: 'postgres',
-            password: '8f9c96541b262a65f24e',
-            port: 5432,
-            databaseName: 'chatwoot',
-            connectionString: 'postgres://postgres:8f9c96541b262a65f24e@chatwoot_chatwoot-db:5432/chatwoot?sslmode=disable'
+          host: 'chatwoot_chatwoot-db',
+          user: 'postgres',
+          password: '8f9c96541b262a65f24e',
+          port: 5432,
+          databaseName: 'chatwoot',
+          connectionString: 'postgres://postgres:8f9c96541b262a65f24e@chatwoot_chatwoot-db:5432/chatwoot?sslmode=disable'
         },
         envVars: [
-            { key: 'POSTGRES_USER', value: 'postgres', locked: false },
-            { key: 'POSTGRES_PASSWORD', value: '8f9c96541b262a65f24e', locked: false },
-            { key: 'POSTGRES_DB', value: 'chatwoot', locked: false }
+          { key: 'POSTGRES_USER', value: 'postgres', locked: false },
+          { key: 'POSTGRES_PASSWORD', value: '8f9c96541b262a65f24e', locked: false },
+          { key: 'POSTGRES_DB', value: 'chatwoot', locked: false }
         ],
         backups: [
-            { id: 'bk_1', filename: 'backup-2023-11-01.sql.gz', size: '124 MB', status: 'Available', timestamp: '2023-11-01 00:00:00' }
+          { id: 'bk_1', filename: 'backup-2023-11-01.sql.gz', size: '124 MB', status: 'Available', timestamp: '2023-11-01 00:00:00' }
         ]
       },
       {
@@ -110,10 +111,10 @@ export const PROJECTS: Project[] = [
         memory: '64MB',
         port: 6379,
         credentials: {
-            host: 'chatwoot-redis.internal',
-            user: 'default',
-            password: '',
-            port: 6379
+          host: 'chatwoot-redis.internal',
+          user: 'default',
+          password: '',
+          port: 6379
         }
       },
       {
@@ -132,6 +133,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'proj_n8n',
     name: 'Automação N8N',
+    slug: 'automacao-n8n',
     description: 'Workflow automation workflows',
     status: 'Active',
     lastDeploy: '2023-10-25 11:20',
@@ -149,13 +151,13 @@ export const PROJECTS: Project[] = [
         port: 5678,
         deploymentToken: 'n8n_token_example_123456',
         source: {
-            type: 'git',
-            repo: 'https://github.com/n8n-io/n8n',
-            branch: 'master',
-            autoDeploy: true
+          type: 'git',
+          repo: 'https://github.com/n8n-io/n8n',
+          branch: 'master',
+          autoDeploy: true
         },
         deployments: [
-             { id: 'dep_n1', commit: 'latest', message: 'Auto-update to 1.14.0', status: 'Success', timestamp: '2023-10-25 11:20', branch: 'master', author: 'system' }
+          { id: 'dep_n1', commit: 'latest', message: 'Auto-update to 1.14.0', status: 'Success', timestamp: '2023-10-25 11:20', branch: 'master', author: 'system' }
         ],
         traefik: {
           domain: 'n8n.openpanel.dev',
@@ -168,10 +170,10 @@ export const PROJECTS: Project[] = [
           }
         },
         resources: {
-            cpuLimit: 1,
-            memoryLimit: 2048,
-            cpuReservation: 0.5,
-            memoryReservation: 1024
+          cpuLimit: 1,
+          memoryLimit: 2048,
+          cpuReservation: 0.5,
+          memoryReservation: 1024
         }
       }
     ]
@@ -179,13 +181,14 @@ export const PROJECTS: Project[] = [
   {
     id: 'proj_legacy',
     name: 'Legacy CRM',
+    slug: 'legacy-crm',
     description: 'Old PHP system, scheduled for decommissioning',
     status: 'Active',
     lastDeploy: '2023-09-10 08:00',
     members: ['admin'],
     envVars: [],
     services: [
-       {
+      {
         id: 'svc_crm_web',
         name: 'crm-web',
         type: 'app',
@@ -233,12 +236,12 @@ export const NETWORK_DATA: MetricPoint[] = [
 ];
 
 export const INITIAL_LOGS: LogEntry[] = [
-    { id: '1', timestamp: '2025-11-12T04:14:46.587445', level: 'INFO', message: 'Parameters: {"status"=>"open", "assignee_type"=>"me", "page"=>"1", "sort_by"=>"last_activity_at_desc", "account_id"=>"128"}' },
-    { id: '2', timestamp: '2025-11-12T04:14:46.627705', level: 'INFO', message: 'Processing by Api::V1::Accounts::DashboardAppsController#index as JSON' },
-    { id: '3', timestamp: '2025-11-12T04:14:46.628510', level: 'INFO', message: 'Parameters: {"account_id"=>"128"}' },
-    { id: '4', timestamp: '2025-11-12T04:14:46.679467', level: 'INFO', message: 'Rendered api/v1/accounts/dashboard_apps/index.json.jbuilder (Duration: 22.3ms | Allocations: 3628)' },
-    { id: '5', timestamp: '2025-11-12T04:14:46.686731', level: 'INFO', message: 'Completed 200 OK in 56ms (Views: 15.7ms | ActiveRecord: 22.2ms | Allocations: 8438)' },
-    { id: '6', timestamp: '2025-11-12T04:14:46.688026', level: 'INFO', message: 'source=rack-timeout id=52f9abc3-6ce7-406f-b18e-5e8c206d1c6a timeout=15000ms service=108ms state=completed' },
-    { id: '7', timestamp: '2025-11-12T04:14:46.692417', level: 'INFO', message: 'Rendered api/v1/accounts/conversations/index.json.jbuilder (Duration: 1.7ms | Allocations: 485)' },
-    { id: '8', timestamp: '2025-11-12T04:14:46.695439', level: 'INFO', message: 'Completed 200 OK in 107ms (Views: 10.1ms | ActiveRecord: 24.8ms | Allocations: 12242)' }
+  { id: '1', timestamp: '2025-11-12T04:14:46.587445', level: 'INFO', message: 'Parameters: {"status"=>"open", "assignee_type"=>"me", "page"=>"1", "sort_by"=>"last_activity_at_desc", "account_id"=>"128"}' },
+  { id: '2', timestamp: '2025-11-12T04:14:46.627705', level: 'INFO', message: 'Processing by Api::V1::Accounts::DashboardAppsController#index as JSON' },
+  { id: '3', timestamp: '2025-11-12T04:14:46.628510', level: 'INFO', message: 'Parameters: {"account_id"=>"128"}' },
+  { id: '4', timestamp: '2025-11-12T04:14:46.679467', level: 'INFO', message: 'Rendered api/v1/accounts/dashboard_apps/index.json.jbuilder (Duration: 22.3ms | Allocations: 3628)' },
+  { id: '5', timestamp: '2025-11-12T04:14:46.686731', level: 'INFO', message: 'Completed 200 OK in 56ms (Views: 15.7ms | ActiveRecord: 22.2ms | Allocations: 8438)' },
+  { id: '6', timestamp: '2025-11-12T04:14:46.688026', level: 'INFO', message: 'source=rack-timeout id=52f9abc3-6ce7-406f-b18e-5e8c206d1c6a timeout=15000ms service=108ms state=completed' },
+  { id: '7', timestamp: '2025-11-12T04:14:46.692417', level: 'INFO', message: 'Rendered api/v1/accounts/conversations/index.json.jbuilder (Duration: 1.7ms | Allocations: 485)' },
+  { id: '8', timestamp: '2025-11-12T04:14:46.695439', level: 'INFO', message: 'Completed 200 OK in 107ms (Views: 10.1ms | ActiveRecord: 24.8ms | Allocations: 12242)' }
 ];

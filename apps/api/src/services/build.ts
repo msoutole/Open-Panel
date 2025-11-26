@@ -4,7 +4,7 @@ import { dockerService } from './docker'
 import fs from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
-import tar from 'tar-fs'
+import * as tar from 'tar-fs'
 import { logInfo, logError, logWarn } from '../lib/logger'
 
 interface BuildOptions {
@@ -75,7 +75,7 @@ export class BuildService {
 
       // Create tar stream from context
       const tarStream = tar.pack(context, {
-        ignore: (name) => {
+        ignore: (name: string) => {
           // Ignore common unnecessary files
           const ignored = ['.git', 'node_modules', '.env', '.DS_Store', 'dist', 'build']
           return ignored.some((pattern) => name.includes(pattern))
@@ -434,7 +434,7 @@ export class BuildService {
       // Get deployment and project info
       const deployment = await prisma.deployment.findUnique({
         where: { id: deploymentId },
-        include: { project: true },
+        include: { project: { include: { envVars: true } } },
       })
 
       if (!deployment || !deployment.project) {
@@ -506,7 +506,7 @@ export class BuildService {
         image: imageName,
         tag: imageTag,
         projectId: project.id,
-        env: project.envVars as Record<string, string> | undefined,
+        env: project.envVars.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {}) as Record<string, string>,
       }
 
       const newContainer = await dockerService.createContainer(containerConfig)
@@ -536,7 +536,7 @@ export class BuildService {
         where: { id: deploymentId },
         data: {
           status: 'FAILED',
-          buildLogs: error.message,
+          buildLogs: (error as Error).message,
           completedAt: new Date(),
         },
       })

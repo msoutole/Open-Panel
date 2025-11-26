@@ -332,9 +332,9 @@ export class DockerService {
       stderr: options?.stderr ?? true,
       follow: options?.follow ?? true,
       timestamps: options?.timestamps ?? true,
-    })
+    } as any) as any
 
-    stream.on('data', (chunk) => {
+    stream.on('data', (chunk: any) => {
       callback(chunk.toString('utf-8'))
     })
 

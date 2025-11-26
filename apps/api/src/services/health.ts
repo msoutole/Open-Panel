@@ -287,7 +287,7 @@ export class HealthService {
 
       if (isRunning) {
         try {
-          stats = await dockerService.getStats(container.dockerId)
+          stats = await dockerService.getContainerStats(container.dockerId)
           cpu = parseFloat(stats.cpuUsage.replace('%', ''))
           memory = stats.memoryUsage
           memoryLimit = stats.memoryLimit
@@ -348,7 +348,7 @@ export class HealthService {
       const containers = await prisma.container.findMany({
         where: {
           status: {
-            in: ['running', 'created', 'restarting'],
+            in: ['RUNNING', 'CREATED', 'RESTARTING'],
           },
         },
         orderBy: {
