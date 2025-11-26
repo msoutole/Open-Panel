@@ -3,16 +3,41 @@
 ## Quick Start
 
 ### Linux / macOS
+
 ```bash
-chmod +x setup.sh
-./setup.sh
+chmod +x scripts/setup/setup.sh
+./scripts/setup/setup.sh
 ```
 
 ### Windows
+
 ```powershell
-./setup.ps1
+./scripts/setup/setup.ps1
 ```
 
+### Check Status
+
+After installation, you can check the status of all services:
+
+#### Using Shell Scripts
+
+##### Linux / macOS
+```bash
+chmod +x scripts/status/check-status.sh
+./scripts/status/check-status.sh
+```
+
+##### Windows
+```powershell
+./scripts/status/check-status.ps1
+```
+
+#### Using Node.js Scripts (Cross-platform)
+```bash
+npm run status
+```
+
+This will show the status of all Docker services and API endpoints.
 
 Modern self-hosted server control panel with AI-powered assistance.
 
@@ -34,6 +59,7 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 ## Tech Stack
 
 ### Backend
+
 - **Runtime**: Node.js 18+ with ESM
 - **Framework**: Hono (lightweight, fast HTTP)
 - **Database**: PostgreSQL + Prisma ORM + pgvector
@@ -42,18 +68,21 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 - **WebSocket**: Real-time logs and events
 
 ### Frontend
+
 - **Framework**: React 19
 - **Build Tool**: Vite
 - **UI Components**: Lucide React, Recharts, Xterm.js
 - **Type Safety**: TypeScript strict mode
 
 ### Shared
+
 - **Validation**: Zod schemas
 - **Monorepo**: npm workspaces
 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js >= 18.0.0
 - npm >= 10.0.0
 - Docker (for infrastructure services)
@@ -61,33 +90,39 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/msoutole/openpanel.git
    cd openpanel
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Configure environment**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration (DATABASE_URL, JWT_SECRET, etc.)
    ```
 
 4. **Start infrastructure (PostgreSQL, Redis, Ollama, Traefik)**
+
    ```bash
    docker-compose up -d
    ```
 
 5. **Setup database**
+
    ```bash
    npm run db:push
    ```
 
 6. **Start development servers**
+
    ```bash
    npm run dev
    ```
@@ -108,10 +143,23 @@ npm run db:migrate       # Run database migrations
 npm run db:push          # Push schema to database
 npm run db:studio        # Open Prisma Studio
 
-# Build
-npm run build            # Build all packages
-npm run build:api        # Build backend only
-npm run build:web        # Build frontend only
+# Setup and Status
+npm run setup            # Run complete setup (install deps, start services, configure DB)
+npm run start            # Start all services with admin user creation
+npm run start:all        # Setup and start all services
+npm run status           # Check status of all services
+
+# Additional Scripts
+./scripts/setup/setup.sh        # Run setup script (Linux/macOS)
+./scripts/setup/setup.ps1       # Run setup script (Windows)
+./scripts/start/start-all.sh    # Start all services (Linux/macOS)
+./scripts/start/start-all.ps1   # Start all services (Windows)
+./scripts/status/check-status.sh    # Check status (Linux/macOS)
+./scripts/status/check-status.ps1   # Check status (Windows)
+
+# Utility Scripts
+./scripts/utils/show-structure.ps1  # Show organized script structure
+./scripts/utils/validate-scripts.ps1 # Validate all scripts
 
 # Type checking
 npm run type-check       # TypeScript validation across all packages
@@ -139,6 +187,12 @@ Open-Panel/
 │       └── services/
 ├── packages/
 │   └── shared/           # Shared types, validators, utilities
+├── scripts/
+│   ├── setup/            # Installation scripts
+│   ├── start/            # Service startup scripts
+│   ├── status/           # Service status checking scripts
+│   ├── utils/            # Utility scripts
+│   └── *.js              # Node.js utility scripts
 ├── docs/                 # Documentation
 ├── docker-compose.yml    # Local infrastructure
 └── CLAUDE.md            # Development guidelines
@@ -172,7 +226,8 @@ MIT License - see LICENSE file for details
 ## Author
 
 **Matheus Souto Leal**
-- Email: msoutole@hotmail.com
+
+- Email: <msoutole@hotmail.com>
 - GitHub: [@msoutole](https://github.com/msoutole)
 
 ## Acknowledgments

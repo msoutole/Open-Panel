@@ -1,5 +1,8 @@
 # Open-Panel Setup Script for Windows
 
+# Set Docker Host for Windows
+$env:DOCKER_HOST="npipe:////./pipe/docker_engine"
+
 Write-Host "Starting Open-Panel Setup..." -ForegroundColor Green
 
 # Function to check command existence
@@ -17,6 +20,31 @@ function Test-CommandExists {
     finally {
         $ErrorActionPreference = $oldPreference
     }
+}
+
+# Function to create default admin user
+function Create-AdminUser {
+    Write-Host "Creating default admin user..." -ForegroundColor Yellow
+    try {
+        # Try to create admin user via API
+        $adminData = @{
+            name = "Admin User"
+            email = "admin@openpanel.dev"
+            password = "admin123"
+        } | ConvertTo-Json
+
+        $response = Invoke-RestMethod -Uri "http://localhost:3001/api/auth/register" -Method POST -Body $adminData -ContentType "application/json" -TimeoutSec 10
+        Write-Host "✓ Admin user created successfully" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "⚠ Admin user may already exist or API is not ready yet" -ForegroundColor Yellow
+    }
+}
+
+# Function to start all services
+function Start-OpenPanel {
+    Write-Host "Starting OpenPanel services..." -ForegroundColor Yellow
+    npm run dev
 }
 
 # 1. Check & Install Node.js
@@ -106,8 +134,33 @@ Write-Host "Setting up database..." -ForegroundColor Yellow
 npm run db:generate
 npm run db:push
 
+# 7. Start all services
 Write-Host "------------------------------------------------" -ForegroundColor Green
 Write-Host "Setup Complete!" -ForegroundColor Green
-Write-Host "You can now start the application with:" -ForegroundColor Green
-Write-Host "npm run dev" -ForegroundColor Yellow
+Write-Host "Starting all OpenPanel services..." -ForegroundColor Yellow
+Write-Host "------------------------------------------------" -ForegroundColor Green
+
+# Create admin user
+Create-AdminUser
+
+# Start services in background
+Write-Host "Starting services in background..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList "-Command", "npm run dev" -WindowStyle Hidden
+
+Write-Host "------------------------------------------------" -ForegroundColor Green
+Write-Host "✅ OpenPanel is now running!" -ForegroundColor Green
+Write-Host "------------------------------------------------" -ForegroundColor Green
+Write-Host "📋 Access Information:" -ForegroundColor Cyan
+Write-Host "   Web Interface: http://localhost:3000" -ForegroundColor White
+Write-Host "   API Endpoint:  http://localhost:3001" -ForegroundColor White
+Write-Host "   Traefik Panel: http://localhost:8080" -ForegroundColor White
+Write-Host "" -ForegroundColor White
+Write-Host "🔐 Default Admin Credentials:" -ForegroundColor Cyan
+Write-Host "   Email: admin@openpanel.dev" -ForegroundColor White
+Write-Host "   Password: admin123" -ForegroundColor White
+Write-Host "" -ForegroundColor White
+Write-Host "📝 Next Steps:" -ForegroundColor Cyan
+Write-Host "   1. Open http://localhost:3000 in your browser" -ForegroundColor White
+Write-Host "   2. Login with the admin credentials above" -ForegroundColor White
+Write-Host "   3. Start managing your Docker containers!" -ForegroundColor White
 Write-Host "------------------------------------------------" -ForegroundColor Green

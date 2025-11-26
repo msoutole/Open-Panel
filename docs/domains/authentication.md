@@ -5,6 +5,7 @@
 ---
 
 ## 📋 Índice
+
 1. [Overview](#1-overview)
 2. [Business Context](#2-business-context)
 3. [User Stories](#3-user-stories)
@@ -21,12 +22,15 @@
 ## 1. Overview
 
 ### O que é?
+
 Sistema completo de autenticação JWT com refresh tokens, gerenciamento de usuários, API keys, e controle de acesso baseado em roles (RBAC).
 
 ### Por que existe?
+
 Protege recursos do sistema, identifica usuários, controla permissões e fornece autenticação programática para integr ações via API.
 
 ### Relacionamentos
+
 - **Depende de**: Nenhum (domínio fundamental)
 - **Usado por**: Todos os outros domínios (Teams, Projects, Containers, etc.)
 - **Integra com**: Redis (rate limiting), Audit Log (segurança)
@@ -36,12 +40,14 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ## 2. Business Context
 
 ### Problema
+
 - **Segurança**: Acesso não autorizado a recursos críticos
 - **UX**: Usuários não querem fazer login a cada ação (15min session)
 - **Automação**: Sistemas precisam acessar API sem intervenção manual
 - **Compliance**: Necessidade de auditoria de acessos
 
 ### Solução
+
 - **JWT com Refresh Tokens**: Access token curto (15min) + Refresh token longo (7 dias)
 - **API Keys**: Autenticação de longa duração para scripts/integrações
 - **RBAC**: 4 níveis de permissão (OWNER, ADMIN, MEMBER, VIEWER)
@@ -49,6 +55,7 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 - **Audit Log**: Rastreamento de login/registro/mudanças críticas
 
 ### Stakeholders
+
 - **Usuários Finais**: Desenvolvedores e DevOps que usam o painel
 - **Administradores**: Gerenciam usuários e permissões
 - **Sistemas Externos**: CI/CD, scripts de automação (via API keys)
@@ -58,11 +65,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ## 3. User Stories
 
 ### US-AUTH-001: Registrar Novo Usuário
+
 **Como** visitante do OpenPanel
 **Quero** criar uma conta com email e senha
 **Para que** possa acessar o sistema
 
 **Critérios de Aceitação:**
+
 - [ ] Email deve ser único no sistema
 - [ ] Senha deve ter mínimo 8 caracteres
 - [ ] Senha é hashada com bcrypt (10 salt rounds)
@@ -76,11 +85,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-002: Fazer Login
+
 **Como** usuário registrado
 **Quero** fazer login com email e senha
 **Para que** obtenha tokens de acesso
 
 **Critérios de Aceitação:**
+
 - [ ] Valida credenciais contra banco de dados
 - [ ] Retorna access token (15min) + refresh token (7 dias)
 - [ ] Atualiza campo `lastLoginAt`
@@ -94,11 +105,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-003: Renovar Access Token
+
 **Como** usuário autenticado com token expirado
 **Quero** renovar meu access token usando refresh token
 **Para que** não precise fazer login novamente
 
 **Critérios de Aceitação:**
+
 - [ ] Aceita refresh token válido
 - [ ] Retorna novo par de tokens (rotation)
 - [ ] Invalida refresh token antigo (segurança)
@@ -110,11 +123,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-004: Obter Perfil do Usuário
+
 **Como** usuário autenticado
 **Quero** consultar meus dados de perfil
 **Para que** possa exibi-los na UI
 
 **Critérios de Aceitação:**
+
 - [ ] Requer Bearer token válido
 - [ ] Retorna dados sem campo `password`
 - [ ] Inclui: id, name, email, avatar, status, timestamps
@@ -125,11 +140,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-005: Atualizar Perfil
+
 **Como** usuário autenticado
 **Quero** atualizar meu nome, email ou avatar
 **Para que** mantenha meus dados atualizados
 
 **Critérios de Aceitação:**
+
 - [ ] Usuário só pode editar próprio perfil
 - [ ] Validação: email único se alterado
 - [ ] Validação Zod em todos os campos
@@ -141,11 +158,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-006: Trocar Senha
+
 **Como** usuário autenticado
 **Quero** trocar minha senha fornecendo senha atual
 **Para que** mantenha minha conta segura
 
 **Critérios de Aceitação:**
+
 - [ ] Requer senha atual correta
 - [ ] Nova senha diferente da atual
 - [ ] Nova senha mínimo 8 caracteres
@@ -158,11 +177,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-007: Gerar API Key
+
 **Como** desenvolvedor
 **Quero** gerar uma API key de longa duração
 **Para que** possa autenticar scripts/CI-CD
 
 **Critérios de Aceitação:**
+
 - [ ] Requer autenticação Bearer
 - [ ] Gera token criptograficamente seguro
 - [ ] Permite definir data de expiração (opcional)
@@ -175,11 +196,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-008: Revogar API Key
+
 **Como** usuário
 **Quero** revogar API keys comprometidas
 **Para que** bloqueie acesso não autorizado
 
 **Critérios de Aceitação:**
+
 - [ ] Lista todas as keys do usuário
 - [ ] Permite deletar individualmente
 - [ ] Log de auditoria
@@ -190,11 +213,13 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### US-AUTH-009: Autenticação 2FA (TOTP)
+
 **Como** usuário preocupado com segurança
 **Quero** habilitar 2FA com Google Authenticator
 **Para que** adicione camada extra de proteção
 
 **Critérios de Aceitação:**
+
 - [ ] Geração de secret TOTP
 - [ ] QR code para scan
 - [ ] Validação de código 6 dígitos
@@ -208,13 +233,16 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ## 4. Business Rules
 
 ### BR-AUTH-001: Unicidade de Email
+
 **Descrição**: Cada email pode ter apenas uma conta no sistema.
 
 **Condições**:
+
 - Email em formato válido (validação Zod)
 - Case-insensitive comparison
 
 **Consequências**:
+
 - Registro falha com erro 400 se email existir
 - Update falha se novo email já em uso
 
@@ -223,13 +251,16 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### BR-AUTH-002: Força de Senha
+
 **Descrição**: Senhas devem seguir requisitos mínimos de segurança.
 
 **Condições**:
+
 - Mínimo 8 caracteres
 - (Futuro: 1 maiúscula, 1 minúscula, 1 número, 1 especial)
 
 **Consequências**:
+
 - Validação Zod rejeita senhas fracas (400)
 
 **Exceções**: Nenhuma
@@ -237,13 +268,16 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### BR-AUTH-003: Expiração de Tokens
+
 **Descrição**: Tokens JWT têm tempo de vida limitado.
 
 **Condições**:
+
 - Access token: 15 minutos (`JWT_ACCESS_EXPIRES_IN`)
 - Refresh token: 7 dias (`JWT_REFRESH_EXPIRES_IN`)
 
 **Consequências**:
+
 - Access token expirado → 401 → Frontend usa refresh
 - Refresh token expirado → 401 → Usuário redireciona para login
 
@@ -252,13 +286,16 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### BR-AUTH-004: Rate Limiting em Autenticação
+
 **Descrição**: Limita tentativas de login/registro para prevenir brute force.
 
 **Condições**:
+
 - Endpoint: `/auth/register`, `/auth/login`, `/auth/refresh`
 - Limite: 5 requisições por 15 minutos por IP
 
 **Consequências**:
+
 - Requisição bloqueada com 429 (Too Many Requests)
 - Header `Retry-After` indica quando tentar novamente
 
@@ -267,13 +304,16 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### BR-AUTH-005: Isolamento de Usuário
+
 **Descrição**: Usuários só podem modificar próprios dados.
 
 **Condições**:
+
 - Operações PUT/PATCH/DELETE em `/users/:userId`
 - `currentUser.userId === :userId`
 
 **Consequências**:
+
 - Retorna 403 Forbidden se tentar editar outro usuário
 - Exceção: ADMIN/OWNER podem editar qualquer usuário
 
@@ -282,13 +322,16 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ---
 
 ### BR-AUTH-006: Soft Delete vs Hard Delete
+
 **Descrição**: Usuários podem ser desativados (soft) ou deletados permanentemente (hard).
 
 **Condições**:
+
 - Soft: `status = SUSPENDED/INACTIVE`
 - Hard: `DELETE FROM users WHERE id = ?`
 
 **Consequências**:
+
 - Soft delete: Preserva dados para auditoria
 - Hard delete: Cascata remove projetos, logs, etc.
 
@@ -301,6 +344,7 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 ### Componentes
 
 #### Backend (`apps/api`)
+
 ```
 src/
 ├── routes/
@@ -319,6 +363,7 @@ src/
 ```
 
 #### Frontend (`apps/web`)
+
 ```
 src/
 ├── pages/
@@ -334,6 +379,7 @@ src/
 ### Fluxo de Dados
 
 #### Fluxo de Login
+
 ```
 1. User submits email + password
    ↓
@@ -361,6 +407,7 @@ src/
 ```
 
 #### Fluxo de Requisição Autenticada
+
 ```
 1. Frontend → GET /api/projects (with Authorization: Bearer <token>)
    ↓
@@ -376,6 +423,7 @@ src/
 ```
 
 #### Fluxo de Refresh Token
+
 ```
 1. Access token expires (15min)
    ↓
@@ -395,6 +443,7 @@ src/
 ```
 
 ### Integrações
+
 - **PostgreSQL**: Armazena User, ApiKey, AuditLog
 - **Redis**: Rate limiting (via `hono-rate-limiter`)
 - **JWT**: `jsonwebtoken` library
@@ -469,12 +518,14 @@ model ApiKey {
 ```
 
 ### Relacionamentos
+
 - **User → ApiKey**: 1:N (um usuário pode ter múltiplas keys)
 - **User → TeamMember**: 1:N (participa de múltiplos teams)
 - **User → Project**: 1:N (owns multiple projects)
 - **User → AuditLog**: 1:N (histórico de ações)
 
 ### Índices
+
 - `email`: Busca rápida por email (login)
 - `apiKeys.key`: Validação de API key
 - `apiKeys.userId`: Listar keys de um usuário
@@ -484,11 +535,13 @@ model ApiKey {
 ## 7. API Endpoints
 
 ### POST /api/auth/register
+
 **Descrição**: Registra novo usuário no sistema
 
 **Auth**: Pública (com rate limiting)
 
 **Request Body**:
+
 ```json
 {
   "name": "João Silva",
@@ -498,6 +551,7 @@ model ApiKey {
 ```
 
 **Validation** (Zod):
+
 ```typescript
 const registerSchema = z.object({
   name: z.string().min(1).max(100),
@@ -507,6 +561,7 @@ const registerSchema = z.object({
 ```
 
 **Response 201**:
+
 ```json
 {
   "user": {
@@ -521,6 +576,7 @@ const registerSchema = z.object({
 ```
 
 **Errors**:
+
 - `400`: User already exists / Validation error
 - `429`: Too many requests (rate limit)
 - `500`: Internal server error
@@ -528,11 +584,13 @@ const registerSchema = z.object({
 ---
 
 ### POST /api/auth/login
+
 **Descrição**: Autentica usuário e retorna tokens JWT
 
 **Auth**: Pública (com rate limiting)
 
 **Request Body**:
+
 ```json
 {
   "email": "joao@example.com",
@@ -541,6 +599,7 @@ const registerSchema = z.object({
 ```
 
 **Validation**:
+
 ```typescript
 const loginSchema = z.object({
   email: z.string().email(),
@@ -549,6 +608,7 @@ const loginSchema = z.object({
 ```
 
 **Response 200**:
+
 ```json
 {
   "user": {
@@ -564,6 +624,7 @@ const loginSchema = z.object({
 ```
 
 **Errors**:
+
 - `401`: Invalid credentials
 - `429`: Too many requests
 - `500`: Internal error
@@ -571,11 +632,13 @@ const loginSchema = z.object({
 ---
 
 ### POST /api/auth/refresh
+
 **Descrição**: Renova access token usando refresh token
 
 **Auth**: Pública (requer refresh token válido)
 
 **Request Body**:
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1Ni..."
@@ -583,6 +646,7 @@ const loginSchema = z.object({
 ```
 
 **Response 200**:
+
 ```json
 {
   "accessToken": "eyJ...",
@@ -591,6 +655,7 @@ const loginSchema = z.object({
 ```
 
 **Errors**:
+
 - `400`: Refresh token required
 - `401`: Invalid or expired refresh token
 - `500`: Internal error
@@ -598,11 +663,13 @@ const loginSchema = z.object({
 ---
 
 ### GET /api/auth/me
+
 **Descrição**: Retorna dados do usuário autenticado
 
 **Auth**: Bearer token (middleware `authMiddleware`)
 
 **Response 200**:
+
 ```json
 {
   "user": {
@@ -618,6 +685,7 @@ const loginSchema = z.object({
 ```
 
 **Errors**:
+
 - `401`: Unauthorized (token inválido/expirado)
 - `404`: User not found
 - `500`: Internal error
@@ -625,16 +693,19 @@ const loginSchema = z.object({
 ---
 
 ### GET /api/users
+
 **Descrição**: Lista todos os usuários (admin only - futuramente)
 
 **Auth**: Bearer token
 
 **Query Params**: (futuro)
+
 - `page` (number): Página atual
 - `limit` (number): Items por página
 - `status` (enum): Filtro por status
 
 **Response 200**:
+
 ```json
 {
   "users": [
@@ -652,6 +723,7 @@ const loginSchema = z.object({
 ```
 
 **Errors**:
+
 - `401`: Unauthorized
 - `403`: Forbidden (não é admin)
 - `500`: Internal error
@@ -659,11 +731,13 @@ const loginSchema = z.object({
 ---
 
 ### GET /api/users/:userId
+
 **Descrição**: Retorna dados de usuário específico
 
 **Auth**: Bearer token
 
 **Response 200**:
+
 ```json
 {
   "user": {
@@ -679,6 +753,7 @@ const loginSchema = z.object({
 ```
 
 **Errors**:
+
 - `401`: Unauthorized
 - `404`: User not found
 - `500`: Internal error
@@ -686,11 +761,13 @@ const loginSchema = z.object({
 ---
 
 ### PUT /api/users/:userId
+
 **Descrição**: Atualiza perfil de usuário
 
 **Auth**: Bearer token (usuário só pode editar próprio perfil)
 
 **Request Body**:
+
 ```json
 {
   "name": "João Pedro Silva",
@@ -701,6 +778,7 @@ const loginSchema = z.object({
 ```
 
 **Validation**:
+
 ```typescript
 const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -711,6 +789,7 @@ const updateUserSchema = z.object({
 ```
 
 **Response 200**:
+
 ```json
 {
   "user": {
@@ -726,6 +805,7 @@ const updateUserSchema = z.object({
 ```
 
 **Errors**:
+
 - `400`: Email already in use / Validation error
 - `401`: Unauthorized
 - `403`: Forbidden (tentando editar outro usuário)
@@ -734,11 +814,13 @@ const updateUserSchema = z.object({
 ---
 
 ### POST /api/users/:userId/change-password
+
 **Descrição**: Altera senha do usuário
 
 **Auth**: Bearer token (usuário só pode mudar própria senha)
 
 **Request Body**:
+
 ```json
 {
   "currentPassword": "senha123",
@@ -747,6 +829,7 @@ const updateUserSchema = z.object({
 ```
 
 **Validation**:
+
 ```typescript
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -755,6 +838,7 @@ const changePasswordSchema = z.object({
 ```
 
 **Response 200**:
+
 ```json
 {
   "message": "Password changed successfully"
@@ -762,6 +846,7 @@ const changePasswordSchema = z.object({
 ```
 
 **Errors**:
+
 - `400`: Validation error
 - `401`: Current password is incorrect / Unauthorized
 - `403`: Forbidden
@@ -771,11 +856,13 @@ const changePasswordSchema = z.object({
 ---
 
 ### DELETE /api/users/:userId
+
 **Descrição**: Deleta usuário permanentemente (admin only)
 
 **Auth**: Bearer token (admin)
 
 **Response 200**:
+
 ```json
 {
   "message": "User deleted successfully"
@@ -783,6 +870,7 @@ const changePasswordSchema = z.object({
 ```
 
 **Errors**:
+
 - `400`: Cannot delete your own account
 - `401`: Unauthorized
 - `403`: Forbidden (não é admin)
@@ -796,6 +884,7 @@ const changePasswordSchema = z.object({
 ### Key Files
 
 #### Route Handler (`apps/api/src/routes/auth.ts`)
+
 ```typescript
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
@@ -947,6 +1036,7 @@ export default auth
 ```
 
 #### JWT Library (`apps/api/src/lib/jwt.ts`)
+
 ```typescript
 import jwt from 'jsonwebtoken'
 import { env } from './env'
@@ -984,6 +1074,7 @@ export const verifyToken = (token: string): TokenPayload => {
 ```
 
 #### Auth Middleware (`apps/api/src/middlewares/auth.ts`)
+
 ```typescript
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
@@ -1027,6 +1118,7 @@ export const authMiddleware = createMiddleware<{ Variables: Variables }>(
 ```
 
 #### Password Hashing (`apps/api/src/lib/hash.ts`)
+
 ```typescript
 import bcrypt from 'bcryptjs'
 
@@ -1045,6 +1137,7 @@ export const comparePassword = async (
 ```
 
 #### Rate Limiter (`apps/api/src/middlewares/rate-limit.ts`)
+
 ```typescript
 import { rateLimiter } from 'hono-rate-limiter'
 import { redis } from '../lib/redis'
@@ -1059,6 +1152,7 @@ export const authRateLimiter = rateLimiter({
 ```
 
 ### Frontend Service (`apps/web/src/services/auth.service.ts`)
+
 ```typescript
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -1367,6 +1461,7 @@ describe('Authentication Flow', () => {
 ### Manual Testing Checklist
 
 #### Happy Path
+
 - [ ] Registrar novo usuário com email único
 - [ ] Fazer login com credenciais corretas
 - [ ] Acessar `/auth/me` com token válido
@@ -1375,6 +1470,7 @@ describe('Authentication Flow', () => {
 - [ ] Renovar access token com refresh token válido
 
 #### Error Cases
+
 - [ ] Tentar registrar com email duplicado → 400
 - [ ] Tentar login com senha errada → 401
 - [ ] Tentar login com email inexistente → 401
@@ -1385,6 +1481,7 @@ describe('Authentication Flow', () => {
 - [ ] Exceder rate limit de login (5 em 15min) → 429
 
 #### Security
+
 - [ ] Senha retornada no hash (não plaintext)
 - [ ] Token JWT tem expiração correta (15min)
 - [ ] Refresh token funciona após access expirar
@@ -1396,23 +1493,27 @@ describe('Authentication Flow', () => {
 ## 10. Future Enhancements
 
 ### Curto Prazo (1-3 meses)
+
 - [ ] **API Keys Completas**: Implementar CRUD completo de API keys
 - [ ] **RBAC Middleware**: Middleware para validar permissões por role
 - [ ] **Email Verification**: Confirmação de email após registro
 - [ ] **Password Reset**: Esqueci minha senha via email
 
 ### Médio Prazo (3-6 meses)
+
 - [ ] **2FA com TOTP**: Google Authenticator integration
 - [ ] **OAuth Providers**: Login com GitHub, Google, etc.
 - [ ] **Session Management**: Listar e revogar sessões ativas
 - [ ] **Account Lockout**: Bloqueio temporário após N tentativas falhas
 
 ### Longo Prazo (6+ meses)
+
 - [ ] **SSO/SAML**: Single Sign-On para empresas
 - [ ] **WebAuthn**: Autenticação biométrica/hardware keys
 - [ ] **Audit Dashboard**: UI para visualizar logs de segurança
 
 ### Debt Técnico
+
 - [ ] Migrar de localStorage para HttpOnly cookies (mais seguro)
 - [ ] Implementar token blacklist para logout forçado
 - [ ] Adicionar testes E2E com Playwright

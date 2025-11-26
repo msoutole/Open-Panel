@@ -4,6 +4,8 @@
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}Starting Open-Panel Setup...${NC}"
@@ -11,6 +13,22 @@ echo -e "${GREEN}Starting Open-Panel Setup...${NC}"
 # Function to check command existence
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Function to create default admin user
+create_admin_user() {
+    echo -e "${YELLOW}Creating default admin user...${NC}"
+    # Try to create admin user via API
+    curl -s -X POST http://localhost:3001/api/auth/register \
+         -H "Content-Type: application/json" \
+         -d '{"name":"Admin User","email":"admin@openpanel.dev","password":"admin123"}' \
+         >/dev/null 2>&1 || echo -e "${YELLOW}⚠ Admin user may already exist or API is not ready yet${NC}"
+}
+
+# Function to start all services
+start_openpanel() {
+    echo -e "${YELLOW}Starting OpenPanel services...${NC}"
+    npm run dev &
 }
 
 # 1. Check & Install Node.js
@@ -96,8 +114,32 @@ echo -e "${YELLOW}Setting up database...${NC}"
 npm run db:generate
 npm run db:push
 
+# 7. Start all services
 echo -e "${GREEN}------------------------------------------------${NC}"
 echo -e "${GREEN}Setup Complete!${NC}"
-echo -e "${GREEN}You can now start the application with:${NC}"
-echo -e "${YELLOW}npm run dev${NC}"
+echo -e "${GREEN}Starting all OpenPanel services...${NC}"
+echo -e "${GREEN}------------------------------------------------${NC}"
+
+# Create admin user
+create_admin_user
+
+# Start services in background
+start_openpanel
+
+echo -e "${GREEN}------------------------------------------------${NC}"
+echo -e "${GREEN}✅ OpenPanel is now running!${NC}"
+echo -e "${GREEN}------------------------------------------------${NC}"
+echo -e "${CYAN}📋 Access Information:${NC}"
+echo -e "${WHITE}   Web Interface: http://localhost:3000${NC}"
+echo -e "${WHITE}   API Endpoint:  http://localhost:3001${NC}"
+echo -e "${WHITE}   Traefik Panel: http://localhost:8080${NC}"
+echo -e ""
+echo -e "${CYAN}🔐 Default Admin Credentials:${NC}"
+echo -e "${WHITE}   Email: admin@openpanel.dev${NC}"
+echo -e "${WHITE}   Password: admin123${NC}"
+echo -e ""
+echo -e "${CYAN}📝 Next Steps:${NC}"
+echo -e "${WHITE}   1. Open http://localhost:3000 in your browser${NC}"
+echo -e "${WHITE}   2. Login with the admin credentials above${NC}"
+echo -e "${WHITE}   3. Start managing your Docker containers!${NC}"
 echo -e "${GREEN}------------------------------------------------${NC}"

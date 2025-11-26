@@ -22,6 +22,7 @@ Open-Panel/
 ## Stack Tecnológico
 
 ### Backend (apps/api)
+
 - **Runtime**: Node.js + tsx (hot reload)
 - **Framework**: Hono (lightweight alternative to Express)
 - **Banco de Dados**: PostgreSQL + Prisma ORM + pgvector (embeddings)
@@ -37,6 +38,7 @@ Open-Panel/
 - **Security**: Rate limiting, RBAC, audit logging, encryption
 
 ### Frontend (apps/web)
+
 - **Framework**: React 19.2.0
 - **Build**: Vite
 - **UI**: lucide-react (ícones), recharts (gráficos)
@@ -45,6 +47,7 @@ Open-Panel/
 - **Storage**: localStorage (sessões)
 
 ### Shared (packages/shared)
+
 - **Validadores Zod**: auth, domain, project, team, user
 - **Tipos TypeScript**: compartilhados entre API e Web
 - **Exports**: `.`, `./types`, `./utils`, `./validators`
@@ -80,6 +83,7 @@ npm run preview        # Preview da build web
 ## Arquitetura do Backend
 
 ### Estrutura de Pastas
+
 ```
 apps/api/
 ├── routes/             # Rotas HTTP por feature (auth, users, teams, projects, etc)
@@ -93,6 +97,7 @@ apps/api/
 ```
 
 ### Padrões Importantes
+
 - **Validação**: Todas as rotas usam Zod (importado de `@openpanel/shared`)
 - **Autenticação**: Middleware JWT valida tokens (Bearer token)
 - **RBAC**: Middleware enforce roles (Owner, Admin, Member, Viewer)
@@ -101,6 +106,7 @@ apps/api/
 - **Segurança**: Encriptação de dados sensíveis em database
 
 ### Fluxos Críticos
+
 1. **Deploy**: Git repo → Build container → Push Docker → Traefik roteamento
 2. **WebSocket**: Container Gateway envia logs/eventos em tempo real
 3. **Background Jobs**: BullMQ (Redis) para backups, builds assíncros
@@ -109,6 +115,7 @@ apps/api/
 ## Arquitetura do Frontend
 
 ### Estrutura de Componentes
+
 ```
 apps/web/
 ├── pages/              # Views por rota (Dashboard, Projects, Settings, etc)
@@ -119,6 +126,7 @@ apps/web/
 ```
 
 ### Padrões Importantes
+
 - **Lazy Loading**: Componentes carregados sob demanda
 - **State Management**: localStorage para persistência de sessão
 - **Service Layer**: Separação entre UI e requisições HTTP
@@ -129,16 +137,18 @@ apps/web/
 ### Variáveis Críticas
 
 **Backend (.env)**
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `REDIS_URL`: Redis connection
 - `JWT_SECRET`: Mínimo 32 caracteres (OBRIGATÓRIO)
-- `CORS_ORIGIN`: Controle de origem (default: http://localhost:3000)
+- `CORS_ORIGIN`: Controle de origem (default: <http://localhost:3000>)
 - `DOCKER_HOST`: Conexão Docker (unix socket ou TCP)
 - `AI_PROVIDER`: Ollama, OpenAI, Anthropic, Google
 - `NODE_ENV`: development, production
 
 **Frontend (.env.local)**
-- `VITE_API_URL`: Backend API URL (default: http://localhost:8000)
+
+- `VITE_API_URL`: Backend API URL (default: <http://localhost:8000>)
 - `VITE_GEMINI_API_KEY`: Google Generative AI key (se usando Google)
 
 ### Desenvolvimento Local
@@ -166,6 +176,7 @@ npm run dev
 ## Modelo de Dados Principal
 
 **Entidades Chave** (Prisma schema):
+
 - **User**: Autenticação, teams, API keys, audit logs
 - **Team**: Colaboração, membros, invites
 - **Project**: Aplicações, containers, deployments
@@ -176,6 +187,7 @@ npm run dev
 - **AuditLog**: Rastreamento de segurança
 
 **Enums Importantes**:
+
 - `ProjectType`: WEB, API, WORKER, CRON, DATABASE, REDIS, MONGODB
 - `ProjectStatus`: ACTIVE, PAUSED, ERROR, DEPLOYING, STOPPED
 - `DeploymentStatus`: PENDING, BUILDING, DEPLOYING, SUCCESS, FAILED
@@ -184,6 +196,7 @@ npm run dev
 ## Infraestrutura Local (Docker Compose)
 
 Serviços containerizados inclusos:
+
 - **PostgreSQL** (porta 5432): Banco principal + pgvector
 - **Redis** (porta 6379): Cache e filas de jobs
 - **Ollama** (porta 11434): LLM local para IA Assistant
@@ -192,6 +205,7 @@ Serviços containerizados inclusos:
 ## Guias Específicos de Desenvolvimento
 
 ### Adicionar Nova Rota na API
+
 1. Criar arquivo em `apps/api/routes/feature.ts`
 2. Definir validadores Zod em `packages/shared/src/validators/`
 3. Implementar service em `apps/api/services/`
@@ -199,17 +213,20 @@ Serviços containerizados inclusos:
 5. Adicionar middleware de auth/RBAC conforme necessário
 
 ### Adicionar Nova Page no Frontend
+
 1. Criar componente em `apps/web/pages/NewView.tsx`
 2. Criar service em `apps/web/services/newService.ts` para API calls
 3. Registrar rota em router/navigation
 4. Usar tipos do `@openpanel/shared`
 
 ### Executar Type Checking
+
 ```bash
 npm run type-check   # Valida TypeScript em todos os packages
 ```
 
 ### Debugging
+
 - **API**: Use `console.log()` ou debugger do Node.js
 - **Frontend**: DevTools do navegador (F12)
 - **Logs**: Consultados via Winston logger (files em `logs/`)
@@ -230,4 +247,4 @@ npm run type-check   # Valida TypeScript em todos os packages
 - **Licença**: MIT
 - **Node.js**: >=18.0.0 (recomendado 20+)
 - **npm**: >=10.0.0
-- **Repo**: https://github.com/msoutole/openpanel
+- **Repo**: <https://github.com/msoutole/openpanel>

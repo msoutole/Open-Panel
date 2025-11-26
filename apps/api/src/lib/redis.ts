@@ -20,7 +20,7 @@ const getRedisConfig = () => {
     return {
       host,
       port: parseInt(url.port || '6379'),
-      password: url.password || undefined,
+      password: url.password || env.REDIS_PASSWORD || undefined,
       maxRetriesPerRequest: null, // Required for BullMQ
     };
   }

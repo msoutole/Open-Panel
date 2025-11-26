@@ -1,6 +1,7 @@
 # Walkthrough: Implementação de Autenticação JWT - COMPLETA ✅
 
 ## Objetivo
+
 Implementar autenticação JWT completa no frontend para permitir acesso aos recursos protegidos da API.
 
 ## Status: ✅ IMPLEMENTAÇÃO CONCLUÍDA
@@ -10,6 +11,7 @@ Implementar autenticação JWT completa no frontend para permitir acesso aos rec
 ## 🎉 Implementação Finalizada
 
 ### 1. Login com Autenticação Real
+
 **Arquivo**: `apps/web/pages/Login.tsx`
 
 - ✅ Substitído login simulado por chamada real a POST `/api/auth/login`
@@ -18,9 +20,11 @@ Implementar autenticação JWT completa no frontend para permitir acesso aos rec
 - ✅ Suporte a "Remember Me" para salvar email
 
 ### 2. Sistema de Autenticação JWT
+
 **Arquivo**: `apps/web/services/api.ts`
 
 **Helpers criados**:
+
 - `getAuthHeaders()` - Retorna headers com `Authorization: Bearer <token>`
 - `refreshAccessToken()` - Renova access token quando expirar usando refresh token
 - `handleResponse()` - Intercepta erro 401, limpa sessão e redireciona para login
@@ -28,30 +32,39 @@ Implementar autenticação JWT completa no frontend para permitir acesso aos rec
 ### 3. Todas as 31 Funções de API Autenticadas
 
 ✅ **Projects** (5 funções):
+
 - `getProjects`, `getProject`, `createProject`, `updateProject`, `deleteProject`
 
 ✅ **Services** (4 funções):
+
 - `createService`, `getService`, `updateService`, `deleteService`
 
 ✅ **Service Control** (5 funções):
+
 - `restartService`, `startService`, `stopService`, `getServiceLogs`, `getServiceStatus`
 
 ✅ **Environment Variables** (4 funções):
+
 - `getProjectEnvVars`, `createEnvVar`, `updateEnvVar`, `deleteEnvVar`
 
 ✅ **Containers** (7 funções):
+
 - `getContainers`, `createContainer`, `startContainer`, `stopContainer`, `restartContainer`, `deleteContainer`, `getContainerLogs`
 
 ✅ **Domains** (4 funções):
+
 - `getProjectDomains`, `createDomain`, `updateDomain`, `deleteDomain`
 
 ✅ **Redirects** (2 funções):
+
 - `createRedirect`, `deleteRedirect`
 
 ✅ **Resources** (1 função):
+
 - `updateServiceResources`
 
 ✅ **Backups** (4 funções):
+
 - `listBackups`, `createBackup`, `restoreBackup`, `deleteBackup`
 
 ---
@@ -61,6 +74,7 @@ Implementar autenticação JWT completa no frontend para permitir acesso aos rec
 ### 1. Criar Usuário de Teste
 
 **Via API (Postman/Thunder Client/curl)**:
+
 ```bash
 POST http://localhost:3001/api/auth/register
 Content-Type: application/json
@@ -73,6 +87,7 @@ Content-Type: application/json
 ```
 
 **Ou via Prisma Studio**:
+
 ```bash
 cd D:\Open-Panel
 npm run db:studio
@@ -80,13 +95,14 @@ npm run db:studio
 
 ### 2. Testar Login
 
-1. Acessar http://localhost:3000
+1. Acessar <http://localhost:3000>
 2. Preencher credenciais:
    - Email: `admin@openpanel.dev`
    - Password: `admin123`
 3. Clicar em "Login"
 
 **Esperado**:
+
 - Redirecionamento para dashboard sem erros
 - DevTools > Application > Local Storage:
   - ✅ `openpanel_access_token`
@@ -99,9 +115,11 @@ npm run db:studio
 1. Após login, abrir DevTools > Network
 2. Filtrar por `/api/projects`
 3. Verificar **Request Headers**:
+
    ```
    Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
    ```
+
 4. Verificar **Response**:
    - Status: `200 OK` (não mais 401)
    - Body: Lista de projetos ou `{ projects: [] }`
@@ -128,11 +146,13 @@ npm run db:studio
 ## 📸 Screenshots
 
 ### Antes da Implementação
+
 ![Dashboard com erro 401](file:///C:/Users/msout/.gemini/antigravity/brain/7593e21 f-92c1-486a-8c22-fab1be80fbeb/auth_error_dashboard_reloaded_1764185408627.png)
 
 *Dashboard não carregava projetos due a erro 401 Unauthorized*
 
 ### Depois (Esperado)
+
 - Login funcional com validação
 - Dashboard carregando dados sem erros
 - Headers Authorization presentes em todas as requisições
@@ -156,7 +176,7 @@ npm run db:studio
 ## Próximos Passos Recomendados
 
 1. ✅ **Criar usuário de teste** via API ou Prisma Studio
-2. ✅ **Testar login** em http://localhost:3000
+2. ✅ **Testar login** em <http://localhost:3000>
 3. ✅ **Validar dashboard** carrega sem erro 401
 4. 🔄 **Implementar logout** (atualizar `App.tsx` ou Sidebar)
 5. 🔄 **Adicionar refresh token automático** em caso de 401 (atualmente só limpa e redireciona)
