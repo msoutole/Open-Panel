@@ -1,6 +1,29 @@
 import { Project, Service, EnvVar, Domain, Deployment, CreateServiceData } from '../types';
 
-const API_URL = 'http://localhost:3001';
+// Use environment variable with fallback to localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Helper to map container status from backend to frontend
+const mapContainerStatus = (backendStatus: string): 'Running' | 'Stopped' | 'Building' | 'Error' | 'Backing Up' => {
+  const statusMap: Record<string, 'Running' | 'Stopped' | 'Building' | 'Error' | 'Backing Up'> = {
+    'RUNNING': 'Running',
+    'running': 'Running',
+    'CREATED': 'Stopped',
+    'created': 'Stopped',
+    'RESTARTING': 'Building',
+    'restarting': 'Building',
+    'REMOVING': 'Stopped',
+    'removing': 'Stopped',
+    'EXITED': 'Stopped',
+    'exited': 'Stopped',
+    'DEAD': 'Error',
+    'dead': 'Error',
+    'PAUSED': 'Stopped',
+    'paused': 'Stopped',
+  };
+
+  return statusMap[backendStatus] || 'Stopped';
+};
 
 // Helper to handle responses
 const handleResponse = async <T>(response: Response): Promise<T> => {
@@ -171,7 +194,7 @@ export const getContainers = async (): Promise<Service[]> => {
     ...c,
     type: c.image.includes('postgres') || c.image.includes('mysql') ? 'db' :
       c.image.includes('redis') ? 'redis' : 'app', // Simple heuristic
-    status: c.status === 'running' ? 'Running' : 'Stopped' // Map status
+    status: mapContainerStatus(c.status) // Properly map all status types
   }));
 };
 

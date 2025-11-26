@@ -357,7 +357,7 @@ export class HealthService {
       })
 
       const healthChecks = await Promise.all(
-        containers.map((container) => this.getContainerHealth(container.id))
+        containers.map((container: typeof containers[0]) => this.getContainerHealth(container.id))
       )
 
       return healthChecks

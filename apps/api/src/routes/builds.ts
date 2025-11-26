@@ -256,7 +256,7 @@ builds.post('/:id/rollback', async (c) => {
 
       const containerName = `${deployment.project.slug}-${Date.now()}`
 
-      const envVars = deployment.project.envVars.reduce((acc, curr) => ({
+      const envVars = deployment.project.envVars.reduce((acc: Record<string, string>, curr: typeof deployment.project.envVars[0]) => ({
         ...acc,
         [curr.key]: curr.value
       }), {} as Record<string, string>)

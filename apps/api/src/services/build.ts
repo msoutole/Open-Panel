@@ -506,7 +506,7 @@ export class BuildService {
         image: imageName,
         tag: imageTag,
         projectId: project.id,
-        env: project.envVars.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {}) as Record<string, string>,
+        env: project.envVars.reduce((acc: Record<string, string>, curr: typeof project.envVars[0]) => ({ ...acc, [curr.key]: curr.value }), {}) as Record<string, string>,
       }
 
       const newContainer = await dockerService.createContainer(containerConfig)

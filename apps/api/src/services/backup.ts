@@ -304,7 +304,7 @@ export class BackupService {
       })
 
       const containerBackups = await Promise.all(
-        containers.map((container) => this.backupContainer(container.id))
+        containers.map((container: typeof containers[0]) => this.backupContainer(container.id))
       )
 
       const totalSize = database.size + config.size + containerBackups.reduce((sum, b) => sum + b.size, 0)
