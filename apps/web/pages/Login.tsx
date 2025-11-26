@@ -51,8 +51,25 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
-      // Simular API call (1 segundo de delay)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call real API
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      const data = await response.json();
+
+      // Store tokens and user data
+      localStorage.setItem('openpanel_access_token', data.accessToken);
+      localStorage.setItem('openpanel_refresh_token', data.refreshToken);
+      localStorage.setItem('openpanel_user', JSON.stringify(data.user));
 
       // Store credentials if remember me is checked
       if (rememberMe) {
@@ -65,7 +82,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       onLogin();
     } catch (err) {
-      setError('Login failed. Please check your credentials.');
+      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -75,10 +92,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10 transform transition-all hover:scale-[1.01]">
         <div className="flex items-center justify-center gap-3 mb-8">
-           <div className="bg-gradient-to-tr from-blue-600 to-blue-400 p-2.5 rounded-xl text-white shadow-lg shadow-blue-200">
-             <Box size={32} strokeWidth={2.5} />
-           </div>
-           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Open Panel</h1>
+          <div className="bg-gradient-to-tr from-blue-600 to-blue-400 p-2.5 rounded-xl text-white shadow-lg shadow-blue-200">
+            <Box size={32} strokeWidth={2.5} />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Open Panel</h1>
         </div>
 
         <h2 className="text-center text-lg font-medium text-slate-600 mb-8">Sign In to your account</h2>
@@ -106,7 +123,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
 
           <div>
-             <div className="relative">
+            <div className="relative">
               <input
                 type="password"
                 name="password"
@@ -141,7 +158,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <>
                 <Loader2 size={18} className="animate-spin" />
                 Signing in...
-              </>
+              </
+
+              >
             ) : (
               'Login'
             )}
