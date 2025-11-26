@@ -6,6 +6,20 @@ import { GoogleGenAI } from "@google/genai";
 export const SecurityView: React.FC = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
+
+  // Sanitização de campos CSV para prevenir injection
+  const sanitizeCSVField = (field: string | number): string => {
+    const str = String(field);
+
+    // Prevent CSV injection (formulas starting with =, +, -, @, |, %)
+    if (/^[=+\-@|%]/.test(str)) {
+      return `'${str.replace(/"/g, '""')}`; // Prefix with quote and escape quotes
+    }
+
+    // Escape quotes
+    return str.replace(/"/g, '""');
+  };
 
   const handleExportCSV = () => {
     // Convert audit logs to CSV format
@@ -22,7 +36,7 @@ export const SecurityView: React.FC = () => {
         log.ipAddress,
         log.status
       ];
-      csvRows.push(row.map(field => `"${field}"`).join(','));
+      csvRows.push(row.map(field => `"${sanitizeCSVField(field)}"`).join(','));
     });
 
     const csvContent = csvRows.join('\n');
@@ -35,6 +49,10 @@ export const SecurityView: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Feedback de sucesso
+    setExportSuccess(true);
+    setTimeout(() => setExportSuccess(false), 3000);
   };
 
   const handleAnalyze = async () => {
@@ -169,9 +187,20 @@ export const SecurityView: React.FC = () => {
            </div>
            <button
             onClick={handleExportCSV}
-            className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded hover:bg-slate-50 text-slate-600 font-medium transition-colors"
+            className={`text-xs border px-3 py-1.5 rounded font-medium transition-all flex items-center gap-1.5 ${
+              exportSuccess
+                ? 'bg-green-50 border-green-200 text-green-700'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
           >
-            Export CSV
+            {exportSuccess ? (
+              <>
+                <CheckCircle size={12} />
+                Exported!
+              </>
+            ) : (
+              'Export CSV'
+            )}
           </button>
         </div>
         <div className="overflow-x-auto">

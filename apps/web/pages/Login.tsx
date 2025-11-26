@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Box, AlertCircle, Loader2 } from 'lucide-react';
 
 interface LoginProps {
   onLogin: () => void;
@@ -9,20 +9,66 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Recuperar email salvo ao carregar
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('openpanel_email');
+    const rememberFlag = localStorage.getItem('openpanel_remember');
+
+    if (rememberFlag === 'true' && savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // Funções de validação
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 6; // Mínimo 6 caracteres
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
-    // Store credentials if remember me is checked
-    if (rememberMe) {
-      localStorage.setItem('openpanel_remember', 'true');
-      localStorage.setItem('openpanel_email', email);
-    } else {
-      localStorage.removeItem('openpanel_remember');
-      localStorage.removeItem('openpanel_email');
+    // Validações
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
     }
 
-    onLogin();
+    if (!validatePassword(password)) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Simular API call (1 segundo de delay)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Store credentials if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('openpanel_remember', 'true');
+        localStorage.setItem('openpanel_email', email);
+      } else {
+        localStorage.removeItem('openpanel_remember');
+        localStorage.removeItem('openpanel_email');
+      }
+
+      onLogin();
+    } catch (err) {
+      setError('Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -38,6 +84,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <h2 className="text-center text-lg font-medium text-slate-600 mb-8">Sign In to your account</h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm animate-in fade-in duration-200">
+              <AlertCircle size={16} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div>
             <div className="relative">
               <input
@@ -81,9 +134,17 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
           <button
             type="submit"
-            className="w-full bg-primary hover:bg-blue-700 text-white font-semibold py-3.5 rounded-lg shadow-lg shadow-blue-200 transition-all transform active:scale-95 duration-200"
+            disabled={isLoading}
+            className="w-full bg-primary hover:bg-blue-700 text-white font-semibold py-3.5 rounded-lg shadow-lg shadow-blue-200 transition-all transform active:scale-95 duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
           >
-            Login
+            {isLoading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
 
