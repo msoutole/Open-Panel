@@ -7,6 +7,36 @@ export const SecurityView: React.FC = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
+  const handleExportCSV = () => {
+    // Convert audit logs to CSV format
+    const headers = ['Timestamp', 'Action', 'User Email', 'User ID', 'Target Resource', 'IP Address', 'Status'];
+    const csvRows = [headers.join(',')];
+
+    AUDIT_LOGS.forEach(log => {
+      const row = [
+        log.timestamp,
+        log.action,
+        log.userEmail,
+        log.userId,
+        log.targetResource,
+        log.ipAddress,
+        log.status
+      ];
+      csvRows.push(row.map(field => `"${field}"`).join(','));
+    });
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `openpanel-audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleAnalyze = async () => {
     setAnalyzing(true);
     setAnalysis(null);
@@ -137,7 +167,12 @@ export const SecurityView: React.FC = () => {
                 <FileText className="text-slate-500" size={18} />
                 <h3 className="font-semibold text-slate-700">Audit Log (Immutable)</h3>
            </div>
-           <button className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded hover:bg-slate-50 text-slate-600 font-medium">Export CSV</button>
+           <button
+            onClick={handleExportCSV}
+            className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded hover:bg-slate-50 text-slate-600 font-medium transition-colors"
+          >
+            Export CSV
+          </button>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
