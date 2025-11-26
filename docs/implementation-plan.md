@@ -1,6 +1,20 @@
-# Auto-Install Scripts Implementation Plan
+# Implementation Plans
 
-## Goal Description
+## [COMPLETED] Fix API Health Checks for Windows
+
+### Goal
+Fix API health checks to be compatible with Windows environment.
+
+### Completed Changes
+- **Docker Service**: Updated to use Windows named pipes (`//./pipe/docker_engine`).
+- **Health Service**: Updated to use `fs.statfs` or PowerShell for disk checks.
+- **Status**: ✅ System now reports "healthy" on Windows.
+
+---
+
+## Auto-Install Scripts Implementation Plan
+
+### Goal Description
 Create auto-install scripts to simplify the setup process of Open-Panel on Windows, Linux, and macOS.
 
 ## User Review Required

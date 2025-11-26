@@ -29,3 +29,12 @@ Created cross-platform auto-install scripts to streamline the setup process for 
 - `setup.sh` uses `command -v` for portability.
 - **Fix Applied**: Added a health check loop to wait for the PostgreSQL container to be ready.
 - **Improvement**: Switched from `db:migrate` to `db:push` to avoid interactive prompts and handle existing database states more gracefully during setup.
+
+## Fix API Health Checks on Windows
+### Changes
+- **Docker Service**: Updated `docker.ts` to use named pipes (`//./pipe/docker_engine`) on Windows.
+- **Health Service**: Updated `health.ts` to use `fs.statfs` (Node 18+) or PowerShell for disk space checks on Windows, replacing the Unix-only `df` command.
+
+### Verification
+- Verified that the API starts without errors.
+- Confirmed "System is healthy" log message in the terminal.

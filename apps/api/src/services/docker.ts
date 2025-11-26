@@ -14,8 +14,12 @@ export class DockerService {
   private constructor() {
     // Initialize Docker connection
     // Try socket first (Unix/Linux), fallback to TCP (Windows/Remote)
+    const isWindows = process.platform === 'win32'
+    const defaultSocketPath = isWindows ? '//./pipe/docker_engine' : '/var/run/docker.sock'
+    const socketPath = process.env.DOCKER_SOCKET_PATH || defaultSocketPath
+
     try {
-      this.docker = new Docker({ socketPath: '/var/run/docker.sock' })
+      this.docker = new Docker({ socketPath })
     } catch (error) {
       logWarn('Failed to connect via socket, trying TCP...')
       this.docker = new Docker({

@@ -207,14 +207,41 @@ export class HealthService {
     const startTime = Date.now()
 
     try {
-      const { execSync } = await import('child_process')
+      let usagePercent = 0
+      const fs = await import('fs')
 
-      // Get disk usage for root partition
-      const output = execSync("df -k / | tail -1 | awk '{print $5}'", {
-        encoding: 'utf-8',
-      })
+      // Try native Node.js fs.statfs (Node 18.15+)
+      // @ts-ignore - statfsSync might not be in types if using older @types/node
+      if (fs.statfsSync) {
+        // @ts-ignore
+        const stats = fs.statfsSync(process.platform === 'win32' ? 'C:\\' : '/')
+        const total = Number(stats.bsize) * Number(stats.blocks)
+        const free = Number(stats.bsize) * Number(stats.bfree)
+        usagePercent = Math.round(((total - free) / total) * 100)
+      } else {
+        const { execSync } = await import('child_process')
 
-      const usagePercent = parseInt(output.trim().replace('%', ''))
+        if (process.platform === 'win32') {
+          try {
+            // Use PowerShell as fallback
+            const cmd = 'powershell -Command "Get-CimInstance Win32_LogicalDisk -Filter \\"DeviceID=\'C:\'\\" | Select-Object FreeSpace,Size | ConvertTo-Json"'
+            const output = execSync(cmd, { encoding: 'utf-8' })
+            const data = JSON.parse(output)
+            const free = data.FreeSpace
+            const total = data.Size
+            usagePercent = Math.round(((total - free) / total) * 100)
+          } catch (e) {
+            // Fallback to unknown if PowerShell fails
+            usagePercent = 0
+          }
+        } else {
+          // Get disk usage for root partition
+          const output = execSync("df -k / | tail -1 | awk '{print $5}'", {
+            encoding: 'utf-8',
+          })
+          usagePercent = parseInt(output.trim().replace('%', ''))
+        }
+      }
 
       const responseTime = Date.now() - startTime
 
