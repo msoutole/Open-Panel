@@ -1,54 +1,104 @@
 # 📚 OpenPanel Documentation
 
-Welcome to the complete OpenPanel documentation! This is your central guide to understanding, using, and developing the platform.
+Welcome to the complete OpenPanel documentation!
 
 ## 🎯 What is OpenPanel?
 
 OpenPanel is a **modern, self-hosted control panel** for managing containerized applications with integrated AI support.
 
-## 📖 Start Here
+---
 
-### 👤 Users
+## 🚀 Quick Start
 
-1. **[Main README](../README.md)** ⭐ - Quick start guide
-2. **[Environment Setup](.env.example)** - Configuration guide
+### 👤 For Users
+1. **[Main README](../README.md)** ⭐ - Installation and quick start
+2. **[Environment Setup](../.env.example)** - Configuration guide
 
-### 👨‍💻 Developers
+### 👨‍💻 For Developers
+1. **[CLAUDE.md](../CLAUDE.md)** ⭐ - Complete technical guide
+2. **[Domain Documentation](./domains/)** ⭐⭐⭐ - **Domain-driven docs (optimized for LLMs)**
+3. **[System Architecture](./architecture/01-system-architecture.md)** - Architecture overview
 
-1. **[CLAUDE.md](../CLAUDE.md)** ⭐ - Technical architecture and development guide
-2. **[System Architecture](./architecture/01-system-architecture.md)** - Architecture overview
-3. **[Features](./features/)** - Detailed feature documentation
+---
 
-## 📚 Documentation Index
+## 📂 Documentation Structure
 
-### Architecture - Technical Design
-- [01-system-architecture.md](./architecture/01-system-architecture.md) - System architecture overview
+### 🎯 **NEW: Domain-Driven Documentation** (Recommended)
 
-### Features - Implementation Details
-- [01-authentication.md](./features/01-authentication.md) - Authentication system
-- [02-project-management.md](./features/02-project-management.md) - Project management
-- [03-docker-integration.md](./features/03-docker-integration.md) - Docker integration
-- [04-deployment-pipeline.md](./features/04-deployment-pipeline.md) - Deployment pipeline
-- [05-domain-management.md](./features/05-domain-management.md) - Domain management
-- [06-ssl-management.md](./features/06-ssl-management.md) - SSL/TLS management
-- [07-backup-system.md](./features/07-backup-system.md) - Backup system
-- [08-rbac-security.md](./features/08-rbac-security.md) - RBAC and security
-- [09-ai-assistant.md](./features/09-ai-assistant.md) - AI assistant
-- [10-monitoring.md](./features/10-monitoring.md) - Monitoring and observability
+**Location**: [`docs/domains/`](./domains/)
+
+**Why?** Each domain file contains **100% of the context** needed - from business rules to implementation code - in a single file. Perfect for LLMs!
+
+**Available Domains**:
+- **[authentication.md](./domains/authentication.md)** - Login, JWT, users, API keys
+- **[projects-teams.md](./domains/projects-teams.md)** - Projects and team collaboration
+- **[containers.md](./domains/containers.md)** - Docker, builds, deployments
+- **[networking.md](./domains/networking.md)** - Domains, SSL, Traefik
+- **[storage.md](./domains/storage.md)** - Backups and databases
+
+**Full Index**: [domains/INDEX.md](./domains/INDEX.md)
+
+---
+
+### 🏗️ Architecture Documentation
+
+**Location**: [`docs/architecture/`](./architecture/)
+
+- **[01-system-architecture.md](./architecture/01-system-architecture.md)** - High-level system design
+- Monorepo structure (apps/api, apps/web, packages/shared)
+- Tech stack decisions
+
+---
 
 ## 📊 Project Status
 
 | Aspect | Status |
 |--------|--------|
-| Core Features | ✅ Complete |
-| Documentation | ✅ Complete |
+| Core Features | ✅ 85% Complete |
+| Domain Docs | ✅ Complete |
 | Testing | 🔄 In Progress |
+
+---
+
+## 🧭 Navigation Guide
+
+### If you want to...
+
+**...understand how a feature works end-to-end:**
+→ Read the corresponding **[domain doc](./domains/)**
+
+**...get started quickly:**
+→ Read **[Main README](../README.md)**
+
+**...develop a new feature:**
+→ Read **[CLAUDE.md](../CLAUDE.md)** + relevant **[domain doc](./domains/)**
+
+**...understand the big picture:**
+→ Read **[System Architecture](./architecture/01-system-architecture.md)**
+
+---
 
 ## 🔗 Quick Links
 
-- [CLAUDE.md](../CLAUDE.md) - Technical documentation
-- [GitHub](https://github.com/msoutole/openpanel) - Repository
-- [README](../README.md) - Main project README
+- **[CLAUDE.md](../CLAUDE.md)** - Development guide
+- **[Domain Index](./domains/INDEX.md)** - All domains
+- **[GitHub](https://github.com/msoutole/openpanel)** - Repository
+- **[Main README](../README.md)** - Project README
+
+---
+
+## 💡 About Domain-Driven Documentation
+
+Traditional docs separate content by type (user stories, API docs, architecture). This creates fragmentation.
+
+**Domain-Driven approach**: Everything about a feature in ONE file.
+
+**Benefits for LLMs**:
+- ✅ Single file read = 100% context
+- ✅ Less hallucination (business rules + code together)
+- ✅ Faster responses (no file hopping)
+
+See **[domains/INDEX.md](./domains/INDEX.md)** for more details.
 
 ---
 
