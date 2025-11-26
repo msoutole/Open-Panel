@@ -237,7 +237,7 @@ ssl.get('/list', async (c) => {
       },
     })
 
-    const domainsWithStatus = domains.map((domain) => {
+    const domainsWithStatus = domains.map((domain: typeof domains[0]) => {
       let daysUntilExpiry = null
       if (domain.sslExpiresAt) {
         const now = new Date()
@@ -262,8 +262,8 @@ ssl.get('/list', async (c) => {
     return c.json({
       domains: domainsWithStatus,
       total: domains.length,
-      enabled: domains.filter((d) => d.sslEnabled).length,
-      expiringCount: domainsWithStatus.filter((d) => d.needsRenewal).length,
+      enabled: domains.filter((d: typeof domains[0]) => d.sslEnabled).length,
+      expiringCount: domainsWithStatus.filter((d: typeof domainsWithStatus[0]) => d.needsRenewal).length,
     })
   } catch (error: unknown) {
     logError('SSL list error', error)

@@ -128,7 +128,7 @@ teams.get('/:teamId', async (c) => {
     }
 
     // Check if user is member of team
-    const isMember = team.members.some((m) => m.userId === user.userId)
+    const isMember = team.members.some((m: typeof team.members[0]) => m.userId === user.userId)
     if (!isMember) {
       throw new HTTPException(403, { message: 'Forbidden' })
     }
@@ -270,12 +270,12 @@ teams.get('/:teamId/members', async (c) => {
     }
 
     // Check if user is member
-    const isMember = team.members.some((m) => m.userId === user.userId)
+    const isMember = team.members.some((m: typeof team.members[0]) => m.userId === user.userId)
     if (!isMember) {
       throw new HTTPException(403, { message: 'Forbidden' })
     }
 
-    const members = team.members.map((m) => ({
+    const members = team.members.map((m: typeof team.members[0]) => ({
       userId: m.userId,
       name: m.user?.name,
       email: m.user?.email,
