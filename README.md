@@ -1,20 +1,47 @@
 # OpenPanel
 
-## Quick Start
-
-### Linux / macOS
-```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-### Windows
-```powershell
-./setup.ps1
-```
-
-
 Modern self-hosted server control panel with AI-powered assistance.
+
+## 🚀 Quick Start
+
+### ⚡ Automated Installation (Recommended)
+
+OpenPanel provides **100% automated installation** for all platforms:
+
+#### Linux / macOS
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+#### Windows (PowerShell as Administrator)
+```powershell
+.\install.ps1
+```
+
+#### Cross-Platform (Python 3.7+)
+```bash
+python install.py
+```
+
+**Features:**
+- ✅ Auto-installs all dependencies (Node.js, Docker, etc.)
+- ✅ Configures environment automatically
+- ✅ Sets up database and services
+- ✅ Verifies installation
+
+**Options:**
+```bash
+# Update existing installation
+./install.sh --update        # Linux/macOS
+.\install.ps1 -Update        # Windows
+python install.py --update   # Cross-platform
+
+# Development mode
+./install.sh --dev           # Skip production configs
+```
+
+📖 **Full installation guide:** See [INSTALL.md](INSTALL.md) for detailed instructions.
 
 ## Overview
 
@@ -51,48 +78,44 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 - **Validation**: Zod schemas
 - **Monorepo**: npm workspaces
 
-## Quick Start
+## 📖 Manual Installation
+
+If you prefer manual installation or want more control:
 
 ### Prerequisites
 - Node.js >= 18.0.0
 - npm >= 10.0.0
-- Docker (for infrastructure services)
+- Docker >= 20.10.0
 
-### Installation
+### Quick Manual Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/msoutole/openpanel.git
-   cd openpanel
-   ```
+```bash
+# 1. Clone repository
+git clone https://github.com/msoutole/openpanel.git
+cd openpanel
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# 2. Setup environment
+cp .env.example .env
 
-3. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration (DATABASE_URL, JWT_SECRET, etc.)
-   ```
+# 3. Install dependencies
+npm install
 
-4. **Start infrastructure (PostgreSQL, Redis, Ollama, Traefik)**
-   ```bash
-   docker-compose up -d
-   ```
+# 4. Start Docker services
+docker compose up -d
 
-5. **Setup database**
-   ```bash
-   npm run db:push
-   ```
+# 5. Setup database
+npm run db:generate && npm run db:push
 
-6. **Start development servers**
-   ```bash
-   npm run dev
-   ```
+# 6. Start application
+npm run dev
+```
 
-The API will be available at `http://localhost:8000` and the Web UI at `http://localhost:3000`.
+**Access:**
+- Frontend: `http://localhost:3000`
+- API: `http://localhost:3001`
+- Health Check: `http://localhost:3001/health`
+
+📖 **For detailed manual installation:** See [INSTALL.md](INSTALL.md#-manual-installation)
 
 ## Development Commands
 
