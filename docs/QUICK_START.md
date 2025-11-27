@@ -3,36 +3,41 @@
 ## Para Iniciar Rapidinho
 
 ### Windows (PowerShell)
-```powershell
+
+`powershell
 .\scripts\setup.ps1
 npm run dev
-```
+`
 
 ### Linux / WSL / macOS
-```bash
+
+`bash
 bash scripts/setup.sh
 npm run dev
-```
+`
 
 ### Qualquer Plataforma (Node.js)
-```bash
+
+`bash
 node scripts/setup.js
 npm run dev
-```
+`
 
 ---
 
 ## ✅ Verificar Setup
 
 ### Windows
-```powershell
+
+`powershell
 .\scripts\verify-setup.ps1
-```
+`
 
 ### Linux / WSL / macOS
-```bash
+
+`bash
 bash scripts/verify-setup.sh
-```
+`
 
 ---
 
@@ -40,9 +45,9 @@ bash scripts/verify-setup.sh
 
 | Serviço | URL |
 |---------|-----|
-| Web | http://localhost:3000 |
-| API | http://localhost:3001 |
-| Traefik | http://localhost:8080 |
+| Web | <http://localhost:3000> |
+| API | <http://localhost:3001> |
+| Traefik | <http://localhost:8080> |
 
 ---
 
@@ -57,7 +62,8 @@ bash scripts/verify-setup.sh
 
 ## 🔧 Comandos Úteis
 
-```bash
+`bash
+
 # Desenvolvimento
 npm run dev              # API + Web em paralelo
 npm run dev:api         # Apenas API
@@ -80,32 +86,36 @@ docker logs openpanel-api -f  # Ver logs
 
 # Type checking
 npm run type-check       # TypeScript validation
-```
+`
 
 ---
 
 ## ⚠️ Solução de Problemas
 
 ### Docker não conecta (Windows)
+
 - Abrir Docker Desktop
 - Verificar se WSL2 está ativado
 
 ### Porta em uso
+
 - Mudar no `.env`: `API_PORT=3002`, `APP_PORT=3001`
 
 ### Containers não iniciam
-```bash
+
+`bash
 docker-compose logs        # Ver todos os logs
 docker-compose logs api    # Ver logs da API
 docker-compose down -v     # Resetar tudo
 docker-compose up -d       # Iniciar novamente
-```
+`
 
 ### Permission denied (Linux)
-```bash
+
+`bash
 sudo usermod -aG docker $USER
 newgrp docker
-```
+`
 
 ---
 
@@ -130,3 +140,4 @@ newgrp docker
 ---
 
 **Precisa de ajuda?** Veja [SETUP_GUIDE.md](SETUP_GUIDE.md)
+

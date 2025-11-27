@@ -22,7 +22,8 @@ Guia completo para instalação do Open-Panel em macOS (Intel e Apple Silicon).
 
 A forma mais rápida:
 
-```bash
+`bash
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -34,7 +35,7 @@ chmod +x scripts/setup/setup.sh
 ./scripts/setup/setup.sh
 
 # Pronto! Aguarde 5-10 minutos
-```
+`
 
 **O script vai:**
 - ✅ Instalar Homebrew (se necessário)
@@ -52,33 +53,40 @@ chmod +x scripts/setup/setup.sh
 
 ### 1. Instalar Xcode Command Line Tools
 
-```bash
+`bash
+
 # Instalar ferramentas necessárias
 xcode-select --install
 
 # Seguir o wizard na tela
+
 # Depois verificar:
 xcode-select -p
+
 # Deve retornar: /Applications/Xcode.app/Contents/Developer
-```
+`
 
 ### 2. Instalar Homebrew
 
-```bash
+`bash
+
 # Instalar Homebrew
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Para Apple Silicon (M1/M2), adicionar ao PATH
+
 # Adicione ao final do ~/.zprofile ou ~/.bash_profile:
+
 # export PATH="/opt/homebrew/bin:$PATH"
 
 # Verificar instalação
 brew --version
-```
+`
 
 ### 3. Instalar Node.js
 
-```bash
+`bash
+
 # Via Homebrew (Recomendado)
 brew install node
 
@@ -88,18 +96,18 @@ brew install node
 # Verificar instalação
 node --version      # v18.0.0 ou superior
 npm --version       # 9.0.0 ou superior
-```
+`
 
 ### 4. Instalar Docker Desktop
 
 #### Opção A: Via Homebrew
-```bash
+`bash
 brew install docker
 brew install docker-compose
 
 # Ou via Docker Desktop:
 brew install --cask docker
-```
+`
 
 #### Opção B: Manual
 1. Baixar Docker Desktop de https://www.docker.com/products/docker-desktop
@@ -109,7 +117,7 @@ brew install --cask docker
 5. Conceder permissões se solicitado
 
 #### Verificar Instalação
-```bash
+`bash
 docker --version        # Docker version 20.10.0+
 docker-compose version  # Docker Compose version 2.0.0+
 
@@ -120,22 +128,24 @@ open -a Docker
 
 # Testar
 docker run hello-world
-```
+`
 
 ### 5. Clone do Repositório
 
-```bash
+`bash
+
 # Escolha um local
 cd ~/Development
 
 # Clone
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
-```
+`
 
 ### 6. Executar Setup
 
-```bash
+`bash
+
 # Dar permissão ao script
 chmod +x scripts/setup/setup.sh
 
@@ -143,13 +153,14 @@ chmod +x scripts/setup/setup.sh
 ./scripts/setup/setup.sh
 
 # Aguarde 5-10 minutos
-```
+`
 
 ---
 
 ## 🎯 Opções de Setup Script
 
-```bash
+`bash
+
 # Ver ajuda
 ./scripts/setup/setup.sh --help
 
@@ -164,7 +175,7 @@ chmod +x scripts/setup/setup.sh
 
 # Combinar
 ./scripts/setup/setup.sh --silent --force --debug
-```
+`
 
 ---
 
@@ -178,17 +189,20 @@ chmod +x scripts/setup/setup.sh
 
 O script detecta automaticamente, mas alguns detalhes:
 
-```bash
+`bash
+
 # Verificar arquitetura
 arch
+
 # Deve retornar: arm64 (Apple Silicon) ou i386 (Intel)
 
 # Homebrew em Apple Silicon se instala em /opt/homebrew
+
 # Verifique seu PATH se tiver problemas:
 echo $PATH
 
 # Devem estar em /opt/homebrew/bin para M1/M2
-```
+`
 
 **Possíveis problemas com M1/M2:**
 - Docker Desktop precisa estar versão M1 nativa
@@ -199,13 +213,17 @@ echo $PATH
 
 ## 🔍 Verificações Pós-Setup
 
-```bash
+`bash
+
 # 1. Verificar containers rodando
 docker ps
 
 # Saída esperada:
+
 # CONTAINER ID   IMAGE        STATUS
+
 # xxx            postgres     Up 5 minutes (healthy)
+
 # xxx            redis        Up 5 minutes (healthy)
 
 # 2. Testar endpoints
@@ -218,7 +236,7 @@ docker logs openpanel-redis
 
 # 4. Abrir no navegador
 open http://localhost:3000
-```
+`
 
 ---
 
@@ -226,7 +244,8 @@ open http://localhost:3000
 
 ### Docker Desktop não inicia
 
-```bash
+`bash
+
 # 1. Abrir manualmente
 open -a Docker
 
@@ -235,15 +254,18 @@ ls -la /Applications/Docker.app
 
 # 3. Se não tiver instalado:
 brew install --cask docker
+
 # Ou baixar de https://www.docker.com/products/docker-desktop
 
 # 4. Se ainda não funcionar, resetar:
+
 # Preferences → Reset Docker Desktop
-```
+`
 
 ### Erro "Cannot connect to Docker daemon"
 
-```bash
+`bash
+
 # 1. Verificar se Docker Desktop está rodando
 pgrep -l docker
 
@@ -251,15 +273,17 @@ pgrep -l docker
 open -a Docker
 
 # 3. Aguardar ícone de baleia aparecer na menu bar
+
 # (Pode levar 1-2 minutos)
 
 # 4. Depois testar
 docker ps
-```
+`
 
 ### PostgreSQL não conecta
 
-```bash
+`bash
+
 # Ver logs detalhados
 docker logs openpanel-postgres
 
@@ -269,11 +293,12 @@ docker restart openpanel-postgres
 # Se persistir, resetar:
 docker-compose down -v
 ./scripts/setup/setup.sh --force
-```
+`
 
 ### Porta já em uso
 
-```bash
+`bash
+
 # Encontrar processo usando porta (ex: 3001)
 lsof -i :3001
 
@@ -282,12 +307,14 @@ kill -9 <PID>
 
 # Ou mudar portas em .env
 nano .env
+
 # Alterar PORT_API=3001 para outra porta
-```
+`
 
 ### npm install falha
 
-```bash
+`bash
+
 # Limpar cache
 npm cache clean --force
 
@@ -297,12 +324,14 @@ npm install
 # Se falhar novamente:
 rm -rf node_modules package-lock.json
 npm install
-```
+`
 
 ### Erro com Homebrew em Apple Silicon
 
-```bash
+`bash
+
 # Se encontrar erro de arch mismatch:
+
 # Abrir Terminal em Native (não em Rosetta)
 
 # Checar:
@@ -313,7 +342,7 @@ arch  # Deve retornar: arm64
 
 # Adicionar ao PATH (~/.zprofile):
 export PATH="/opt/homebrew/bin:$PATH"
-```
+`
 
 ---
 
@@ -321,18 +350,20 @@ export PATH="/opt/homebrew/bin:$PATH"
 
 ### Backup de Configurações
 
-```bash
+`bash
+
 # .env é automaticamente backed up
 ls -la .env.backup.*
 
 # Restaurar um backup
 cp .env.backup.20240115-143025 .env
 docker-compose restart
-```
+`
 
 ### Backup do Banco de Dados
 
-```bash
+`bash
+
 # Fazer dump PostgreSQL
 docker exec openpanel-postgres pg_dump -U openpanel -d openpanel > backup.sql
 
@@ -341,13 +372,14 @@ docker exec -i openpanel-postgres psql -U openpanel -d openpanel < backup.sql
 
 # Com compressão
 docker exec openpanel-postgres pg_dump -U openpanel -d openpanel | gzip > backup.sql.gz
-```
+`
 
 ---
 
 ## 📚 Comandos Úteis
 
-```bash
+`bash
+
 # Desenvolvimento
 npm run dev              # API + Web
 npm run dev:api          # Apenas API
@@ -375,7 +407,7 @@ docker-compose down      # Parar containers
 docker-compose logs -f   # Logs em tempo real
 docker ps                # Lista containers
 docker exec -it <container> bash  # SSH em container
-```
+`
 
 ---
 
@@ -387,16 +419,17 @@ docker exec -it <container> bash  # SSH em container
 - `.gitignore` já previne acidentais
 
 ### Primeiro Login
-```
+`
 Email: admin@openpanel.dev
 Senha: admin123 (mude imediatamente!)
-```
+`
 
 ### Permissões de Arquivo
-```bash
+`bash
+
 # Restringir permissões de .env
 chmod 600 .env
-```
+`
 
 ---
 
@@ -421,13 +454,14 @@ chmod 600 .env
 ## 📝 Dicas para macOS
 
 ### Melhorar Performance
-```bash
+`bash
+
 # Aumentar limite de arquivos abertos
 ulimit -n 65536
 
 # Adicionar ao ~/.zprofile para permanente:
 echo 'ulimit -n 65536' >> ~/.zprofile
-```
+`
 
 ### Terminal Recomendado
 - **Padrão**: Terminal.app (OK)
@@ -435,7 +469,8 @@ echo 'ulimit -n 65536' >> ~/.zprofile
 - **Shell**: zsh (padrão em Big Sur+)
 
 ### Atalhos Úteis
-```bash
+`bash
+
 # Abrir projeto em VSCode
 code .
 
@@ -444,9 +479,10 @@ open .
 
 # Abrir URL no navegador
 open http://localhost:3000
-```
+`
 
 ---
 
 **Última atualização**: 2024-11-27
 **macOS Compatível**: 11 (Big Sur)+, Intel & Apple Silicon (M1/M2/M3+)
+

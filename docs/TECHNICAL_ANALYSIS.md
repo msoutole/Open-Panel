@@ -10,7 +10,7 @@
 
 ### Pontuação Geral: 6.5/10
 
-```
+`
 ┌─────────────────────────────────────────────────────────┐
 │ Arquitetura        ████████░░ 8/10                      │
 │ Code Quality       ██████░░░░ 6/10                      │
@@ -21,11 +21,11 @@
 │ Performance        ████████░░ 7/10                      │
 │ Maintainability    ██████░░░░ 6/10                      │
 └─────────────────────────────────────────────────────────┘
-```
+`
 
 ### Readiness para Produção: 40%
 
-```
+`
 Pré-requisitos ✅
 ├─ Database Schema      ✅ Completo
 ├─ API Endpoints        ✅ Implementados (13 routes)
@@ -44,7 +44,7 @@ Blockers de Produção:
   4. ❌ Testes de integração (faltam)
   5. ⚠️  WebSocket sem autenticação
   6. ⚠️  Sem health checks para load balancers
-```
+`
 
 ---
 
@@ -59,16 +59,18 @@ Blockers de Produção:
 #### Detalhamento
 
 **Arquivo**: `apps/api/Dockerfile`
-```dockerfile
+`dockerfile
+
 # Linha 23 - PROBLEMA:
 CMD ["npm", "run", "dev"]
 
 # Esperado:
 CMD ["npm", "run", "start"]
-```
+`
 
 **Arquivo**: `apps/web/Dockerfile`
-```dockerfile
+`dockerfile
+
 # Linha 23 - PROBLEMA:
 CMD ["npm", "run", "dev"]  # Tenta iniciar Vite dev server
 RUN npm run build           # Build já foi feito acima
@@ -84,7 +86,7 @@ FROM node:18-alpine
 RUN npm install -g http-server
 COPY --from=builder /app/dist ./dist
 CMD ["http-server", "./dist"]
-```
+`
 
 **Consequências**:
 - ❌ Containers expõem Hot Module Replacement
@@ -94,7 +96,8 @@ CMD ["http-server", "./dist"]
 - ❌ Hotreload não funciona sem source code
 
 **Solução**:
-```bash
+`bash
+
 # Passo 1: Atualizar Dockerfiles
 npm run build:api  # Adicionar build output
 npm run start      # Usar production build
@@ -105,7 +108,7 @@ docker run openpanel-api:latest
 
 # Passo 3: Verificar portas e saúde
 curl http://localhost:3001/health/live
-```
+`
 
 ---
 
@@ -118,7 +121,7 @@ curl http://localhost:3001/health/live
 #### Detalhamento
 
 **Arquivo**: `apps/api/src/routes/builds.ts`
-```typescript
+`typescript
 // Linhas: 104, 173, 182, 198, 205, 263, 271, 373, 387, 398 (10 ocorrências)
 
 // PROBLEMA:
@@ -133,13 +136,13 @@ logger.info('Cloning repository', {
   userId: context.userId,
   timestamp: new Date().toISOString()
 });
-```
+`
 
 **Arquivo**: `apps/api/src/websocket/container-gateway.ts`
-```typescript
+`typescript
 // Linhas: 37 + 5 mais (6 ocorrências)
 // Mesmo problema
-```
+`
 
 **Impactos**:
 - ❌ Logs não estruturados
@@ -149,7 +152,7 @@ logger.info('Cloning repository', {
 - ❌ Performance degradada (console.log é síncrono)
 
 **Solução**:
-```typescript
+`typescript
 import { logger } from '../lib/logger';
 
 // Converter todos:
@@ -160,7 +163,7 @@ logger.info('Repository cloning initiated', {
   action: 'git.clone',
   severity: 'info'
 });
-```
+`
 
 **Impacto da Correção**:
 - ✅ Logs estruturados e correlacionáveis
@@ -181,7 +184,7 @@ logger.info('Repository cloning initiated', {
 #### Detalhamento
 
 **Arquivo**: `apps/api/src/routes/containers.ts`
-```typescript
+`typescript
 // 14 ocorrências de "any" type
 
 try {
@@ -190,7 +193,7 @@ try {
   logger.error(error.message);  // Pode lançar se error.message undefined
   return c.json({ error: 'Internal server error' }, 500);
 }
-```
+`
 
 **Problema**:
 - `error: any` permite qualquer operação sem validação
@@ -199,7 +202,7 @@ try {
 - Sem catching de erros inesperados
 
 **Solução**:
-```typescript
+`typescript
 // lib/error-utils.ts
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -238,7 +241,7 @@ try {
 
   return c.json({ error: message, code }, status);
 }
-```
+`
 
 **Impacto**:
 - ✅ Type safety completa
@@ -257,7 +260,7 @@ try {
 #### Detalhamento
 
 **Situação Atual**:
-```
+`
 Total de Arquivos Testáveis: ~40
 Total de Testes: 3 arquivos
 Cobertura: ~376 LOC vs ~8000 LOC = 4.7%
@@ -273,7 +276,7 @@ Gaps Críticos:
 ❌ Nenhum teste de middleware (7 arquivos)
 ❌ Nenhum teste de websocket
 ❌ Nenhum teste de queues
-```
+`
 
 **Impacto**:
 - ❌ Qualquer mudança pode quebrar sistema
@@ -282,7 +285,7 @@ Gaps Críticos:
 - ❌ Onboarding de novos devs mais lento
 
 **Plano de Testes**:
-```typescript
+`typescript
 // Priority 1: Auth & Core Flows
 tests/routes/auth.test.ts (50 LOC)
 ├─ POST /api/auth/register
@@ -314,7 +317,7 @@ tests/middleware/auth.test.ts (40 LOC)
 tests/middleware/rbac.test.ts (40 LOC)
 
 Meta: 60% coverage = ~4800 LOC de testes
-```
+`
 
 ---
 
@@ -328,7 +331,7 @@ Meta: 60% coverage = ~4800 LOC de testes
 
 **Arquivo**: `apps/api/src/websocket/container-gateway.ts`
 
-```typescript
+`typescript
 // PROBLEMA: Sem validação de token
 app.on('connection', (socket) => {
   // Qualquer pessoa pode se conectar
@@ -337,7 +340,7 @@ app.on('connection', (socket) => {
     emitLogs(containerId);
   });
 });
-```
+`
 
 **Riscos**:
 - ⚠️ Acesso a logs de containers privados
@@ -346,7 +349,7 @@ app.on('connection', (socket) => {
 - ⚠️ Violação de isolamento entre tenants
 
 **Solução**:
-```typescript
+`typescript
 import { verifyToken } from '../lib/jwt';
 import { db } from '../db';
 
@@ -395,7 +398,7 @@ const handleWebSocketConnection = (
     // ... processar com segurança
   });
 };
-```
+`
 
 ---
 
@@ -411,7 +414,7 @@ const handleWebSocketConnection = (
 
 **Problema**: Múltiplos formatos de resposta
 
-```typescript
+`typescript
 // Formato 1
 { error: "User not found" }
 
@@ -423,10 +426,10 @@ const handleWebSocketConnection = (
 
 // Formato 4
 { errors: [{ field: "email", message: "Invalid" }] }
-```
+`
 
 **Solução**:
-```typescript
+`typescript
 // Formato padrão
 interface ApiError {
   error: string;
@@ -448,7 +451,7 @@ app.onError(async (error, c) => {
     requestId: c.get('requestId')
   }, status);
 });
-```
+`
 
 ---
 
@@ -456,7 +459,7 @@ app.onError(async (error, c) => {
 
 ### Risco por Módulo
 
-```
+`
 Risco CRÍTICO (>100 LOC sem testes):
 ├─ builds.ts           637 LOC  ❌❌❌
 ├─ containers.ts       504 LOC  ❌❌❌
@@ -471,18 +474,18 @@ Risco MÉDIO (50-100 LOC sem testes):
 Risco BAIXO (<50 LOC ou com testes):
 ├─ lib/hash.ts         34 LOC  ✅ (com teste)
 └─ lib/jwt.ts          42 LOC  ✅ (com teste)
-```
+`
 
 ### Complexidade Ciclomática
 
-```
+`
 Esperado: < 10 por função
 Atual:
 ├─ buildProject()        14 ✗ (muito complexo)
 ├─ startContainer()      12 ✗ (muito complexo)
 ├─ handleWebSocket()     11 ✗ (muito complexo)
 └─ createProject()        8 ✓ (aceitável)
-```
+`
 
 ---
 
@@ -490,7 +493,7 @@ Atual:
 
 ### Vulnerabilidades Identificadas
 
-```
+`
 Críticas (CVSS 9.0+):
 ❌ WebSocket sem autenticação
    ├─ Acesso não autorizado a logs
@@ -512,11 +515,11 @@ Médias (CVSS 4.0-6.9):
 
 ⚠️  Sem request rate limiting por IP
    └─ Adicionar IP-based rate limit
-```
+`
 
 ### OWASP Top 10 Coverage
 
-```
+`
 A01:2021 – Broken Access Control
 ├─ ✅ RBAC implementado
 ├─ ⚠️  WebSocket não autenticado
@@ -538,7 +541,7 @@ A05:2021 – Access Control
 └─ ✅ Auth middleware present
 
 ... (mais validações)
-```
+`
 
 ---
 
@@ -546,7 +549,7 @@ A05:2021 – Access Control
 
 ### Antes das Melhorias
 
-```
+`
 ┌──────────────────────────────────────────────┐
 │ Produção Ready: 40%                          │
 ├──────────────────────────────────────────────┤
@@ -559,11 +562,11 @@ A05:2021 – Access Control
 │ Error Format    ⚠️  Inconsistente            │
 │ Documentation   ⚠️  Falta API docs           │
 └──────────────────────────────────────────────┘
-```
+`
 
 ### Depois das Melhorias
 
-```
+`
 ┌──────────────────────────────────────────────┐
 │ Produção Ready: 95%                          │
 ├──────────────────────────────────────────────┤
@@ -576,7 +579,7 @@ A05:2021 – Access Control
 │ Error Format    ✅ Consistent responses      │
 │ Documentation   ✅ OpenAPI + runbook         │
 └──────────────────────────────────────────────┘
-```
+`
 
 ---
 
@@ -584,7 +587,7 @@ A05:2021 – Access Control
 
 ### Vulnerabilidades Conhecidas
 
-```bash
+`bash
 npm audit
 
 found 0 vulnerabilities  ✅ (último check)
@@ -593,7 +596,7 @@ Mas verificar periodicamente:
 - Node.js 18 EOL em 2025-04 (considerar upgrade para 20 LTS)
 - Prisma 6.19.0 (atualizado)
 - React 19.2.0 (latest stable)
-```
+`
 
 ---
 
@@ -628,3 +631,4 @@ Mas verificar periodicamente:
 **Versão**: 1.0
 **Data**: 2025-11-27
 **Próxima Revisão**: 2025-12-10
+

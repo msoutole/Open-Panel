@@ -17,7 +17,7 @@
 
 ## 2. Data Models
 
-```prisma
+`prisma
 enum BackupStatus {
   PENDING
   RUNNING
@@ -70,7 +70,7 @@ model Database {
   @@index([projectId])
   @@map("databases")
 }
-```
+`
 
 ---
 
@@ -98,7 +98,7 @@ Lista databases
 
 ## 4. Implementation
 
-```typescript
+`typescript
 // apps/api/src/services/backup.service.ts
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -184,9 +184,10 @@ export class BackupService {
     })
   }
 }
-```
+`
 
 ---
 
 **Última Atualização**: 2025-11-26
 **Status**: ✅ Implementado (75%)
+

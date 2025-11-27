@@ -52,17 +52,19 @@ O Open Panel possui uma **arquitetura sólida** com boas práticas de segurança
 #### Ações
 
 **API Dockerfile**:
-```dockerfile
+`dockerfile
+
 # Linha 23: MUDAR
 - CMD ["npm", "run", "dev"]
 + CMD ["npm", "run", "start"]
 
 # Adicionar build produção antes do CMD
 + RUN npm run build:api
-```
+`
 
 **Web Dockerfile**:
-```dockerfile
+`dockerfile
+
 # Linha 23: MUDAR
 - CMD ["npm", "run", "dev"]
 + CMD ["npm", "run", "preview"]
@@ -76,7 +78,7 @@ FROM node:18-alpine
 COPY --from=builder /app/apps/web/dist ./dist
 RUN npm install -g http-server
 CMD ["http-server", "./dist"]
-```
+`
 
 **Checklist**:
 - [ ] Atualizar `apps/api/Dockerfile`
@@ -99,7 +101,7 @@ CMD ["http-server", "./dist"]
 - Logs não estruturados, sem context
 
 #### Locais Afetados
-```
+`
 apps/api/src/routes/builds.ts: 10 occurrências
 ├── Line 104: console.log()
 ├── Line 173: console.log()
@@ -119,7 +121,7 @@ apps/api/src/websocket/container-gateway.ts: 6 occurrências
 apps/api/src/routes/containers.ts: 3 occurrências
 ├── Line 42: console.log()
 └── 2 mais
-```
+`
 
 #### Ações
 1. Importar `{ logger }` do `../lib/logger` em cada arquivo
@@ -128,7 +130,7 @@ apps/api/src/routes/containers.ts: 3 occurrências
 4. Adicionar contexto estruturado (ex: `{ containerId, userId, action }`)
 
 **Exemplo**:
-```typescript
+`typescript
 // ANTES
 console.log(`Cloning repository: ${data.gitUrl}`);
 
@@ -138,7 +140,7 @@ logger.info('Cloning repository', {
   projectId: data.projectId,
   userId: context.userId
 });
-```
+`
 
 **Checklist**:
 - [ ] Converter builds.ts (10 lines)
@@ -164,7 +166,7 @@ logger.info('Cloning repository', {
 - Perda de type safety na validação
 
 #### Locais Afetados
-```
+`
 apps/api/src/routes/containers.ts: 14 occorrências
 ├── Line 91: catch (error: any)
 ├── Line 127: catch (error: any)
@@ -176,12 +178,12 @@ apps/api/src/routes/builds.ts: 14 occorrências
 
 apps/api/src/routes/projects.ts: 4 occorrências
 apps/api/src/routes/deployments.ts: 3 occorrências
-```
+`
 
 #### Ações
 1. Criar utility type guard para errors:
 
-```typescript
+`typescript
 // lib/error-utils.ts
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -191,11 +193,11 @@ export function getErrorMessage(error: unknown): string {
 export function isHttpError(error: unknown): error is { statusCode: number } {
   return typeof error === 'object' && error !== null && 'statusCode' in error;
 }
-```
+`
 
 2. Substituir todos os `any` em error handling:
 
-```typescript
+`typescript
 // ANTES
 catch (error: any) {
   logger.error(error.message);
@@ -206,7 +208,7 @@ catch (error: unknown) {
   const message = getErrorMessage(error);
   logger.error('Operation failed', { message });
 }
-```
+`
 
 **Checklist**:
 - [ ] Criar `lib/error-utils.ts`
@@ -234,26 +236,26 @@ catch (error: unknown) {
 #### Plano de Testes
 
 **Fase 1 - Routes (4-6h)**:
-```
+`
 tests/routes/auth.test.ts - Login, register, refresh
 tests/routes/projects.test.ts - CRUD operations
 tests/routes/containers.test.ts - Container operations
 tests/routes/builds.test.ts - Build pipeline
-```
+`
 
 **Fase 2 - Services (3-4h)**:
-```
+`
 tests/services/docker.test.ts - Connection, container ops
 tests/services/build.test.ts - Build execution
 tests/services/backup.test.ts - Backup operations
-```
+`
 
 **Fase 3 - Middleware (2-3h)**:
-```
+`
 tests/middleware/auth.test.ts - JWT validation
 tests/middleware/rbac.test.ts - Role checking
 tests/middleware/rate-limit.test.ts - Rate limiting
-```
+`
 
 **Meta**: 60% coverage mínimo
 
@@ -283,7 +285,7 @@ tests/middleware/rate-limit.test.ts - Rate limiting
 
 **Arquivo**: `apps/api/src/websocket/container-gateway.ts`
 
-```typescript
+`typescript
 // Adicionar validação no handshake
 const handleWebSocketConnection = (ws: WebSocket, req: http.IncomingMessage) => {
   // 1. Extrair token da query string
@@ -316,14 +318,14 @@ const handleWebSocketConnection = (ws: WebSocket, req: http.IncomingMessage) => 
     ws.close(1008, 'Invalid token');
   }
 };
-```
+`
 
 **Frontend Change**:
-```typescript
+`typescript
 // apps/web/src/services/websocket.ts
 const token = localStorage.getItem('token');
 const ws = new WebSocket(`ws://localhost:3001/ws?token=${token}&containerId=${id}`);
-```
+`
 
 **Checklist**:
 - [ ] Implementar token validation no handshake
@@ -353,7 +355,7 @@ const ws = new WebSocket(`ws://localhost:3001/ws?token=${token}&containerId=${id
 **Arquivo**: `apps/api/src/routes/settings.ts`
 
 1. Criar migration Prisma para Settings table:
-```sql
+`sql
 model Settings {
   id        String   @id @default(cuid())
   teamId    String   @db.Uuid
@@ -367,10 +369,10 @@ model Settings {
 
   @@unique([teamId, key])
 }
-```
+`
 
 2. Implementar CRUD:
-```typescript
+`typescript
 // GET /api/settings
 export const getSettings = async (c: Context) => {
   const teamId = c.get('teamId');
@@ -394,7 +396,7 @@ export const updateSetting = async (c: Context) => {
 
   return c.json(setting);
 };
-```
+`
 
 **Checklist**:
 - [ ] Criar migration Prisma para Settings
@@ -423,7 +425,7 @@ export const updateSetting = async (c: Context) => {
 
 Criar resposta padrão:
 
-```typescript
+`typescript
 // lib/response.ts
 export interface ApiError {
   error: string;
@@ -455,7 +457,7 @@ export const responseFormatter = (next: any) => async (c: Context) => {
     }, getHttpStatus(error));
   }
 };
-```
+`
 
 **Checklist**:
 - [ ] Criar `lib/response.ts`
@@ -475,7 +477,7 @@ export const responseFormatter = (next: any) => async (c: Context) => {
 
 #### Ações
 
-```typescript
+`typescript
 // routes/health.ts
 export const healthRouter = (app: Hono) => {
   // Liveness probe
@@ -511,7 +513,7 @@ export const healthRouter = (app: Hono) => {
     }
   });
 };
-```
+`
 
 **Checklist**:
 - [ ] Criar `routes/health.ts`
@@ -531,7 +533,8 @@ export const healthRouter = (app: Hono) => {
 
 #### Criar `apps/web/.env.example`
 
-```env
+`env
+
 # API Configuration
 VITE_API_URL=http://localhost:8000
 VITE_API_TIMEOUT=30000
@@ -546,7 +549,7 @@ VITE_ENABLE_MONITORING=true
 
 # Logging
 VITE_LOG_LEVEL=info
-```
+`
 
 **Checklist**:
 - [ ] Criar `apps/web/.env.example`
@@ -568,7 +571,7 @@ VITE_LOG_LEVEL=info
 
 Usar `@hono/zod-openapi`:
 
-```typescript
+`typescript
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { z } from 'zod';
 
@@ -594,7 +597,7 @@ app.openapi(
 );
 
 // Swagger UI disponível em /doc
-```
+`
 
 **Checklist**:
 - [ ] Instalar `@hono/zod-openapi`
@@ -613,7 +616,8 @@ app.openapi(
 
 #### Documento: `docs/DEPLOYMENT.md`
 
-```markdown
+`markdown
+
 # Deployment Runbook
 
 ## Prerequisites
@@ -642,7 +646,7 @@ app.openapi(
 
 ## Troubleshooting
 ...
-```
+`
 
 **Checklist**:
 - [ ] Criar `docs/DEPLOYMENT.md`
@@ -744,3 +748,4 @@ app.openapi(
 **Responsável**: Matheus Souto Leal
 **Última atualização**: 2025-11-27
 **Próxima revisão**: 2025-12-10
+

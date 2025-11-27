@@ -3,6 +3,7 @@
 ## ✅ Completed Tests (Windows)
 
 ### Plataforma: Windows 11 / Docker Desktop
+
 Data: 2025-11-27
 Status: ✅ PASSED
 
@@ -68,7 +69,7 @@ Status: ✅ PASSED
 
 ## 📋 Teste 6: API Functionality
 
-- [x] API inicia em http://localhost:3001
+- [x] API inicia em <http://localhost:3001>
 - [x] API conecta ao PostgreSQL (healthy)
 - [x] API conecta ao Redis (healthy)
 - [x] Scheduler service inicia
@@ -80,7 +81,7 @@ Status: ✅ PASSED
 
 ## 📋 Teste 7: Web Functionality
 
-- [x] Web inicia em http://localhost:3000
+- [x] Web inicia em <http://localhost:3000>
 - [x] Web responde com HTTP 200
 - [x] Web consegue fazer build
 - [x] Vite dev server rodando
@@ -149,26 +150,31 @@ Status: ✅ PASSED
 
 Executar em WSL2 com Ubuntu/Debian:
 
-```bash
+`bash
+
 # 1. Clone repo (já clonado)
 cd /mnt/d/Open-Panel
 
 # 2. Detectar plataforma
 bash scripts/detect-platform.sh
+
 # Esperado: Detected Platform: wsl2, Docker Socket: /var/run/docker.sock
 
 # 3. Setup completo
 bash scripts/setup.sh
+
 # Esperado: Setup Complete!
 
 # 4. Verificar
 bash scripts/verify-setup.sh
+
 # Esperado: ✅ All checks passed!
 
 # 5. Testar desenvolvimento
 npm run dev
+
 # Esperado: API + Web running
-```
+`
 
 ---
 
@@ -176,7 +182,8 @@ npm run dev
 
 Executar em Ubuntu Server (VM ou bare metal):
 
-```bash
+`bash
+
 # 1. Clone repo
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -192,24 +199,29 @@ sudo apt-get install -y nodejs
 
 # 4. Detectar plataforma
 bash scripts/detect-platform.sh
+
 # Esperado: Detected Platform: linux, Docker Socket: /var/run/docker.sock
 
 # 5. Setup completo
 bash scripts/setup.sh
+
 # Esperado: Setup Complete!
 
 # 6. Verificar
 bash scripts/verify-setup.sh
+
 # Esperado: ✅ All checks passed!
 
 # 7. Testar produção
 npm run build
 npm run preview
+
 # Esperado: Build + Preview funcionando
 
 # 8. Testar com systemd (opcional)
+
 # Criar service file para rodar como daemon
-```
+`
 
 ---
 
@@ -224,6 +236,7 @@ npm run preview
 | Node.js | ✅ JS | ? | ? | ⏳ | Agnóstico |
 
 **Legenda:**
+
 - ✅ = Testado e funcionando
 - ⏳ = A testar
 - PS = PowerShell script
@@ -235,16 +248,19 @@ npm run preview
 ## 🔍 Verificações Críticas por Plataforma
 
 ### Windows
+
 - [x] DOCKER_SOCK = `//./pipe/docker_engine`
 - [x] PowerShell execution policy (RemoteSigned)
 - [x] Docker Desktop WSL2 backend recomendado
 
 ### Linux / WSL
+
 - [x] DOCKER_SOCK = `/var/run/docker.sock`
 - [x] Permissão de execução em scripts bash
 - [x] Usuário no grupo docker
 
 ### macOS
+
 - [x] DOCKER_SOCK = `/var/run/docker.sock`
 - [x] Docker Desktop instalado via Homebrew
 - [x] Node.js via Homebrew
@@ -264,31 +280,35 @@ npm run preview
 ### Avisos
 
 ⚠️ **Traefik com Docker Socket no Windows**
+
 - Docker Desktop para Windows pode ter issues com volume mounting
 - Se Traefik não iniciar, tentar em modo nativo Linux (WSL2)
 
 ⚠️ **Permissões Docker em Linux**
+
 - Certifique-se de estar no grupo docker: `groups`
 - Se não, execute: `sudo usermod -aG docker $USER && newgrp docker`
 
 ⚠️ **Firewall**
+
 - Se portas 80/443/3000/3001 não abrirem:
   - Windows: Check Windows Firewall
   - Linux: Check UFW/firewalld
 
 ---
 
-## ✨ Sucesso!
+## ✨ Sucesso
 
 Quando todos os testes passarem:
 
 ✅ `bash scripts/verify-setup.sh` retorna 0 erros
 ✅ `npm run dev` inicia sem problemas
-✅ Web carrega em http://localhost:3000
-✅ API responde em http://localhost:3001
+✅ Web carrega em <http://localhost:3000>
+✅ API responde em <http://localhost:3001>
 
 ---
 
 **Próxima Ação**: Testar em WSL2 e Ubuntu Server
 
 Data planejada: Após testes Windows ✅
+

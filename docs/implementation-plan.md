@@ -24,11 +24,11 @@ Implementar autenticação real com a API:
 
 **Implementação**:
 
-```typescript
+`typescript
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setError('');
-  
+
   if (!validateEmail(email) || !validatePassword(password)) {
     setError('Invalid email or password');
     return;
@@ -68,7 +68,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     setIsLoading(false);
   }
 };
-```
+`
 
 ---
 
@@ -84,7 +84,7 @@ Adicionar autenticação em todas as requisições:
 
 **Implementação**:
 
-```typescript
+`typescript
 // Helper para obter headers com autenticação
 const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem('openpanel_access_token');
@@ -109,7 +109,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     }
     // Não fazer nova requisição aqui, deixar para retry no nível superior
   }
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Unknown error' }));
     throw new Error(error.message || `Request failed with status ${response.status}`);
@@ -150,7 +150,7 @@ export const getProjects = async (): Promise<Project[]> => {
 };
 
 // Repetir para todas as outras funções...
-```
+`
 
 ---
 
@@ -165,7 +165,7 @@ Atualizar gerenciamento de sessão:
 
 **Implementação**:
 
-```typescript
+`typescript
 const [isLoggedIn, setIsLoggedIn] = useState(() => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('openpanel_access_token');
@@ -182,7 +182,7 @@ const handleLogout = () => {
   localStorage.removeItem('openpanel_user');
   setIsLoggedIn(false);
 };
-```
+`
 
 ---
 
@@ -192,7 +192,7 @@ const handleLogout = () => {
 
 Criar script ou usar endpoint de registro para criar usuário inicial:
 
-```bash
+`bash
 curl -X POST http://localhost:3001/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
@@ -200,7 +200,7 @@ curl -X POST http://localhost:3001/api/auth/register \
     "email": "admin@openpanel.dev",
     "password": "admin123"
   }'
-```
+`
 
 Ou via Prisma Studio / SQL direto no banco.
 
@@ -339,3 +339,4 @@ Ou via Prisma Studio / SQL direto no banco.
 ## Novo Arquivo
 
 - Script ou documentação para criar usuário padrão
+

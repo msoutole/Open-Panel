@@ -21,7 +21,8 @@ Instruções de setup para diferentes plataformas.
 
 ### Setup
 
-```powershell
+`powershell
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -30,18 +31,21 @@ cd openpanel
 .\scripts\setup.ps1
 
 # 3. Após conclusão, acesse
+
 # Web: http://localhost:3000
+
 # API: http://localhost:3001
-```
+`
 
 ### Troubleshooting
 
 Se houver erros de permissão ao executar o PowerShell:
 
-```powershell
+`powershell
+
 # Execute como Administrator e digite:
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
+`
 
 ---
 
@@ -68,7 +72,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ### Setup
 
-```bash
+`bash
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -77,18 +82,21 @@ cd openpanel
 bash scripts/setup.sh
 
 # 3. Após conclusão, acesse
+
 # Web: http://localhost:3000
+
 # API: http://localhost:3001
-```
+`
 
 ### Permissões
 
 Se houver erro ao executar scripts:
 
-```bash
+`bash
+
 # Tornar scripts executáveis
 chmod +x scripts/*.sh scripts/*.ps1
-```
+`
 
 ---
 
@@ -113,7 +121,8 @@ chmod +x scripts/*.sh scripts/*.ps1
 
 ### Setup
 
-```bash
+`bash
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -122,9 +131,11 @@ cd openpanel
 bash scripts/setup.sh
 
 # 3. Após conclusão, acesse
+
 # Web: http://localhost:3000
+
 # API: http://localhost:3001
-```
+`
 
 ---
 
@@ -132,7 +143,8 @@ bash scripts/setup.sh
 
 Se preferir não usar os scripts de setup:
 
-```bash
+`bash
+
 # 1. Criar arquivo .env
 cp .env.example .env
 
@@ -143,6 +155,7 @@ npm install
 docker-compose up -d
 
 # 4. Aguardar serviços ficarem saudáveis
+
 # Postgres e Redis devem mostrar "healthy"
 docker ps
 
@@ -152,7 +165,7 @@ npm run db:push
 
 # 6. Iniciar desenvolvimento
 npm run dev
-```
+`
 
 ---
 
@@ -160,23 +173,26 @@ npm run dev
 
 ### Iniciar em modo desenvolvimento
 
-```bash
+`bash
+
 # Windows
 .\scripts\setup.ps1    # Se nunca rodou setup
 
 npm run dev            # Inicia API + Web em paralelo
-```
+`
 
-```bash
+`bash
+
 # Linux/macOS
 bash scripts/setup.sh  # Se nunca rodou setup
 
 npm run dev            # Inicia API + Web em paralelo
-```
+`
 
 ### Comandos úteis
 
-```bash
+`bash
+
 # Desenvolvimento isolado
 npm run dev:api         # Apenas API
 npm run dev:web         # Apenas Web
@@ -196,11 +212,12 @@ npm run type-check
 
 # Preview production build
 npm run preview
-```
+`
 
 ### Docker
 
-```bash
+`bash
+
 # Ver logs de um container
 docker logs openpanel-api -f        # API (follow mode)
 docker logs openpanel-web -f        # Web
@@ -216,7 +233,7 @@ docker ps
 
 # Health check
 docker inspect openpanel-postgres --format='{{.State.Health.Status}}'
-```
+`
 
 ---
 
@@ -236,14 +253,16 @@ docker inspect openpanel-postgres --format='{{.State.Health.Status}}'
 
 ### Docker não está rodando (Windows)
 
-```powershell
+`powershell
+
 # Iniciar Docker Desktop
 Start-Process "C:\Program Files\Docker\Docker\Docker.exe"
-```
+`
 
 ### Permissão negada ao acessar socket Docker (Linux/WSL)
 
-```bash
+`bash
+
 # Adicionar usuário ao grupo docker
 sudo usermod -aG docker $USER
 
@@ -251,12 +270,14 @@ sudo usermod -aG docker $USER
 newgrp docker
 
 # Ou fazer logout e login novamente
-```
+`
 
 ### Porta em uso
 
-```bash
+`bash
+
 # Encontrar processo usando porta 3000
+
 # Windows
 netstat -ano | findstr :3000
 
@@ -266,11 +287,12 @@ lsof -i :3000
 # Mudar porta no .env
 API_PORT=3002
 APP_PORT=3001
-```
+`
 
 ### Container não inicia
 
-```bash
+`bash
+
 # Ver logs detalhados
 docker-compose logs -f openpanel-api
 
@@ -280,7 +302,7 @@ docker-compose restart openpanel-api
 # Limpar tudo e começar do zero
 docker-compose down -v
 docker-compose up -d
-```
+`
 
 ---
 
@@ -288,7 +310,8 @@ docker-compose up -d
 
 Arquivo `.env` principal:
 
-```env
+`env
+
 # Core
 NODE_ENV=development
 APP_URL=http://localhost:3000
@@ -309,8 +332,9 @@ JWT_SECRET=seu-secret-aqui-minimo-32-caracteres
 
 # Docker
 DOCKER_SOCK=/var/run/docker.sock  # Linux/macOS
+
 # DOCKER_SOCK=//./pipe/docker_engine  # Windows
-```
+`
 
 ---
 
@@ -318,7 +342,8 @@ DOCKER_SOCK=/var/run/docker.sock  # Linux/macOS
 
 Após completar o setup, verifique:
 
-```bash
+`bash
+
 # 1. Containers rodando
 docker ps
 
@@ -330,7 +355,7 @@ curl http://localhost:3000
 
 # 4. Banco de dados conectado
 npm run db:studio
-```
+`
 
 ---
 
@@ -342,4 +367,5 @@ Para problemas:
 2. Verifique .env está correto
 3. Certifique-se Docker está rodando
 4. Tente `docker-compose down && docker-compose up -d`
-5. Abra issue no GitHub: https://github.com/msoutole/openpanel/issues
+5. Abra issue no GitHub: https://github.com/msoutole/openpanel/issue
+

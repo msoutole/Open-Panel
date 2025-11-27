@@ -41,24 +41,27 @@ Guia completo e detalhado para instalação do Open-Panel em Windows.
 
 ### Passo 2: Clone do Repositório
 
-```powershell
+`powershell
+
 # Escolha uma localização (exemplo: C:\dev)
 cd C:\dev
 
 # Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
-```
+`
 
 ### Passo 3: Executar Setup
 
-```powershell
+`powershell
+
 # Executar o script de setup
 .\scripts\setup\setup.ps1
 
 # O script vai fazer tudo automaticamente!
+
 # Aguarde cerca de 5-10 minutos
-```
+`
 
 **O que o script faz:**
 - ✅ Verifica/instala Node.js (via winget)
@@ -71,14 +74,17 @@ cd openpanel
 
 ### Passo 4: Verificar Instalação
 
-```powershell
+`powershell
+
 # Verificar status
 npm run status
 
 # Abrir no navegador
+
 # Web: http://localhost:3000
+
 # API: http://localhost:3001
-```
+`
 
 ---
 
@@ -89,9 +95,9 @@ Se preferir controle total, aqui está a instalação manual:
 ### 1. Instalar Node.js
 
 #### Opção A: Via Script (Recomendado)
-```powershell
+`powershell
 winget install OpenJS.NodeJS
-```
+`
 
 #### Opção B: Manual
 1. Baixar de https://nodejs.org/ (LTS recomendado)
@@ -100,17 +106,17 @@ winget install OpenJS.NodeJS
 4. **Reinicie o PowerShell** para aplicar PATH
 
 #### Verificar instalação
-```powershell
+`powershell
 node --version      # v18.0.0 ou superior
 npm --version       # 9.0.0 ou superior
-```
+`
 
 ### 2. Instalar Docker Desktop
 
 #### Opção A: Via Script
-```powershell
+`powershell
 winget install Docker.DockerDesktop
-```
+`
 
 #### Opção B: Manual
 1. Baixar de https://www.docker.com/products/docker-desktop
@@ -119,65 +125,69 @@ winget install Docker.DockerDesktop
 4. **Reiniciar o computador**
 
 #### Verificar instalação
-```powershell
+`powershell
 docker --version        # Docker version 20.10.0 ou superior
 docker-compose version  # Docker Compose version 2.0.0 ou superior
 
 # Testar Docker
 docker run hello-world
-```
+`
 
 ### 3. Clone do Repositório
 
-```powershell
+`powershell
 cd C:\dev
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
-```
+`
 
 ### 4. Criar `.env`
 
-```powershell
+`powershell
+
 # Copiar template
 Copy-Item .env.example -Destination .env
 
 # Editar .env se necessário
 notepad .env
-```
+`
 
 ### 5. Instalar Dependências npm
 
-```powershell
+`powershell
 npm install --prefer-offline
+
 # Pode levar 2-5 minutos
-```
+`
 
 ### 6. Iniciar Docker Services
 
-```powershell
+`powershell
 docker-compose up -d
 
 # Aguardar containers ficarem saudáveis
+
 # Cerca de 1-2 minutos
-```
+`
 
 ### 7. Configurar Banco de Dados
 
-```powershell
+`powershell
 npm run db:generate
 npm run db:push
-```
+`
 
 ### 8. Iniciar Aplicação
 
-```powershell
+`powershell
+
 # Modo desenvolvimento
 npm run dev
 
 # Ou em uma janela separada
 npm run dev:api
 npm run dev:web
-```
+`
 
 ---
 
@@ -185,7 +195,8 @@ npm run dev:web
 
 O script `setup.ps1` suporta várias opções:
 
-```powershell
+`powershell
+
 # Ver ajuda
 .\scripts\setup\setup.ps1 -Help
 
@@ -200,7 +211,7 @@ O script `setup.ps1` suporta várias opções:
 
 # Combinar opções
 .\scripts\setup\setup.ps1 -Silent -Force -Debug
-```
+`
 
 ---
 
@@ -208,17 +219,23 @@ O script `setup.ps1` suporta várias opções:
 
 ### Verifique se tudo está rodando
 
-```powershell
+`powershell
+
 # 1. Verificar containers Docker
 docker ps
 
 # Saída esperada:
+
 # CONTAINER ID   IMAGE                    STATUS
+
 # xxx            postgres:latest          Up X minutes (healthy)
+
 # xxx            redis:latest             Up X minutes (healthy)
+
 # ...
 
 # 2. Verificar se as portas estão escutando
+
 # PowerShell:
 Get-NetTCPConnection -State Listen | Where-Object {$_.LocalPort -in 3000,3001,8080}
 
@@ -229,7 +246,7 @@ curl http://localhost:3000/
 # 4. Verificar logs
 docker logs openpanel-postgres
 docker logs openpanel-redis
-```
+`
 
 ### Acessar a Aplicação
 
@@ -244,7 +261,8 @@ Abra seu navegador em:
 
 ### Docker Desktop não inicia
 
-```powershell
+`powershell
+
 # 1. Verificar se WSL 2 está instalado
 wsl --list --verbose
 
@@ -252,12 +270,14 @@ wsl --list --verbose
 wsl --install --distribution Ubuntu
 
 # 3. Reiniciar computador
+
 # 4. Abrir Docker Desktop novamente
-```
+`
 
 ### Porta já em uso
 
-```powershell
+`powershell
+
 # Encontrar processo usando a porta (ex: 3001)
 Get-NetTCPConnection -LocalPort 3001 | Select-Object OwningProcess
 
@@ -266,12 +286,14 @@ Stop-Process -ID <PID> -Force
 
 # Ou mudar as portas em .env:
 notepad .env
+
 # Alterar PORT_API=3001 para outra porta
-```
+`
 
 ### npm install falha
 
-```powershell
+`powershell
+
 # Limpar cache npm
 npm cache clean --force
 
@@ -280,11 +302,12 @@ npm install
 
 # Ou com verbose para ver erros
 npm install --verbose
-```
+`
 
 ### PostgreSQL não conecta
 
-```powershell
+`powershell
+
 # Verificar se container está rodando
 docker ps | findstr postgres
 
@@ -297,11 +320,12 @@ docker restart openpanel-postgres
 # Se persistir, resetar tudo
 docker-compose down -v
 .\scripts\setup\setup.ps1 -Force
-```
+`
 
 ### Script de setup não é reconhecido
 
-```powershell
+`powershell
+
 # Pode ser problema de encoding. Converter para UTF-8:
 $file = ".\scripts\setup\setup.ps1"
 $content = Get-Content -Path $file -Encoding UTF8
@@ -309,17 +333,19 @@ Set-Content -Path $file -Value $content -Encoding UTF8
 
 # Ou tentar com caminho completo
 powershell -ExecutionPolicy Bypass -File "$PWD\scripts\setup\setup.ps1"
-```
+`
 
 ### Permissão negada
 
-```powershell
+`powershell
+
 # Executar PowerShell como Admin
+
 # Clique direito → "Executar como Administrador"
 
 # Se ainda tiver problema, permitir scripts
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
+`
 
 ---
 
@@ -327,31 +353,35 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ### Fazer backup de configurações
 
-```powershell
+`powershell
+
 # .env é automaticamente backed up em .env.backup.TIMESTAMP
+
 # Visualizar backups
 Get-ChildItem .env.backup.*
 
 # Restaurar um backup
 Copy-Item .env.backup.20240115-143025 -Destination .env
 docker-compose restart
-```
+`
 
 ### Backup do Banco de Dados
 
-```powershell
+`powershell
+
 # Fazer dump do PostgreSQL
 docker exec openpanel-postgres pg_dump -U openpanel -d openpanel > backup.sql
 
 # Restaurar
 docker exec -i openpanel-postgres psql -U openpanel -d openpanel < backup.sql
-```
+`
 
 ---
 
 ## 📚 Comandos Úteis
 
-```powershell
+`powershell
+
 # Desenvolvimento
 npm run dev              # API + Web
 npm run dev:api          # Apenas API
@@ -381,7 +411,7 @@ docker-compose down      # Parar containers
 docker-compose logs -f   # Logs em tempo real
 docker ps                # Lista containers
 docker exec -it <container> bash  # SSH em container
-```
+`
 
 ---
 
@@ -424,3 +454,4 @@ docker exec -it <container> bash  # SSH em container
 
 **Última atualização**: 2024-11-27
 **Windows 10/11 Compatível**
+

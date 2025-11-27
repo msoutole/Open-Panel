@@ -8,7 +8,7 @@
 
 ## 🎯 Overview Visual
 
-```
+`
                     Prioridade de Implementação
                     ════════════════════════════
 
@@ -68,7 +68,7 @@ Task 3.4: Frontend .env         ⏱️  0.5h    📈 Baixo impacto
 Task 4.1: API Documentation     ⏱️  3-4h    📈 Médio impacto
 Task 4.2: Deployment Guide      ⏱️  2-3h    📈 Médio impacto
 Task 4.3: Component Refactor    ⏱️  3-4h    📈 Baixo impacto
-```
+`
 
 ---
 
@@ -76,7 +76,7 @@ Task 4.3: Component Refactor    ⏱️  3-4h    📈 Baixo impacto
 
 ### Code Quality
 
-```
+`
 ┌────────────────────────────────────────────────────────┐
 │                    CODE QUALITY METRICS                │
 ├────────────────────────────────────────────────────────┤
@@ -106,11 +106,11 @@ Task 4.3: Component Refactor    ⏱️  3-4h    📈 Baixo impacto
 │ Action: Implement JWT auth in container-gateway      │
 │                                                        │
 └────────────────────────────────────────────────────────┘
-```
+`
 
 ### Production Readiness
 
-```
+`
 ┌────────────────────────────────────────────────────────┐
 │              PRODUCTION READINESS (40% → 95%)          │
 ├────────────────────────────────────────────────────────┤
@@ -161,7 +161,7 @@ Task 4.3: Component Refactor    ⏱️  3-4h    📈 Baixo impacto
 └────────────────────────────────────────────────────────┘
 
 Timeline: 3-5 dias (26-43 horas de trabalho)
-```
+`
 
 ---
 
@@ -169,7 +169,7 @@ Timeline: 3-5 dias (26-43 horas de trabalho)
 
 ### Semana 1: Foundation (Crítico)
 
-```
+`
 SEG  │ ████████████  Dockerfiles + Logging (3-5h)
      │ Deliverable: Productionfrom-ready containers
 
@@ -186,11 +186,11 @@ SEX  │ ████████████  WebSocket Auth (3-4h)
      │ Deliverable: JWT validated in gateway
 
 Total: 12-18 horas
-```
+`
 
 ### Semana 2: Quality (Alto Impacto)
 
-```
+`
 SEG  │ ████████████████████  Integration Tests P1 (4-6h)
 TER  │ ████████████████████  Integration Tests P2 (4-6h)
 QUA  │ ████████████  Settings Complete (2-3h)
@@ -198,11 +198,11 @@ QUI  │ ████████████  Error Format Standard (2-3h)
 SEX  │ ████████████  Quality Assurance (2-3h)
 
 Total: 14-21 horas
-```
+`
 
 ### Semana 3: Documentation & Polish
 
-```
+`
 SEG  │ ████████████████  API Documentation (3-4h)
 TER  │ ████████████  Deployment Guide (2-3h)
 QUA  │ ████████████  Component Refactor (3-4h)
@@ -210,7 +210,7 @@ QUI  │ ██████████  Final Testing (2h)
 SEX  │ ██████████  Release Prep (2h)
 
 Total: 12-15 horas
-```
+`
 
 ---
 
@@ -218,7 +218,7 @@ Total: 12-15 horas
 
 Se você tiver apenas **3-5 horas** antes de produção:
 
-```
+`
 Priority 1 (MUST DO - 2-3h):
   ✅ 1. Corrigir Dockerfiles        [45 min]
   ✅ 2. Converter logging            [60 min]
@@ -238,7 +238,7 @@ Resultado Esperado:
   ✅ Deploy seguro em produção
   ⚠️  Com cobertura de testes baixa (será feito logo)
   ⚠️  Documentação mínima (será expandida)
-```
+`
 
 ---
 
@@ -310,7 +310,7 @@ Resultado Esperado:
 
 ## 📊 Effort vs Impact Matrix
 
-```
+`
 HIGH
  │
 IMPACT │    ╔════════════════════╗
@@ -338,7 +338,7 @@ LOW    └───────────────────────�
 🟠 High Priority (Next)
 🟡 Medium Priority (Then)
 🟢 Low Priority (Polish)
-```
+`
 
 ---
 
@@ -346,7 +346,7 @@ LOW    └───────────────────────�
 
 ### Antes → Depois
 
-```
+`
 Métrica                    ANTES    →    DEPOIS   Target
 ═══════════════════════════════════════════════════════════
 Test Coverage             4.7%     →    65%      ✅ 60%+
@@ -359,13 +359,13 @@ WebSocket Auth           ❌       →    ✅       ✅ Yes
 API Documentation        ❌       →    ✅       ✅ Yes
 Deployment Guide         ❌       →    ✅       ✅ Yes
 Production Ready         40%      →    95%      ✅ 90%+
-```
+`
 
 ---
 
 ## 🚀 Deploy Checklist
 
-```
+`
 ANTES DE FAZER DEPLOY, CONFIRMAR:
 
 Código:
@@ -396,7 +396,7 @@ Security:
   [✓] WebSocket auth verified
   [✓] Rate limiting enabled
   [✓] CORS configured
-```
+`
 
 ---
 
@@ -417,3 +417,4 @@ Security:
 **Status**: 🔴 ATIVO - Pronto para começar
 **Data**: 2025-11-27
 **Próxima Atualização**: 2025-12-10
+

@@ -1,4 +1,5 @@
 # 📋 Plano de Implantação - Open Panel
+
 ## Automação Completa de Instalação e Experiência de Onboarding
 
 ---
@@ -38,7 +39,8 @@ Este documento descreve o plano completo de implantação para automatizar 100% 
    - Sempre fazer backup automático antes de modificar
 
 **Implementação**:
-```bash
+`bash
+
 # Novo fluxo de decisão automática
 if [ -f "$ENV_FILE" ]; then
     # Verificar se credenciais já foram geradas (não são mais os valores padrão)
@@ -54,7 +56,7 @@ else
     log_info ".env não encontrado. Criando novo..."
     REGENERATE_SECRETS=true
 fi
-```
+`
 
 ---
 
@@ -84,9 +86,12 @@ fi
 
 **Local**: Antes de STEP 1 em `setup.sh`
 
-```bash
+`bash
+
 # ============================================================================
+
 # STEP 0: PRE-INSTALLATION CHECK E AUTO-INSTALL
+
 # ============================================================================
 
 print_subsection "Verificação e instalação de dependências"
@@ -106,15 +111,17 @@ done
 
 # Verificar versões mínimas
 verify_minimum_versions || handle_version_failure
-```
+`
 
 #### Função de Tratamento de Erros
 
 **Adicionar em**: `scripts/lib/common.sh`
 
-```bash
+`bash
 ##
+
 # Trata falha de instalação de dependência
+
 # Envia email e exibe instruções ao usuário
 #
 handle_install_failure() {
@@ -167,6 +174,7 @@ handle_install_failure() {
 }
 
 ##
+
 # Envia email de notificação de erro
 #
 send_error_email() {
@@ -197,7 +205,7 @@ Log completo anexado.
 
     log_info "Email de notificação enviado para $recipient"
 }
-```
+`
 
 ---
 
@@ -209,9 +217,12 @@ Log completo anexado.
 
 **Arquivo**: `scripts/setup/setup.sh` (STEP 2)
 
-```bash
+`bash
+
 # ============================================================================
+
 # STEP 2: GERENCIAMENTO INTELIGENTE DE CREDENCIAIS
+
 # ============================================================================
 
 print_subsection "Configurando credenciais do sistema"
@@ -279,7 +290,7 @@ else
 fi
 
 print_success "Arquivo .env configurado com credenciais"
-```
+`
 
 ---
 
@@ -291,17 +302,20 @@ print_success "Arquivo .env configurado com credenciais"
 
 **Novo arquivo**: `scripts/lib/installation-state.sh`
 
-```bash
+`bash
 #!/bin/bash
 
 # ============================================================================
+
 # GERENCIAMENTO DE ESTADO DE INSTALAÇÃO
+
 # ============================================================================
 
 STATE_FILE=".openpanel.state"
 STATE_LOCK_FILE=".openpanel.state.lock"
 
 ##
+
 # Inicializa arquivo de estado
 #
 init_installation_state() {
@@ -330,6 +344,7 @@ EOF
 }
 
 ##
+
 # Atualiza estado de uma etapa
 #
 update_state() {
@@ -342,6 +357,7 @@ update_state() {
 }
 
 ##
+
 # Verifica se etapa já foi concluída
 #
 is_step_completed() {
@@ -352,6 +368,7 @@ is_step_completed() {
 }
 
 ##
+
 # Marca instalação como concluída
 #
 mark_installation_complete() {
@@ -359,11 +376,12 @@ mark_installation_complete() {
     update_state "completed_at" "\"$(date -Iseconds)\""
     log_info "Instalação marcada como concluída"
 }
-```
+`
 
 **Integração no script principal**:
 
-```bash
+`bash
+
 # No início do setup.sh, após carregar common.sh
 source "$SCRIPT_DIR/../lib/installation-state.sh"
 
@@ -378,7 +396,7 @@ else
     # ...
     update_state "database_initialized" "true"
 fi
-```
+`
 
 ---
 
@@ -390,9 +408,12 @@ fi
 
 **Adicionar ao `setup.sh` após STEP 6**:
 
-```bash
+`bash
+
 # ============================================================================
+
 # STEP 7: VERIFICAÇÃO COMPLETA DE SAÚDE DOS SERVIÇOS
+
 # ============================================================================
 
 print_subsection "Verificação de saúde dos serviços (obrigatória)"
@@ -466,7 +487,9 @@ print_success "Todos os serviços críticos estão saudáveis!"
 update_state "docker_services_healthy" "true"
 
 # ============================================================================
+
 # STEP 8: CRIAR USUÁRIO ADMINISTRADOR AUTOMATICAMENTE
+
 # ============================================================================
 
 print_subsection "Criando usuário administrador"
@@ -506,7 +529,7 @@ else
         # Não bloquear instalação, admin pode ser criado manualmente depois
     fi
 fi
-```
+`
 
 ---
 
@@ -520,7 +543,7 @@ fi
 
 **Adicionar ao Prisma Schema** (`apps/api/prisma/schema.prisma`):
 
-```prisma
+`prisma
 // ============================================
 // USER PREFERENCES & ONBOARDING
 // ============================================
@@ -577,12 +600,12 @@ model User {
   preferences    UserPreference?
   aiProviders    AIProviderConfig[]
 }
-```
+`
 
 **Migração**:
-```bash
+`bash
 npx prisma migrate dev --name add_onboarding_and_ai_config
-```
+`
 
 ---
 
@@ -590,7 +613,7 @@ npx prisma migrate dev --name add_onboarding_and_ai_config
 
 **Arquivo**: `apps/api/src/routes/onboarding.ts` (NOVO)
 
-```typescript
+`typescript
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
@@ -878,15 +901,15 @@ async function validateOllama(apiUrl: string) {
 }
 
 export default app
-```
+`
 
 **Registrar rota em** `apps/api/src/index.ts`:
-```typescript
+`typescript
 import onboarding from './routes/onboarding'
 
 // ... outras rotas ...
 app.route('/api/onboarding', onboarding)
-```
+`
 
 ---
 
@@ -894,7 +917,7 @@ app.route('/api/onboarding', onboarding)
 
 **Novo arquivo**: `apps/web/pages/Onboarding.tsx`
 
-```typescript
+`typescript
 import React, { useState } from 'react';
 import { Sparkles, Key, Palette, Lock, Check, AlertCircle, Loader2 } from 'lucide-react';
 
@@ -1320,11 +1343,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     </div>
   );
 };
-```
+`
 
 **Integrar no App principal**:
 
-```typescript
+`typescript
 // Em apps/web/src/App.tsx
 import { Onboarding } from './pages/Onboarding';
 
@@ -1352,7 +1375,7 @@ useEffect(() => {
 if (showOnboarding) {
   return <Onboarding onComplete={() => setShowOnboarding(false)} />;
 }
-```
+`
 
 ---
 
@@ -1374,7 +1397,7 @@ if (showOnboarding) {
 
 **Arquivo**: `apps/web/components/Chatbot.tsx` (supondo que existe)
 
-```typescript
+`typescript
 // Adicionar comandos especiais
 const SPECIAL_COMMANDS = {
   '/settings': 'Abre configurações de AI providers',
@@ -1388,7 +1411,7 @@ if (message.startsWith('/settings') || message.startsWith('/providers')) {
   setShowSettingsModal(true);
   return;
 }
-```
+`
 
 ---
 
@@ -1416,12 +1439,16 @@ if (message.startsWith('/settings') || message.startsWith('/providers')) {
 
 **Adicionar em**: `scripts/lib/common.sh`
 
-```bash
+`bash
+
 # ============================================================================
+
 # DETECÇÃO E SUPORTE MULTIPLATAFORMA
+
 # ============================================================================
 
 ##
+
 # Detecta sistema operacional
 #
 detect_os() {
@@ -1459,6 +1486,7 @@ detect_os() {
 }
 
 ##
+
 # Instala comando de forma multiplataforma
 #
 install_command() {
@@ -1484,6 +1512,7 @@ install_command() {
 }
 
 ##
+
 # Instalação para Linux
 #
 install_linux() {
@@ -1524,6 +1553,7 @@ install_linux() {
 }
 
 ##
+
 # Instalação para macOS
 #
 install_macos() {
@@ -1545,6 +1575,7 @@ install_macos() {
 }
 
 ##
+
 # Instalação para Windows/WSL
 #
 install_windows() {
@@ -1568,17 +1599,18 @@ install_windows() {
 
 # Executar detecção no carregamento
 detect_os
-```
+`
 
 **Adicionar no início de** `setup.sh`:
 
-```bash
+`bash
+
 # Detectar SO antes de começar
 detect_os
 
 # Mostrar informações do sistema
 print_info "Sistema: $OS ($DISTRO $DISTRO_VERSION)"
-```
+`
 
 ---
 
@@ -1763,3 +1795,4 @@ print_info "Sistema: $OS ($DISTRO $DISTRO_VERSION)"
 ---
 
 **Fim do Plano de Implantação** 🎉
+

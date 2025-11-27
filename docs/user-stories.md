@@ -27,3 +27,4 @@
 - Health checks (disk space, Docker) work on Windows.
 - System reports "healthy" status on Windows environment.
 - No Unix-specific commands cause failures.
+

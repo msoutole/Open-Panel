@@ -114,7 +114,7 @@ Cada arquivo `<domain>.md` contém:
 
 ## 🔗 Cross-Domain Dependencies
 
-```
+`
 Authentication (base)
   ↓
 Projects & Teams
@@ -124,7 +124,7 @@ Containers ← Networking
 Storage   Monitoring
   ↓
 Webhooks
-```
+`
 
 ---
 
@@ -132,10 +132,11 @@ Webhooks
 
 Use o template:
 
-```bash
+`bash
 cp TEMPLATE.md <new-domain>.md
+
 # Preencher todas as seções
-```
+`
 
 **Checklist**:
 - [ ] Overview completo
@@ -152,3 +153,4 @@ cp TEMPLATE.md <new-domain>.md
 **Princípio Fundamental**: Se você abrir um arquivo de domínio e ainda precisar abrir outro arquivo para entender o contexto, a documentação está incompleta.
 
 **Última Atualização**: 2025-11-26
+

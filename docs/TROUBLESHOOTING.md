@@ -20,41 +20,44 @@ This guide covers common issues you might encounter during installation, setup, 
 ### ❌ Problem: Setup script fails with "Permission denied"
 
 **Symptoms:**
-```bash
+`bash
 bash: ./scripts/setup/setup.sh: Permission denied
-```
+`
 
 **Solution:**
-```bash
+`bash
+
 # Make the script executable
 chmod +x scripts/setup/setup.sh
 ./scripts/setup/setup.sh
-```
+`
 
 ---
 
 ### ❌ Problem: "command not found: node" or "command not found: npm"
 
 **Symptoms:**
-```bash
+`bash
 node: command not found
 npm: command not found
-```
+`
 
 **Solution:**
 
 **Linux (Ubuntu/Debian):**
-```bash
+`bash
+
 # Install Node.js 20.x
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
-```
+`
 
 **macOS:**
-```bash
+`bash
+
 # Install using Homebrew
 brew install node@20
-```
+`
 
 **Windows:**
 Download and install from: https://nodejs.org/
@@ -64,10 +67,10 @@ Download and install from: https://nodejs.org/
 ### ❌ Problem: Setup script stops at "Waiting for services to be healthy"
 
 **Symptoms:**
-```
+`
 ⏳ Waiting for services to be healthy...
 [Times out after 120 seconds]
-```
+`
 
 **Solution:**
 
@@ -103,26 +106,26 @@ Download and install from: https://nodejs.org/
 ### ❌ Problem: npm install fails with EACCES or permission errors
 
 **Symptoms:**
-```
+`
 npm ERR! code EACCES
 npm ERR! syscall access
 npm ERR! path /usr/local/lib/node_modules
-```
+`
 
 **Solution:**
 
 **Option 1: Fix npm permissions (Recommended)**
-```bash
+`bash
 mkdir ~/.npm-global
 npm config set prefix '~/.npm-global'
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
-```
+`
 
 **Option 2: Use sudo (Not recommended for security)**
-```bash
+`bash
 sudo npm install
-```
+`
 
 ---
 
@@ -131,43 +134,47 @@ sudo npm install
 ### ❌ Problem: "Cannot connect to Docker daemon"
 
 **Symptoms:**
-```
+`
 Cannot connect to the Docker daemon at unix:///var/run/docker.sock
 Is the docker daemon running?
-```
+`
 
 **Solution:**
 
 **Linux:**
-```bash
+`bash
+
 # Start Docker service
 sudo systemctl start docker
 sudo systemctl enable docker
 
 # Add your user to docker group (avoid sudo)
 sudo usermod -aG docker $USER
+
 # Log out and log back in for this to take effect
-```
+`
 
 **macOS:**
-```bash
+`bash
+
 # Start Docker Desktop
 open -a Docker
-```
+`
 
 **Windows:**
-```powershell
+`powershell
+
 # Start Docker Desktop from Start Menu
-```
+`
 
 ---
 
 ### ❌ Problem: Docker Compose version incompatibility
 
 **Symptoms:**
-```
+`
 ERROR: The Compose file './docker-compose.yml' is invalid
-```
+`
 
 **Solution:**
 
@@ -191,10 +198,11 @@ ERROR: The Compose file './docker-compose.yml' is invalid
 ### ❌ Problem: Container keeps restarting
 
 **Symptoms:**
-```bash
+`bash
 docker ps
+
 # Shows container with "Restarting" status
-```
+`
 
 **Solution:**
 
@@ -224,10 +232,10 @@ docker ps
 ### ❌ Problem: "FATAL: password authentication failed"
 
 **Symptoms:**
-```
+`
 Error: P1001: Can't reach database server
 FATAL: password authentication failed for user "openpanel"
-```
+`
 
 **Solution:**
 
@@ -257,10 +265,10 @@ FATAL: password authentication failed for user "openpanel"
 ### ❌ Problem: Prisma migration fails
 
 **Symptoms:**
-```
+`
 Error: P3009: Failed to migrate
 Migration file ... failed to apply
-```
+`
 
 **Solution:**
 
@@ -287,9 +295,9 @@ Migration file ... failed to apply
 ### ❌ Problem: "Table does not exist" errors
 
 **Symptoms:**
-```
+`
 Error: P2021: The table `main.User` does not exist
-```
+`
 
 **Solution:**
 
@@ -316,10 +324,10 @@ Error: P2021: The table `main.User` does not exist
 ### ❌ Problem: Port already in use
 
 **Symptoms:**
-```
+`
 Error: listen EADDRINUSE: address already in use :::3000
 Error: listen EADDRINUSE: address already in use :::8000
-```
+`
 
 **Solution:**
 
@@ -389,9 +397,9 @@ Error: listen EADDRINUSE: address already in use :::8000
 ### ❌ Problem: "Invalid credentials" on first login
 
 **Symptoms:**
-```
+`
 Login failed: Invalid email or password
-```
+`
 
 **Solution:**
 
@@ -414,10 +422,10 @@ Login failed: Invalid email or password
 ### ❌ Problem: JWT token expired or invalid
 
 **Symptoms:**
-```
+`
 401 Unauthorized
 Error: Invalid token
-```
+`
 
 **Solution:**
 
@@ -441,9 +449,9 @@ Error: Invalid token
 ### ❌ Problem: Cannot change password during onboarding
 
 **Symptoms:**
-```
+`
 Error: Password validation failed
-```
+`
 
 **Solution:**
 
@@ -466,9 +474,9 @@ Ensure your password meets requirements:
 ### ❌ Problem: "Invalid API key" for Google Gemini
 
 **Symptoms:**
-```
+`
 Gemini: Invalid API key
-```
+`
 
 **Solution:**
 
@@ -490,10 +498,10 @@ Gemini: Invalid API key
 ### ❌ Problem: Ollama connection failed
 
 **Symptoms:**
-```
+`
 Cannot connect to Ollama
 Connection refused
-```
+`
 
 **Solution:**
 
@@ -520,10 +528,10 @@ Connection refused
 ### ❌ Problem: Claude API validation timeout
 
 **Symptoms:**
-```
+`
 Claude: Connection failed
 Request timeout
-```
+`
 
 **Solution:**
 
@@ -570,10 +578,11 @@ Request timeout
 ### ❌ Problem: High memory usage
 
 **Symptoms:**
-```
+`
 docker stats
+
 # Shows >90% memory usage
-```
+`
 
 **Solution:**
 
@@ -600,17 +609,19 @@ docker stats
 ### 📝 Where to find logs
 
 **Application Logs:**
-```bash
+`bash
+
 # API logs
 tail -f apps/api/logs/combined.log
 tail -f apps/api/logs/error.log
 
 # Or check .logs/ directory
 ls -lah .logs/
-```
+`
 
 **Docker Logs:**
-```bash
+`bash
+
 # All services
 docker-compose logs -f
 
@@ -621,52 +632,58 @@ docker-compose logs -f ollama
 
 # Last 100 lines
 docker-compose logs --tail=100
-```
+`
 
 **System Logs:**
-```bash
+`bash
+
 # Linux
 journalctl -xe | grep -i docker
 
 # macOS
 log show --predicate 'eventMessage contains "docker"' --last 1h
-```
+`
 
 ---
 
 ### 🔍 Enable Debug Mode
 
 **Backend (API):**
-```bash
+`bash
+
 # In .env
 NODE_ENV=development
 LOG_LEVEL=debug
-```
+`
 
 **Frontend (Web):**
-```bash
+`bash
+
 # In .env.local
 VITE_DEBUG=true
-```
+`
 
 **Prisma:**
-```bash
+`bash
+
 # In .env
 DEBUG="prisma:query,prisma:error"
-```
+`
 
 ---
 
 ### 🧪 Test Database Connection
 
-```bash
+`bash
+
 # Test PostgreSQL
 docker exec -it openpanel-postgres pg_isready -U openpanel
 
 # Test Redis
 docker exec -it openpanel-redis redis-cli ping
+
 # Should return: PONG
-```
+`
 
 ---
 
@@ -674,7 +691,8 @@ docker exec -it openpanel-redis redis-cli ping
 
 **⚠️ WARNING: This will DELETE ALL DATA**
 
-```bash
+`bash
+
 # Stop all services
 docker-compose down -v
 
@@ -687,7 +705,7 @@ rm .env
 
 # Re-run setup
 ./scripts/setup/setup.sh
-```
+`
 
 ---
 
@@ -711,7 +729,8 @@ rm .env
 
 When reporting issues, include:
 
-```bash
+`bash
+
 # System info
 uname -a
 node --version
@@ -727,9 +746,10 @@ docker-compose logs --tail=50
 
 # Environment (sanitized)
 cat .env | grep -v "PASSWORD\|SECRET\|KEY"
-```
+`
 
 ---
 
 **Last Updated:** 2025-01-27
 **Version:** 1.0.0
+

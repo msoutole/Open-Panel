@@ -13,3 +13,4 @@
   - Docker connection via Windows named pipes (`//./pipe/docker_engine`).
   - Disk space monitoring using `fs.statfs` (Node 18+) or PowerShell fallback.
   - Health checks adapted for Windows command availability.
+

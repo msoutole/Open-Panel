@@ -23,16 +23,16 @@ Complete API reference for Open Panel backend services.
 
 All authenticated endpoints require a JWT token in the Authorization header:
 
-```http
+`http
 Authorization: Bearer <your_jwt_token>
-```
+`
 
 ### POST /api/auth/login
 
 Authenticate user and receive JWT tokens.
 
 **Request:**
-```http
+`http
 POST /api/auth/login
 Content-Type: application/json
 
@@ -40,10 +40,10 @@ Content-Type: application/json
   "email": "admin@admin.com.br",
   "password": "admin123"
 }
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -53,7 +53,7 @@ Content-Type: application/json
     "name": "Administrator"
   }
 }
-```
+`
 
 **Errors:**
 - `401 Unauthorized` - Invalid credentials
@@ -66,22 +66,22 @@ Content-Type: application/json
 Refresh expired access token using refresh token.
 
 **Request:**
-```http
+`http
 POST /api/auth/refresh
 Content-Type: application/json
 
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
 }
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
 }
-```
+`
 
 ---
 
@@ -90,17 +90,17 @@ Content-Type: application/json
 Invalidate current tokens.
 
 **Request:**
-```http
+`http
 POST /api/auth/logout
 Authorization: Bearer <token>
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "message": "Logged out successfully"
 }
-```
+`
 
 ---
 
@@ -115,18 +115,18 @@ Check if user has completed onboarding.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 GET /api/onboarding/status
 Authorization: Bearer <token>
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "onboardingCompleted": false,
   "mustChangePassword": true
 }
-```
+`
 
 **Fields:**
 - `onboardingCompleted` (boolean) - Whether user has finished onboarding wizard
@@ -144,7 +144,7 @@ Complete onboarding process with user preferences and AI providers.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 POST /api/onboarding/complete
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -166,7 +166,7 @@ Content-Type: application/json
     }
   ]
 }
-```
+`
 
 **Request Body Schema:**
 
@@ -188,12 +188,12 @@ Content-Type: application/json
 - At least one special character (!@#$%^&*)
 
 **Response (200 OK):**
-```json
+`json
 {
   "message": "Onboarding completed successfully",
   "success": true
 }
-```
+`
 
 **Errors:**
 - `400 Bad Request` - Invalid data, weak password, or API key validation failed
@@ -215,7 +215,7 @@ Validate AI provider API key before saving.
 **Rate Limit:** 10 requests per minute per user
 
 **Request:**
-```http
+`http
 POST /api/onboarding/validate-provider
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -225,7 +225,7 @@ Content-Type: application/json
   "apiKey": "AIzaSyD-...",
   "apiUrl": null
 }
-```
+`
 
 **Request Body Schema:**
 
@@ -236,7 +236,7 @@ Content-Type: application/json
 | `apiUrl` | string | Conditional | Required for ollama (default: `http://localhost:11434`) |
 
 **Response (200 OK) - Valid:**
-```json
+`json
 {
   "valid": true,
   "models": [
@@ -250,15 +250,15 @@ Content-Type: application/json
     }
   ]
 }
-```
+`
 
 **Response (200 OK) - Invalid:**
-```json
+`json
 {
   "valid": false,
   "error": "Invalid API key"
 }
-```
+`
 
 **Errors:**
 - `400 Bad Request` - Invalid provider or missing required fields
@@ -274,13 +274,13 @@ Get user's configured AI providers.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 GET /api/onboarding/providers
 Authorization: Bearer <token>
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "providers": [
     {
@@ -299,7 +299,7 @@ Authorization: Bearer <token>
     }
   ]
 }
-```
+`
 
 **Note:** API keys are **never** returned in this response for security reasons.
 
@@ -317,13 +317,13 @@ Get current authenticated user's profile.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 GET /api/users/me
 Authorization: Bearer <token>
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "id": "clr1234567890",
   "email": "admin@admin.com.br",
@@ -332,7 +332,7 @@ Authorization: Bearer <token>
   "createdAt": "2025-01-27T09:00:00.000Z",
   "mustChangePassword": false
 }
-```
+`
 
 ---
 
@@ -343,7 +343,7 @@ Update current user's profile.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 PATCH /api/users/me
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -352,17 +352,17 @@ Content-Type: application/json
   "name": "New Name",
   "email": "newemail@example.com"
 }
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "id": "clr1234567890",
   "email": "newemail@example.com",
   "name": "New Name",
   "role": "OWNER"
 }
-```
+`
 
 ---
 
@@ -373,7 +373,7 @@ Change user password.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 POST /api/users/change-password
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -382,14 +382,14 @@ Content-Type: application/json
   "currentPassword": "OldPass123!",
   "newPassword": "NewSecure456#"
 }
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "message": "Password changed successfully"
 }
-```
+`
 
 **Errors:**
 - `400 Bad Request` - Current password incorrect or new password too weak
@@ -406,10 +406,10 @@ List all projects for current user.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 GET /api/projects
 Authorization: Bearer <token>
-```
+`
 
 **Query Parameters:**
 - `status` (optional) - Filter by status: `ACTIVE`, `PAUSED`, `ERROR`, `DEPLOYING`, `STOPPED`
@@ -418,7 +418,7 @@ Authorization: Bearer <token>
 - `limit` (optional, default: 20) - Items per page
 
 **Response (200 OK):**
-```json
+`json
 {
   "projects": [
     {
@@ -439,7 +439,7 @@ Authorization: Bearer <token>
     "pages": 1
   }
 }
-```
+`
 
 ---
 
@@ -451,7 +451,7 @@ Create a new project.
 **Required Role:** OWNER, ADMIN, MEMBER
 
 **Request:**
-```http
+`http
 POST /api/projects
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -468,10 +468,10 @@ Content-Type: application/json
     "API_URL": "https://api.example.com"
   }
 }
-```
+`
 
 **Response (201 Created):**
-```json
+`json
 {
   "id": "clr2222222222",
   "name": "My New App",
@@ -481,7 +481,7 @@ Content-Type: application/json
   "branch": "main",
   "createdAt": "2025-01-27T11:00:00.000Z"
 }
-```
+`
 
 ---
 
@@ -492,13 +492,13 @@ Get project details.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 GET /api/projects/clr1111111111
 Authorization: Bearer <token>
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "id": "clr1111111111",
   "name": "My Web App",
@@ -529,7 +529,7 @@ Authorization: Bearer <token>
   "createdAt": "2025-01-27T08:00:00.000Z",
   "updatedAt": "2025-01-27T10:00:00.000Z"
 }
-```
+`
 
 ---
 
@@ -541,17 +541,17 @@ Delete a project.
 **Required Role:** OWNER, ADMIN
 
 **Request:**
-```http
+`http
 DELETE /api/projects/clr1111111111
 Authorization: Bearer <token>
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "message": "Project deleted successfully"
 }
-```
+`
 
 ---
 
@@ -564,13 +564,13 @@ List user's teams.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 GET /api/teams
 Authorization: Bearer <token>
-```
+`
 
 **Response (200 OK):**
-```json
+`json
 {
   "teams": [
     {
@@ -582,7 +582,7 @@ Authorization: Bearer <token>
     }
   ]
 }
-```
+`
 
 ---
 
@@ -593,7 +593,7 @@ Create a new team.
 **Authentication:** Required
 
 **Request:**
-```http
+`http
 POST /api/teams
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -601,17 +601,17 @@ Content-Type: application/json
 {
   "name": "New Team"
 }
-```
+`
 
 **Response (201 Created):**
-```json
+`json
 {
   "id": "team2",
   "name": "New Team",
   "role": "OWNER",
   "createdAt": "2025-01-27T11:00:00.000Z"
 }
-```
+`
 
 ---
 
@@ -623,7 +623,7 @@ Invite user to team.
 **Required Role:** OWNER, ADMIN
 
 **Request:**
-```http
+`http
 POST /api/teams/team1/invite
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -632,7 +632,7 @@ Content-Type: application/json
   "email": "user@example.com",
   "role": "MEMBER"
 }
-```
+`
 
 **Roles:**
 - `OWNER` - Full access, can delete team
@@ -641,12 +641,12 @@ Content-Type: application/json
 - `VIEWER` - Read-only access
 
 **Response (200 OK):**
-```json
+`json
 {
   "message": "Invitation sent successfully",
   "inviteId": "inv123"
 }
-```
+`
 
 ---
 
@@ -656,7 +656,7 @@ Content-Type: application/json
 
 All errors follow this format:
 
-```json
+`json
 {
   "error": "Error message",
   "code": "ERROR_CODE",
@@ -664,7 +664,7 @@ All errors follow this format:
     "field": "Additional context"
   }
 }
-```
+`
 
 ### HTTP Status Codes
 
@@ -707,7 +707,7 @@ Different endpoints have different rate limits:
 
 When rate limit is exceeded:
 
-```http
+`http
 HTTP/1.1 429 Too Many Requests
 Retry-After: 60
 
@@ -715,7 +715,7 @@ Retry-After: 60
   "error": "Too many requests",
   "retryAfter": 60
 }
-```
+`
 
 ---
 
@@ -727,7 +727,7 @@ Configure webhook to receive deployment notifications.
 
 **Request sent to your webhook URL:**
 
-```http
+`http
 POST https://your-webhook-url.com
 Content-Type: application/json
 
@@ -739,7 +739,7 @@ Content-Type: application/json
   "commit": "abc123...",
   "timestamp": "2025-01-27T10:00:00.000Z"
 }
-```
+`
 
 ---
 
@@ -749,24 +749,24 @@ Content-Type: application/json
 
 Connect to WebSocket for real-time logs:
 
-```javascript
+`javascript
 const ws = new WebSocket('ws://localhost:8000/ws/containers/:containerId/logs');
 
 ws.onmessage = (event) => {
   const log = JSON.parse(event.data);
   console.log(log.message);
 };
-```
+`
 
 **Message Format:**
-```json
+`json
 {
   "type": "log",
   "timestamp": "2025-01-27T10:00:00.000Z",
   "message": "Server started on port 3000",
   "stream": "stdout"
 }
-```
+`
 
 ---
 
@@ -775,20 +775,20 @@ ws.onmessage = (event) => {
 ### cURL Examples
 
 **Login:**
-```bash
+`bash
 curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@admin.com.br","password":"admin123"}'
-```
+`
 
 **Get Onboarding Status:**
-```bash
+`bash
 curl -X GET http://localhost:8000/api/onboarding/status \
   -H "Authorization: Bearer YOUR_TOKEN"
-```
+`
 
 **Complete Onboarding:**
-```bash
+`bash
 curl -X POST http://localhost:8000/api/onboarding/complete \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
@@ -803,7 +803,7 @@ curl -X POST http://localhost:8000/api/onboarding/complete \
       }
     ]
   }'
-```
+`
 
 ---
 
@@ -811,7 +811,7 @@ curl -X POST http://localhost:8000/api/onboarding/complete \
 
 **Using Fetch API:**
 
-```typescript
+`typescript
 // Login
 const login = async (email: string, password: string) => {
   const response = await fetch('http://localhost:8000/api/auth/login', {
@@ -864,7 +864,7 @@ const completeOnboarding = async (data: OnboardingData) => {
 
   return response.json();
 };
-```
+`
 
 ---
 
@@ -889,3 +889,4 @@ const completeOnboarding = async (data: OnboardingData) => {
 **Last Updated:** 2025-01-27
 **API Version:** 1.0.0
 **Maintainer:** Matheus Souto Leal (msoutole@hotmail.com)
+

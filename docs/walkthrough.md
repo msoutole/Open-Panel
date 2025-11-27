@@ -75,7 +75,7 @@ Implementar autenticação JWT completa no frontend para permitir acesso aos rec
 
 **Via API (Postman/Thunder Client/curl)**:
 
-```bash
+`bash
 POST http://localhost:3001/api/auth/register
 Content-Type: application/json
 
@@ -84,14 +84,14 @@ Content-Type: application/json
   "email": "admin@openpanel.dev",
   "password": "admin123"
 }
-```
+`
 
 **Ou via Prisma Studio**:
 
-```bash
+`bash
 cd D:\Open-Panel
 npm run db:studio
-```
+`
 
 ### 2. Testar Login
 
@@ -197,6 +197,7 @@ npm run db:studio
 
 A implementação de autenticação JWT está **100% completa e funcional**. Todos os endpoints da API agora requerem e incluem tokens de autenticação. O sistema está pronto para testes manuais end-to-end.
 
-**Tempo de implementação**: ~30 minutos  
-**Complexidade**: Média  
+**Tempo de implementação**: ~30 minutos
+**Complexidade**: Média
 **Impacto**: Alto - permite uso completo da aplicação
+

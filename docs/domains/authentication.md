@@ -345,7 +345,7 @@ Protege recursos do sistema, identifica usuários, controla permissões e fornec
 
 #### Backend (`apps/api`)
 
-```
+`
 src/
 ├── routes/
 │   ├── auth.ts              # Rotas de autenticação (register, login, refresh, me)
@@ -360,11 +360,11 @@ src/
 │   └── audit.ts             # Logging de eventos críticos
 └── validators/
     └── auth.ts (shared)     # Schemas Zod compartilhados
-```
+`
 
 #### Frontend (`apps/web`)
 
-```
+`
 src/
 ├── pages/
 │   ├── Login.tsx
@@ -374,13 +374,13 @@ src/
 │   └── auth.service.ts      # API client + token refresh interceptor
 └── hooks/
     └── useAuth.ts           # React hook para auth state
-```
+`
 
 ### Fluxo de Dados
 
 #### Fluxo de Login
 
-```
+`
 1. User submits email + password
    ↓
 2. Frontend → POST /api/auth/login
@@ -404,11 +404,11 @@ src/
 11. Frontend: Store tokens in localStorage
    ↓
 12. Frontend: Redirect to dashboard
-```
+`
 
 #### Fluxo de Requisição Autenticada
 
-```
+`
 1. Frontend → GET /api/projects (with Authorization: Bearer <token>)
    ↓
 2. API: authMiddleware extracts token
@@ -420,11 +420,11 @@ src/
 5. Route handler: const user = c.get('user')
    ↓
 6. Business logic uses user.userId
-```
+`
 
 #### Fluxo de Refresh Token
 
-```
+`
 1. Access token expires (15min)
    ↓
 2. Frontend intercepts 401 response
@@ -440,7 +440,7 @@ src/
 7. Frontend: Updates stored tokens
    ↓
 8. Frontend: Retries original request with new access token
-```
+`
 
 ### Integrações
 
@@ -455,7 +455,7 @@ src/
 
 ### Prisma Schema
 
-```prisma
+`prisma
 // Enums
 enum UserRole {
   OWNER      // Criador do servidor, todos os poderes
@@ -515,7 +515,7 @@ model ApiKey {
   @@index([userId])
   @@map("api_keys")
 }
-```
+`
 
 ### Relacionamentos
 
@@ -542,27 +542,27 @@ model ApiKey {
 
 **Request Body**:
 
-```json
+`json
 {
   "name": "João Silva",
   "email": "joao@example.com",
   "password": "senha123"
 }
-```
+`
 
 **Validation** (Zod):
 
-```typescript
+`typescript
 const registerSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().email(),
   password: z.string().min(8)
 })
-```
+`
 
 **Response 201**:
 
-```json
+`json
 {
   "user": {
     "id": "clx123...",
@@ -573,7 +573,7 @@ const registerSchema = z.object({
   "accessToken": "eyJhbGciOiJIUzI1Ni...",
   "refreshToken": "eyJhbGciOiJIUzI1Ni..."
 }
-```
+`
 
 **Errors**:
 
@@ -591,25 +591,25 @@ const registerSchema = z.object({
 
 **Request Body**:
 
-```json
+`json
 {
   "email": "joao@example.com",
   "password": "senha123"
 }
-```
+`
 
 **Validation**:
 
-```typescript
+`typescript
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1)
 })
-```
+`
 
 **Response 200**:
 
-```json
+`json
 {
   "user": {
     "id": "clx123...",
@@ -621,7 +621,7 @@ const loginSchema = z.object({
   "accessToken": "eyJ...",
   "refreshToken": "eyJ..."
 }
-```
+`
 
 **Errors**:
 
@@ -639,20 +639,20 @@ const loginSchema = z.object({
 
 **Request Body**:
 
-```json
+`json
 {
   "refreshToken": "eyJhbGciOiJIUzI1Ni..."
 }
-```
+`
 
 **Response 200**:
 
-```json
+`json
 {
   "accessToken": "eyJ...",
   "refreshToken": "eyJ..."  // Rotacionado (novo token)
 }
-```
+`
 
 **Errors**:
 
@@ -670,7 +670,7 @@ const loginSchema = z.object({
 
 **Response 200**:
 
-```json
+`json
 {
   "user": {
     "id": "clx123...",
@@ -682,7 +682,7 @@ const loginSchema = z.object({
     "lastLoginAt": "2024-01-10T10:00:00Z"
   }
 }
-```
+`
 
 **Errors**:
 
@@ -706,7 +706,7 @@ const loginSchema = z.object({
 
 **Response 200**:
 
-```json
+`json
 {
   "users": [
     {
@@ -720,7 +720,7 @@ const loginSchema = z.object({
     }
   ]
 }
-```
+`
 
 **Errors**:
 
@@ -738,7 +738,7 @@ const loginSchema = z.object({
 
 **Response 200**:
 
-```json
+`json
 {
   "user": {
     "id": "clx123...",
@@ -750,7 +750,7 @@ const loginSchema = z.object({
     "lastLoginAt": "2024-01-10T10:00:00Z"
   }
 }
-```
+`
 
 **Errors**:
 
@@ -768,29 +768,29 @@ const loginSchema = z.object({
 
 **Request Body**:
 
-```json
+`json
 {
   "name": "João Pedro Silva",
   "email": "joao.pedro@example.com",
   "avatar": "https://avatar.url",
   "status": "ACTIVE"
 }
-```
+`
 
 **Validation**:
 
-```typescript
+`typescript
 const updateUserSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   email: z.string().email().optional(),
   avatar: z.string().url().optional().nullable(),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional()
 })
-```
+`
 
 **Response 200**:
 
-```json
+`json
 {
   "user": {
     "id": "clx123...",
@@ -802,7 +802,7 @@ const updateUserSchema = z.object({
     "lastLoginAt": "2024-01-10T10:00:00Z"
   }
 }
-```
+`
 
 **Errors**:
 
@@ -821,29 +821,29 @@ const updateUserSchema = z.object({
 
 **Request Body**:
 
-```json
+`json
 {
   "currentPassword": "senha123",
   "newPassword": "novaSenha456"
 }
-```
+`
 
 **Validation**:
 
-```typescript
+`typescript
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8)
 })
-```
+`
 
 **Response 200**:
 
-```json
+`json
 {
   "message": "Password changed successfully"
 }
-```
+`
 
 **Errors**:
 
@@ -863,11 +863,11 @@ const changePasswordSchema = z.object({
 
 **Response 200**:
 
-```json
+`json
 {
   "message": "User deleted successfully"
 }
-```
+`
 
 **Errors**:
 
@@ -885,7 +885,7 @@ const changePasswordSchema = z.object({
 
 #### Route Handler (`apps/api/src/routes/auth.ts`)
 
-```typescript
+`typescript
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { prisma } from '../lib/prisma'
@@ -1033,11 +1033,11 @@ auth.get('/me', async (c) => {
 })
 
 export default auth
-```
+`
 
 #### JWT Library (`apps/api/src/lib/jwt.ts`)
 
-```typescript
+`typescript
 import jwt from 'jsonwebtoken'
 import { env } from './env'
 
@@ -1071,11 +1071,11 @@ export const verifyToken = (token: string): TokenPayload => {
     throw error
   }
 }
-```
+`
 
 #### Auth Middleware (`apps/api/src/middlewares/auth.ts`)
 
-```typescript
+`typescript
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
 import { verifyToken } from '../lib/jwt'
@@ -1115,11 +1115,11 @@ export const authMiddleware = createMiddleware<{ Variables: Variables }>(
     throw new HTTPException(401, { message: 'Invalid authorization format' })
   }
 )
-```
+`
 
 #### Password Hashing (`apps/api/src/lib/hash.ts`)
 
-```typescript
+`typescript
 import bcrypt from 'bcryptjs'
 
 const SALT_ROUNDS = 10
@@ -1134,11 +1134,11 @@ export const comparePassword = async (
 ): Promise<boolean> => {
   return bcrypt.compare(password, hash)
 }
-```
+`
 
 #### Rate Limiter (`apps/api/src/middlewares/rate-limit.ts`)
 
-```typescript
+`typescript
 import { rateLimiter } from 'hono-rate-limiter'
 import { redis } from '../lib/redis'
 
@@ -1149,11 +1149,11 @@ export const authRateLimiter = rateLimiter({
   standardHeaders: true,      // Adiciona RateLimit-* headers
   message: 'Too many requests, please try again later'
 })
-```
+`
 
 ### Frontend Service (`apps/web/src/services/auth.service.ts`)
 
-```typescript
+`typescript
 const API_URL = import.meta.env.VITE_API_URL
 
 export const AuthService = {
@@ -1259,7 +1259,7 @@ export const AuthService = {
     localStorage.removeItem('user')
   }
 }
-```
+`
 
 ### Security Considerations
 
@@ -1277,7 +1277,7 @@ export const AuthService = {
 
 ### Unit Tests
 
-```typescript
+`typescript
 // apps/api/src/__tests__/unit/lib/jwt.test.ts
 import { describe, it, expect } from 'vitest'
 import { generateAccessToken, verifyToken } from '../../../lib/jwt'
@@ -1298,9 +1298,9 @@ describe('JWT Library', () => {
     expect(() => verifyToken(expiredToken)).toThrow('Token expired')
   })
 })
-```
+`
 
-```typescript
+`typescript
 // apps/api/src/__tests__/unit/lib/hash.test.ts
 import { describe, it, expect } from 'vitest'
 import { hashPassword, comparePassword } from '../../../lib/hash'
@@ -1324,11 +1324,11 @@ describe('Password Hashing', () => {
     expect(isValid).toBe(false)
   })
 })
-```
+`
 
 ### Integration Tests
 
-```typescript
+`typescript
 // apps/api/src/__tests__/integration/auth.test.ts
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { testClient } from '../helpers/test-client'
@@ -1456,7 +1456,7 @@ describe('Authentication Flow', () => {
     expect(res.body).toHaveProperty('refreshToken')
   })
 })
-```
+`
 
 ### Manual Testing Checklist
 
@@ -1532,3 +1532,4 @@ describe('Authentication Flow', () => {
 **Última Atualização**: 2025-11-26
 **Mantido por**: OpenPanel Core Team
 **Status**: ✅ Implementado (95% - faltam API Keys e 2FA)
+

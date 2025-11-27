@@ -21,7 +21,7 @@
 
 ## 2. Data Models
 
-```prisma
+`prisma
 model Domain {
   id          String   @id @default(cuid())
   hostname    String   @unique  // "api.example.com"
@@ -62,7 +62,7 @@ model SslCertificate {
   @@index([expiresAt])
   @@map("ssl_certificates")
 }
-```
+`
 
 ---
 
@@ -92,16 +92,16 @@ model SslCertificate {
 Adiciona domínio ao projeto
 
 **Request**:
-```json
+`json
 {
   "projectId": "clx...",
   "hostname": "api.myapp.com",
   "sslEnabled": true
 }
-```
+`
 
 **Response 201**:
-```json
+`json
 {
   "domain": {
     "id": "clx...",
@@ -117,7 +117,7 @@ Adiciona domínio ao projeto
     "ttl": 300
   }
 }
-```
+`
 
 ### GET /api/domains/:id/verify
 Verifica DNS propagation
@@ -137,7 +137,7 @@ Remove domínio
 
 ### Domain Service (`apps/api/src/services/domain.service.ts`)
 
-```typescript
+`typescript
 import { prisma } from '../lib/prisma'
 import { TraefikService } from './traefik.service'
 import dns from 'dns/promises'
@@ -235,11 +235,11 @@ export class DomainService {
     return pattern.test(hostname)
   }
 }
-```
+`
 
 ### Traefik Service (`apps/api/src/services/traefik.service.ts`)
 
-```typescript
+`typescript
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -288,11 +288,11 @@ export class TraefikService {
     return true
   }
 }
-```
+`
 
 ### SSL Renewal Cron (`apps/api/src/jobs/ssl-renewal.ts`)
 
-```typescript
+`typescript
 import { CronJob } from 'cron'
 import { prisma } from '../lib/prisma'
 import { DomainService } from '../services/domain.service'
@@ -322,14 +322,14 @@ export const sslRenewalJob = new CronJob('0 2 * * *', async () => {
 })
 
 sslRenewalJob.start()
-```
+`
 
 ---
 
 ## 6. Traefik Configuration
 
 ### Static Config (`/etc/traefik/traefik.yml`)
-```yaml
+`yaml
 entryPoints:
   web:
     address: ":80"
@@ -358,7 +358,7 @@ certificatesResolvers:
       storage: /letsencrypt/acme.json
       httpChallenge:
         entryPoint: web
-```
+`
 
 ---
 
@@ -376,3 +376,4 @@ certificatesResolvers:
 
 **Última Atualização**: 2025-11-26
 **Status**: ✅ Implementado (80%)
+

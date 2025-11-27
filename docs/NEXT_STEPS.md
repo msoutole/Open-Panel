@@ -7,12 +7,12 @@
 **Problema**: O setup.sh executa `npm run create:admin`, mas esse script pode não existir no package.json.
 
 **Solução**:
-```json
+`json
 // No package.json raiz, adicionar:
 "scripts": {
   "create:admin": "tsx scripts/create-admin.ts"
 }
-```
+`
 
 **Arquivo**: `scripts/create-admin.ts` já existe, apenas garantir que o script npm esteja configurado.
 
@@ -23,11 +23,12 @@
 **Problema**: O setup.sh gera credenciais mas não atualiza a DATABASE_URL completa.
 
 **Solução**: Adicionar no setup.sh após gerar senhas:
-```bash
+`bash
+
 # Atualizar DATABASE_URL com a senha gerada
 DATABASE_URL="postgresql://openpanel:${POSTGRES_PASSWORD}@localhost:5432/openpanel"
 sed -i "s|DATABASE_URL=.*|DATABASE_URL=$DATABASE_URL|g" "$ENV_FILE"
-```
+`
 
 ---
 
@@ -36,14 +37,15 @@ sed -i "s|DATABASE_URL=.*|DATABASE_URL=$DATABASE_URL|g" "$ENV_FILE"
 **Problema**: O .env.example tem um JWT_SECRET de exemplo que pode ser usado em produção por engano.
 
 **Solução**: Adicionar verificação no setup.sh:
-```bash
+`bash
+
 # Verificar se JWT_SECRET ainda é o valor padrão
 if grep -q "JWT_SECRET=your-super-secret-jwt-key-change-this" "$ENV_FILE"; then
     print_warn "JWT_SECRET padrão detectado. Gerando novo..."
     NEW_JWT_SECRET=$(generate_random_string 64)
     sed -i "s|JWT_SECRET=.*|JWT_SECRET=$NEW_JWT_SECRET|g" "$ENV_FILE"
 fi
-```
+`
 
 ---
 
@@ -54,13 +56,15 @@ fi
 **Problema**: A migration foi criada manualmente e não foi testada.
 
 **Ação**: Verificar se a migration está correta:
-```bash
+`bash
+
 # Testar aplicação da migration
 cd apps/api
 npm run db:push
+
 # Ou
 npx prisma migrate deploy
-```
+`
 
 **Se falhar**: Ajustar o SQL conforme erro reportado.
 
@@ -73,7 +77,7 @@ npx prisma migrate deploy
 **Verificar**: Se `apps/api/src/lib/hash.ts` existe.
 
 **Se não existir, criar**:
-```typescript
+`typescript
 import bcrypt from 'bcryptjs';
 
 export async function hashPassword(password: string): Promise<string> {
@@ -86,7 +90,7 @@ export async function comparePassword(
 ): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
-```
+`
 
 ---
 
@@ -95,10 +99,10 @@ export async function comparePassword(
 **Problema**: TypeScript pode não reconhecer `aIProviderConfig` e `userPreference`.
 
 **Solução**: Executar:
-```bash
+`bash
 cd apps/api
 npm run db:generate
-```
+`
 
 ---
 
@@ -121,9 +125,9 @@ npm run db:generate
 
 **Adicionar**: Uma biblioteca de toast (react-hot-toast ou sonner)
 
-```bash
+`bash
 npm install --workspace apps/web react-hot-toast
-```
+`
 
 ---
 
@@ -153,12 +157,12 @@ npm install --workspace apps/web react-hot-toast
 **Onde**: Backend - `apps/api/src/routes/onboarding.ts`
 
 **Adicionar**:
-```typescript
+`typescript
 import { authRateLimiter } from '../middlewares/rate-limit'
 
 // Aplicar rate limit nas rotas de validação
 app.post('/validate-provider', authRateLimiter, ...)
-```
+`
 
 ---
 
@@ -167,13 +171,13 @@ app.post('/validate-provider', authRateLimiter, ...)
 **Onde**: Backend - `apps/api/src/routes/onboarding.ts`
 
 **Adicionar**:
-```typescript
+`typescript
 const passwordSchema = z.string()
   .min(8)
   .regex(/[A-Z]/, 'Deve conter pelo menos uma letra maiúscula')
   .regex(/[a-z]/, 'Deve conter pelo menos uma letra minúscula')
   .regex(/[0-9]/, 'Deve conter pelo menos um número')
-```
+`
 
 ---
 
@@ -182,7 +186,7 @@ const passwordSchema = z.string()
 **Onde**: Backend - `apps/api/src/lib/encryption.ts`
 
 **Melhoria**: Adicionar suporte para múltiplas chaves e rotação:
-```typescript
+`typescript
 // Suportar array de chaves (atual + antigas)
 const ENCRYPTION_KEYS = [
   process.env.ENCRYPTION_KEY,
@@ -199,7 +203,7 @@ export function decryptWithRotation(data: string): string {
   }
   throw new Error('Não foi possível descriptografar com nenhuma chave');
 }
-```
+`
 
 ---
 
@@ -247,7 +251,7 @@ export function decryptWithRotation(data: string): string {
 
 **Criar**: `apps/api/src/lib/__tests__/encryption.test.ts`
 
-```typescript
+`typescript
 import { encrypt, decrypt, hash } from '../encryption';
 
 describe('Encryption', () => {
@@ -258,7 +262,7 @@ describe('Encryption', () => {
     expect(decrypted).toBe(original);
   });
 });
-```
+`
 
 ---
 
@@ -317,12 +321,12 @@ describe('Encryption', () => {
 **Onde**: `apps/web/components/GeminiChat.tsx`
 
 **Adicionar comandos especiais**:
-```
+`
 /providers - Lista provedores configurados
 /add-provider - Abre modal para adicionar provider
 /change-password - Abre modal de alteração de senha
 /theme dark|light - Altera tema
-```
+`
 
 ---
 
@@ -331,7 +335,7 @@ describe('Encryption', () => {
 **Onde**: `scripts/setup/setup.sh`
 
 **Adicionar**: Backup automático antes de modificar:
-```bash
+`bash
 if [ -f "$ENV_FILE" ]; then
     BACKUP_DIR=".env.backups"
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -340,7 +344,7 @@ if [ -f "$ENV_FILE" ]; then
     # Manter apenas últimos 10 backups
     ls -t "$BACKUP_DIR"/.env.backup.* | tail -n +11 | xargs -r rm
 fi
-```
+`
 
 ---
 
@@ -349,7 +353,7 @@ fi
 **Criar**: `apps/api/src/routes/health.ts`
 
 **Adicionar**:
-```typescript
+`typescript
 app.get('/installation-status', async (c) => {
   return c.json({
     database: await checkDatabaseConnection(),
@@ -358,7 +362,7 @@ app.get('/installation-status', async (c) => {
     adminExists: await checkAdminExists(),
   });
 });
-```
+`
 
 ---
 
@@ -455,27 +459,27 @@ app.get('/installation-status', async (c) => {
 ### 32. 💾 Índices adicionais
 
 **Adicionar ao schema.prisma**:
-```prisma
+`prisma
 model AIProviderConfig {
   // ...
   @@index([provider, isActive])
   @@index([lastValidatedAt])
 }
-```
+`
 
 ---
 
 ### 33. 💾 Soft delete para providers
 
 **Adicionar**:
-```prisma
+`prisma
 model AIProviderConfig {
   // ...
   deletedAt DateTime?
 
   @@index([deletedAt])
 }
-```
+`
 
 ---
 
@@ -506,7 +510,7 @@ model AIProviderConfig {
 
 ## 📝 Checklist de Ação Imediata
 
-```markdown
+`markdown
 - [ ] 1. Verificar se npm run create:admin funciona
 - [ ] 2. Testar instalação do zero em ambiente limpo
 - [ ] 3. Executar migration: npm run db:push
@@ -517,7 +521,7 @@ model AIProviderConfig {
 - [ ] 8. Verificar logs de erro para issues
 - [ ] 9. Documentar troubleshooting encontrado
 - [ ] 10. Criar PR e solicitar code review
-```
+`
 
 ---
 
@@ -550,3 +554,4 @@ Se encontrar problemas durante implementação dos próximos passos:
 **Última atualização**: 2025-01-27
 **Versão**: 1.0.0
 **Status**: 🟢 Implementação inicial completa, melhorias em andamento
+

@@ -11,17 +11,20 @@
 
 **API Dockerfile** - `apps/api/Dockerfile`
 
-```bash
+`bash
+
 # Fazer backup
 cp apps/api/Dockerfile apps/api/Dockerfile.bak
 
 # Editar linha 23
+
 # ANTES: CMD ["npm", "run", "dev"]
+
 # DEPOIS: CMD ["npm", "run", "start"]
-```
+`
 
 **Arquivo Final esperado**:
-```dockerfile
+`dockerfile
 FROM node:18-alpine
 
 WORKDIR /app
@@ -40,16 +43,17 @@ EXPOSE 3001
 
 # Importante: Executar em modo produção
 CMD ["npm", "run", "start"]
-```
+`
 
 **Web Dockerfile** - `apps/web/Dockerfile` (Opção Melhor - Multi-stage)
 
-```bash
+`bash
 cp apps/web/Dockerfile apps/web/Dockerfile.bak
-```
+`
 
 **Arquivo Final esperado**:
-```dockerfile
+`dockerfile
+
 # Stage 1: Build
 FROM node:18-alpine AS builder
 
@@ -74,10 +78,11 @@ EXPOSE 3000
 
 # Servir arquivo estático
 CMD ["http-server", "./dist", "-p", "3000"]
-```
+`
 
 **Teste Local**:
-```bash
+`bash
+
 # Build
 docker build -t openpanel-api:test .
 
@@ -88,8 +93,9 @@ docker run -p 3001:3001 \
 
 # Verificar
 curl http://localhost:3001/health/live
+
 # Response: {"status":"alive"}
-```
+`
 
 ---
 
@@ -100,12 +106,12 @@ curl http://localhost:3001/health/live
 #### 1. `apps/api/src/routes/builds.ts`
 
 Adicionar no topo:
-```typescript
+`typescript
 import { logger } from '../lib/logger';
-```
+`
 
 Substituições (10 linhas):
-```typescript
+`typescript
 // Linha 104
 // ANTES: console.log(`Cloning repository: ${data.gitUrl}`);
 // DEPOIS:
@@ -178,11 +184,11 @@ logger.error('Build failed', {
   stack: error instanceof Error ? error.stack : undefined,
   action: 'build.failed'
 });
-```
+`
 
 #### 2. `apps/api/src/websocket/container-gateway.ts` (6 linhas)
 
-```typescript
+`typescript
 import { logger } from '../lib/logger';
 
 // Linha 37
@@ -194,11 +200,11 @@ logger.info('WebSocket client connected', {
 });
 
 // (similarmente para as outras 5)
-```
+`
 
 #### 3. `apps/api/src/routes/containers.ts` (3 linhas)
 
-```typescript
+`typescript
 import { logger } from '../lib/logger';
 
 // Adicionar logs estruturados
@@ -206,16 +212,18 @@ logger.info('Syncing container state', {
   action: 'container.sync',
   timestamp: new Date().toISOString()
 });
-```
+`
 
 **Validação**:
-```bash
+`bash
+
 # Verificar se todos console.log foram removidos
 grep -r "console.log\|console.error" apps/api/src --exclude-dir=node_modules
 
 # Se retornar vazio, está bom!
+
 # Se retornar linhas, corrigir antes de continuar
-```
+`
 
 ---
 
@@ -223,7 +231,7 @@ grep -r "console.log\|console.error" apps/api/src --exclude-dir=node_modules
 
 **Criar arquivo**: `apps/api/src/lib/error-utils.ts`
 
-```typescript
+`typescript
 /**
  * Utilitários para tratamento type-safe de erros
  */
@@ -298,11 +306,11 @@ export function isHttpError(error: unknown): error is HttpError {
     'code' in error
   );
 }
-```
+`
 
 **Usar em todos os catch blocks**:
 
-```typescript
+`typescript
 // ANTES
 catch (error: any) {
   logger.error(error.message);
@@ -319,15 +327,16 @@ catch (error: unknown) {
   });
   return c.json({ error: message, code }, getHttpStatus(error));
 }
-```
+`
 
 **Validação**:
-```bash
+`bash
+
 # TypeScript deve compilar sem erros
 npm run type-check
 
 # Deve retornar sem erros
-```
+`
 
 ---
 
@@ -335,7 +344,7 @@ npm run type-check
 
 **Criar arquivo**: `apps/api/src/routes/health.ts`
 
-```typescript
+`typescript
 import type { Context } from 'hono';
 import { db } from '../db';
 import { redis } from '../lib/redis';
@@ -419,22 +428,22 @@ export const getStartup = async (c: Context) => {
   // Usar mesmo check que readiness
   return getReadiness(c);
 };
-```
+`
 
 **Registrar em `apps/api/src/index.ts`**:
 
-```typescript
+`typescript
 import { getLiveness, getReadiness, getStartup } from './routes/health';
 
 // Antes das outras rotas (health checks devem ser rápidas)
 app.get('/health/live', getLiveness);
 app.get('/health/ready', getReadiness);
 app.get('/health/startup', getStartup);
-```
+`
 
 **Adicionar a docker-compose.yml**:
 
-```yaml
+`yaml
 api:
   image: openpanel-api:latest
   healthcheck:
@@ -452,10 +461,11 @@ web:
     timeout: 5s
     retries: 3
     start_period: 15s
-```
+`
 
 **Teste Local**:
-```bash
+`bash
+
 # Liveness (sempre deve responder)
 curl http://localhost:3001/health/live
 
@@ -463,8 +473,9 @@ curl http://localhost:3001/health/live
 curl http://localhost:3001/health/ready
 
 # Status esperado:
+
 # { "status": "ready", "timestamp": "...", "checks": { "database": {...}, ... } }
-```
+`
 
 ---
 
@@ -472,37 +483,46 @@ curl http://localhost:3001/health/ready
 
 Após implementar todas as mudanças:
 
-```bash
+`bash
+
 # 1. Type Check
 npm run type-check
+
 # Expected: ✅ No errors
 
 # 2. Verificar console.log
 grep -r "console\." apps/api/src --exclude-dir=node_modules | grep -v "logger"
+
 # Expected: (empty)
 
 # 3. Build Docker
 docker build -t openpanel-api:test apps/api
 docker build -t openpanel-web:test apps/web
+
 # Expected: ✅ Build successful
 
 # 4. Run Docker
 docker run -p 3001:3001 openpanel-api:test
+
 # Em outro terminal:
 curl http://localhost:3001/health/live
+
 # Expected: {"status":"alive","timestamp":"..."}
 
 # 5. Verificar Logs
+
 # Nos logs do container, deve haver logs estruturados JSON
+
 # Exemplo:
+
 # {"level":"info","message":"Repository cloning initiated","gitUrl":"...","timestamp":"..."}
-```
+`
 
 ---
 
 ## 📊 Progresso
 
-```
+`
 ┌─────────────────────────────────────┐
 │ Correções Críticas                  │
 ├─────────────────────────────────────┤
@@ -517,7 +537,7 @@ curl http://localhost:3001/health/live
 │ Total: +7-10h para P1/P2     │
 │ Total: 10-15h para Phase 1-2 │
 └─────────────────────────────────────┘
-```
+`
 
 ---
 
@@ -544,3 +564,4 @@ curl http://localhost:3001/health/live
 **Tempo Total**: 3-5 horas para blocker
 **Data Target**: 2025-11-27 (hoje)
 **Status**: Pronto para começar
+

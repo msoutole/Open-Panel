@@ -25,7 +25,8 @@ Guia completo para instalação do Open-Panel em diversas distribuições Linux.
 
 A forma mais rápida é usar o script de setup automatizado:
 
-```bash
+`bash
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -37,7 +38,7 @@ chmod +x scripts/setup/setup.sh
 ./scripts/setup/setup.sh
 
 # O script detecta sua distribuição e faz tudo automaticamente!
-```
+`
 
 **O script vai:**
 - ✅ Verificar/instalar Node.js
@@ -56,7 +57,8 @@ chmod +x scripts/setup/setup.sh
 
 #### Instalação Automática (Recomendado)
 
-```bash
+`bash
+
 # 1. Atualizar sistema
 sudo apt-get update && sudo apt-get upgrade -y
 
@@ -70,11 +72,12 @@ chmod +x scripts/setup/setup.sh
 
 # 4. Executar setup (será solicitado sudo para instalar dependências)
 ./scripts/setup/setup.sh
-```
+`
 
 #### Instalação Manual
 
-```bash
+`bash
+
 # 1. Instalar Node.js (via NodeSource)
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
@@ -98,13 +101,14 @@ newgrp docker
 cd openpanel
 npm install
 ./scripts/setup/setup.sh
-```
+`
 
 ### 📦 Fedora/CentOS/RHEL
 
 #### Instalação Automática
 
-```bash
+`bash
+
 # 1. Instalar dependências
 sudo dnf install -y curl wget git
 
@@ -113,11 +117,12 @@ git clone https://github.com/msoutole/openpanel.git
 cd openpanel
 chmod +x scripts/setup/setup.sh
 ./scripts/setup/setup.sh
-```
+`
 
 #### Instalação Manual
 
-```bash
+`bash
+
 # 1. Instalar Node.js
 sudo dnf module install nodejs:18/default
 
@@ -141,13 +146,14 @@ git clone https://github.com/msoutole/openpanel.git
 cd openpanel
 npm install
 ./scripts/setup/setup.sh
-```
+`
 
 ### 📦 Arch Linux
 
 #### Instalação Automática
 
-```bash
+`bash
+
 # 1. Instalar base-devel
 sudo pacman -S base-devel
 
@@ -156,11 +162,12 @@ git clone https://github.com/msoutole/openpanel.git
 cd openpanel
 chmod +x scripts/setup/setup.sh
 ./scripts/setup/setup.sh
-```
+`
 
 #### Instalação Manual
 
-```bash
+`bash
+
 # 1. Instalar Node.js e npm
 sudo pacman -S nodejs npm
 
@@ -180,7 +187,7 @@ git clone https://github.com/msoutole/openpanel.git
 cd openpanel
 npm install
 ./scripts/setup/setup.sh
-```
+`
 
 ---
 
@@ -188,7 +195,8 @@ npm install
 
 O script `setup.sh` suporta várias opções:
 
-```bash
+`bash
+
 # Ver ajuda
 ./scripts/setup/setup.sh --help
 
@@ -203,7 +211,7 @@ O script `setup.sh` suporta várias opções:
 
 # Combinar opções
 ./scripts/setup/setup.sh --silent --force --debug
-```
+`
 
 ---
 
@@ -213,7 +221,8 @@ O script `setup.sh` suporta várias opções:
 
 Se você quiser que o Docker funcione sem sudo:
 
-```bash
+`bash
+
 # Adicionar usuário ao grupo docker
 sudo usermod -aG docker $USER
 
@@ -222,28 +231,33 @@ newgrp docker
 
 # Testar
 docker ps  # Deve funcionar sem sudo
-```
+`
 
 ### Se preferir sempre usar sudo:
 
-```bash
+`bash
+
 # Usar sudo
 sudo ./scripts/setup/setup.sh
 
 # Você será solicitado a senha
-```
+`
 
 ---
 
 ## 🔍 Verificações Pós-Setup
 
-```bash
+`bash
+
 # 1. Verificar containers rodando
 docker ps
 
 # Saída esperada:
+
 # CONTAINER ID   IMAGE        STATUS
+
 # xxx            postgres     Up 5 minutes (healthy)
+
 # xxx            redis        Up 5 minutes (healthy)
 
 # 2. Verificar se as portas estão escutando
@@ -259,7 +273,7 @@ curl http://localhost:3000/
 # 4. Verificar logs
 docker logs openpanel-postgres
 docker logs openpanel-redis
-```
+`
 
 ---
 
@@ -267,7 +281,8 @@ docker logs openpanel-redis
 
 ### Docker não inicia
 
-```bash
+`bash
+
 # Iniciar Docker daemon
 sudo systemctl start docker
 
@@ -279,11 +294,12 @@ sudo systemctl status docker
 
 # Ver logs se tiver erro
 sudo journalctl -u docker -n 20
-```
+`
 
 ### Erro "permission denied" ao executar docker
 
-```bash
+`bash
+
 # Adicionar usuário ao grupo docker
 sudo usermod -aG docker $USER
 
@@ -292,11 +308,12 @@ newgrp docker
 
 # Testar
 docker ps
-```
+`
 
 ### PostgreSQL não conecta
 
-```bash
+`bash
+
 # Ver logs
 docker logs openpanel-postgres
 
@@ -306,11 +323,12 @@ docker restart openpanel-postgres
 # Ou resetar completamente
 docker-compose down -v
 ./scripts/setup/setup.sh --force
-```
+`
 
 ### Porta já em uso
 
-```bash
+`bash
+
 # Encontrar processo usando a porta (ex: 3001)
 sudo lsof -i :3001
 
@@ -322,12 +340,14 @@ sudo kill -9 <PID>
 
 # Ou mudar as portas em .env
 nano .env  # ou vim/gedit
+
 # Alterar PORT_API=3001 para outra porta
-```
+`
 
 ### npm install falha
 
-```bash
+`bash
+
 # Limpar cache
 npm cache clean --force
 
@@ -340,12 +360,14 @@ npm install --verbose
 # Última opção: limpar tudo
 rm -rf node_modules package-lock.json
 npm install
-```
+`
 
 ### Erro de EACCES ao instalar pacotes globalmente
 
-```bash
+`bash
+
 # Não instale npm packages globalmente com sudo
+
 # Em vez disso, configure npm para um diretório local
 
 mkdir ~/.npm-global
@@ -355,7 +377,7 @@ export PATH=~/.npm-global/bin:$PATH
 # Adicionar ao seu .bashrc ou .zshrc
 echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
-```
+`
 
 ---
 
@@ -363,18 +385,20 @@ source ~/.bashrc
 
 ### Fazer Backup de Configurações
 
-```bash
+`bash
+
 # .env é automaticamente backed up
 ls -la .env.backup.*
 
 # Restaurar um backup
 cp .env.backup.20240115-143025 .env
 docker-compose restart
-```
+`
 
 ### Backup do Banco de Dados
 
-```bash
+`bash
+
 # Fazer dump do PostgreSQL
 docker exec openpanel-postgres pg_dump -U openpanel -d openpanel > backup.sql
 
@@ -383,13 +407,14 @@ docker exec -i openpanel-postgres psql -U openpanel -d openpanel < backup.sql
 
 # Backup com compressão
 docker exec openpanel-postgres pg_dump -U openpanel -d openpanel | gzip > backup.sql.gz
-```
+`
 
 ---
 
 ## 📚 Comandos Úteis
 
-```bash
+`bash
+
 # Desenvolvimento
 npm run dev              # API + Web
 npm run dev:api          # Apenas API
@@ -417,7 +442,7 @@ docker-compose down      # Parar containers
 docker-compose logs -f   # Logs em tempo real
 docker ps                # Lista containers
 docker exec -it <container> bash  # SSH em container
-```
+`
 
 ---
 
@@ -429,22 +454,24 @@ docker exec -it <container> bash  # SSH em container
 - Altere as senhas em produção
 
 ### Firewall
-```bash
+`bash
+
 # Se usar ufw (Ubuntu/Debian)
 sudo ufw allow 3000   # Web
 sudo ufw allow 3001   # API
 sudo ufw allow 8080   # Traefik (opcional)
 sudo ufw enable
-```
+`
 
 ### Permissões de Arquivo
-```bash
+`bash
+
 # Restringir permissões de .env
 chmod 600 .env
 
 # Apenas root pode ler
 chmod 600 .env.backup.*
-```
+`
 
 ---
 
@@ -468,3 +495,4 @@ chmod 600 .env.backup.*
 
 **Última atualização**: 2024-11-27
 **Distribuições Linux Suportadas**: Ubuntu 20.04+, Debian 10+, Fedora 35+, CentOS 8+, RHEL 8+, Arch
+

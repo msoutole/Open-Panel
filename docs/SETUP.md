@@ -41,7 +41,8 @@ A forma mais rápida é usar os scripts de setup automatizados que cuidam de tud
 
 ### Linux/macOS
 
-```bash
+`bash
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -50,18 +51,26 @@ cd openpanel
 ./scripts/setup/setup.sh
 
 # O script vai:
+
 # ✓ Verificar/instalar Node.js
+
 # ✓ Verificar/instalar Docker
+
 # ✓ Criar .env com secrets seguros
+
 # ✓ Instalar dependências npm
+
 # ✓ Iniciar containers Docker
+
 # ✓ Configurar banco de dados
+
 # ✓ Validar tudo pós-instalação
-```
+`
 
 ### Windows (PowerShell)
 
-```powershell
+`powershell
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -70,28 +79,29 @@ cd openpanel
 .\scripts\setup\setup.ps1
 
 # O script vai fazer o mesmo da versão Linux/macOS
+
 # Nativo em PowerShell (sem WSL necessário)
-```
+`
 
 ### Opções de Setup
 
 Ambos os scripts suportam flags úteis:
 
 **Linux/macOS:**
-```bash
+`bash
 ./scripts/setup/setup.sh --help                  # Exibe ajuda
 ./scripts/setup/setup.sh --silent               # Sem prompts interativos
 ./scripts/setup/setup.sh --force                # Sobrescrever .env existente
 ./scripts/setup/setup.sh --debug                # Ativa logs DEBUG
-```
+`
 
 **Windows:**
-```powershell
+`powershell
 .\scripts\setup\setup.ps1 -Help                 # Exibe ajuda
 .\scripts\setup\setup.ps1 -Silent               # Sem prompts
 .\scripts\setup\setup.ps1 -Force                # Sobrescrever .env
 .\scripts\setup\setup.ps1 -Debug                # Logs DEBUG
-```
+`
 
 ---
 
@@ -101,7 +111,8 @@ Ambos os scripts suportam flags úteis:
 
 #### Ubuntu/Debian
 
-```bash
+`bash
+
 # 1. Atualizar sistema
 sudo apt-get update && sudo apt-get upgrade -y
 
@@ -110,33 +121,36 @@ sudo apt-get install -y git curl build-essential
 
 # 3. O script de setup vai instalar Node.js e Docker automaticamente
 ./scripts/setup/setup.sh
-```
+`
 
 #### Fedora/CentOS/RHEL
 
-```bash
+`bash
+
 # 1. Instalar dependências
 sudo dnf install -y git curl build-essential
 
 # 2. Execute o script
 ./scripts/setup/setup.sh
-```
+`
 
 #### Arch Linux
 
-```bash
+`bash
+
 # 1. Instalar dependências
 sudo pacman -S git curl base-devel
 
 # 2. Execute o script
 ./scripts/setup/setup.sh
-```
+`
 
 ### 🍎 macOS
 
 #### Com Homebrew (Recomendado)
 
-```bash
+`bash
+
 # 1. Instalar Homebrew (se não tiver)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
@@ -145,7 +159,7 @@ brew install git
 
 # 3. O script vai instalar Node.js e Docker Desktop automaticamente
 ./scripts/setup/setup.sh
-```
+`
 
 #### Pontos Importantes para macOS:
 - Docker Desktop precisa estar instalado (4GB de RAM disponível)
@@ -156,8 +170,10 @@ brew install git
 
 #### Opção 1: PowerShell Script (Recomendado)
 
-```powershell
+`powershell
+
 # 1. Abrir PowerShell como Administrador
+
 # (Clique direito em PowerShell → "Executar como Administrador")
 
 # 2. Permitir execução de scripts (se necessário)
@@ -166,16 +182,19 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # 3. Execute o script
 cd C:\seu\caminho\openpanel
 .\scripts\setup\setup.ps1
-```
+`
 
 #### Opção 2: Instalação Manual
 
-```powershell
+`powershell
+
 # 1. Instalar Node.js
+
 # Baixar de https://nodejs.org/ ou usar winget
 winget install OpenJS.NodeJS
 
 # 2. Instalar Docker Desktop
+
 # Baixar de https://www.docker.com/products/docker-desktop
 
 # 3. Abrir PowerShell e navegar para o projeto
@@ -183,7 +202,7 @@ cd C:\seu\caminho\openpanel
 
 # 4. Executar o script de setup
 .\scripts\setup\setup.ps1
-```
+`
 
 #### ⚠️ Importante para Windows:
 - **Não use WSL** - os scripts são nativos em PowerShell
@@ -195,7 +214,8 @@ cd C:\seu\caminho\openpanel
 
 Se você quiser rodar tudo em containers:
 
-```bash
+`bash
+
 # 1. Clone o repositório
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
@@ -210,7 +230,7 @@ docker run -it \
   -p 8080:8080 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   openpanel:latest
-```
+`
 
 ---
 
@@ -218,7 +238,8 @@ docker run -it \
 
 Após completar o setup, verifique se tudo está funcionando:
 
-```bash
+`bash
+
 # Verificar status dos serviços
 npm run status
 
@@ -226,10 +247,13 @@ npm run status
 curl http://localhost:3001/api/health
 
 # Abra no navegador
+
 # Web: http://localhost:3000
+
 # API: http://localhost:3001
+
 # Traefik: http://localhost:8080
-```
+`
 
 ---
 
@@ -239,11 +263,12 @@ curl http://localhost:3001/api/health
 
 O arquivo `.env` é criado automaticamente com valores aleatórios seguros:
 
-```bash
+`bash
+
 # Se precisar regenerá-lo
 rm .env
 ./scripts/setup/setup.sh --force
-```
+`
 
 **Variáveis Críticas:**
 - `DATABASE_URL`: Conexão PostgreSQL
@@ -257,10 +282,10 @@ Cada vez que um novo setup é executado, o `.env` anterior é automaticamente
 com backup em `.env.backup.TIMESTAMP`.
 
 Para restaurar um backup anterior:
-```bash
+`bash
 cp .env.backup.20240115-143025 .env
 docker-compose restart
-```
+`
 
 ---
 
@@ -268,7 +293,8 @@ docker-compose restart
 
 Os scripts salvam logs detalhados em `.logs/`:
 
-```bash
+`bash
+
 # Listar últimos logs
 ls -la .logs/
 
@@ -277,14 +303,15 @@ cat .logs/setup-*.log | tail -50
 
 # Com detalhes completos
 ./scripts/setup/setup.sh --debug
-```
+`
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Docker não inicia
-```bash
+`bash
+
 # Linux: Iniciar Docker daemon
 sudo systemctl start docker
 
@@ -292,21 +319,24 @@ sudo systemctl start docker
 open -a Docker
 
 # Windows: Abrir Docker Desktop manualmente
-```
+`
 
 ### PostgreSQL falha no health check
-```bash
+`bash
+
 # Ver logs do container
 docker logs openpanel-postgres
 
 # Ou resetar tudo
 docker-compose down -v
 ./scripts/setup/setup.sh --force
-```
+`
 
 ### Porta já em uso
-```bash
+`bash
+
 # Verificar qual processo está usando a porta
+
 # Linux/macOS:
 lsof -i :3000
 lsof -i :3001
@@ -315,10 +345,11 @@ lsof -i :3001
 Get-NetTCPConnection -LocalPort 3000 | Select-Object OwningProcess
 
 # Matar o processo ou alterar portas em .env
-```
+`
 
 ### npm install falha
-```bash
+`bash
+
 # Limpar cache
 npm cache clean --force
 
@@ -327,10 +358,11 @@ npm install
 
 # Ou reexecutar setup
 ./scripts/setup/setup.sh --force
-```
+`
 
 ### Erro de permissão no Linux
-```bash
+`bash
+
 # Adicionar seu usuário ao grupo docker
 sudo usermod -aG docker $USER
 
@@ -339,7 +371,7 @@ newgrp docker
 
 # Ou usar sudo
 sudo ./scripts/setup/setup.sh
-```
+`
 
 ---
 
@@ -353,15 +385,19 @@ Após a instalação bem-sucedida:
 - **Traefik Dashboard**: http://localhost:8080
 
 ### 2. Criar Usuário Inicial
-```bash
+`bash
+
 # O usuário admin é criado automaticamente
+
 # Email: admin@openpanel.dev
+
 # Senha: admin123 (mude na primeira login!)
-```
+`
 
 ### 3. Comandos Úteis
 
-```bash
+`bash
+
 # Modo desenvolvimento (API + Web)
 npm run dev
 
@@ -386,33 +422,36 @@ docker-compose logs -f
 
 # Parar tudo
 docker-compose down
-```
+`
 
 ### 4. Customizações Comuns
 
 **Alterar portas:**
-```bash
+`bash
+
 # Editar .env
 PORT_WEB=3000          # Web
 API_PORT=3001          # API
 TRAEFIK_PORT=8080      # Traefik
-```
+`
 
 **Habilitar Ollama (LLM local):**
-```bash
+`bash
+
 # Em .env
 SETUP_OLLAMA=true
 OLLAMA_HOST=http://localhost:11434
-```
+`
 
 **Usar provedor de IA específico:**
-```bash
+`bash
+
 # Escolher um
 AI_PROVIDER=ollama          # Rodando localmente
 AI_PROVIDER=openai          # OpenAI API
 AI_PROVIDER=anthropic       # Anthropic Claude API
 AI_PROVIDER=google          # Google Gemini
-```
+`
 
 ### 5. Produção
 
@@ -436,3 +475,4 @@ Para deployment em produção, veja [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 **Última atualização**: 2024-11-27
 **Compatível com**: Node.js 18+, Docker 20.10+, Docker Compose 2.0+
+

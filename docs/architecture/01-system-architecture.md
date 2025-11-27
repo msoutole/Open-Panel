@@ -4,7 +4,7 @@ Visão geral da arquitetura completa do OpenPanel.
 
 ## 🏗️ Arquitetura de Alto Nível
 
-```
+`
 ┌────────────────────────────────────────────────────────────────┐
 │                        Navegador Web                            │
 │                    (React SPA - Port 3000)                     │
@@ -77,7 +77,7 @@ Visão geral da arquitetura completa do OpenPanel.
     │  - SSL/TLS Termination                 │
     │  - Service Discovery                   │
     └────────────────────────────────────────┘
-```
+`
 
 ## 🎯 Componentes Principais
 
@@ -85,7 +85,7 @@ Visão geral da arquitetura completa do OpenPanel.
 
 **Localização**: `apps/web`
 
-```
+`
 apps/web/
 ├── pages/              # Rotas e views
 │   ├── Login.tsx
@@ -104,7 +104,7 @@ apps/web/
 ├── types/             # Tipos TypeScript
 │   └── index.ts
 └── vite.config.ts    # Configuração Vite
-```
+`
 
 **Stack Tecnológico**:
 - React 19.2.0
@@ -126,7 +126,7 @@ apps/web/
 
 **Localização**: `apps/api`
 
-```
+`
 apps/api/
 ├── routes/             # HTTP endpoints
 │   ├── auth.ts
@@ -166,7 +166,7 @@ apps/api/
 │   └── ...
 ├── db.ts             # Prisma client
 └── index.ts          # App entry point
-```
+`
 
 **Stack Tecnológico**:
 - Hono (HTTP framework)
@@ -195,7 +195,7 @@ apps/api/
 
 **Localização**: `packages/shared`
 
-```
+`
 packages/shared/
 ├── src/
 │   ├── types/         # Shared types
@@ -214,7 +214,7 @@ packages/shared/
 │       └── ...
 ├── package.json
 └── tsconfig.json
-```
+`
 
 **Purpose**:
 - Shared TypeScript types
@@ -223,7 +223,7 @@ packages/shared/
 - Exports for `/types`, `/utils`, `/validators`
 
 **Imports**:
-```typescript
+`typescript
 // Types
 import type { User, Project } from '@openpanel/shared'
 
@@ -232,7 +232,7 @@ import { registerSchema, loginSchema } from '@openpanel/shared/validators'
 
 // Utils
 import { formatBytes, getEnvOrThrow } from '@openpanel/shared/utils'
-```
+`
 
 ### 4. Database (PostgreSQL + Prisma)
 
@@ -261,7 +261,7 @@ import { formatBytes, getEnvOrThrow } from '@openpanel/shared/utils'
 **Localização**: `docker-compose.yml`
 
 **Serviços**:
-```yaml
+`yaml
 postgres:
   image: ankane/pgvector
   ports: 5432
@@ -281,7 +281,7 @@ traefik:
   image: traefik:v3.0
   ports: 80, 443, 8080
   purpose: Reverse proxy, SSL, service discovery
-```
+`
 
 ---
 
@@ -289,7 +289,7 @@ traefik:
 
 ### 1. Fluxo de Autenticação
 
-```
+`
 User Login
   ↓
 POST /api/auth/login
@@ -303,11 +303,11 @@ Generate JWT tokens
 Store in localStorage
   ↓
 Redirect to Dashboard
-```
+`
 
 ### 2. Fluxo de Deploy
 
-```
+`
 User clicks "Deploy"
   ↓
 POST /api/builds
@@ -325,11 +325,11 @@ Register with Traefik
 Send logs via WebSocket
   ↓
 Update deployment status
-```
+`
 
 ### 3. Fluxo de Monitoramento
 
-```
+`
 Container running
   ↓
 Periodically (2-5s):
@@ -340,13 +340,13 @@ Periodically (2-5s):
 Frontend polls /api/containers/stats
   ↓
 Display metrics in real-time charts
-```
+`
 
 ---
 
 ## 🔐 Segurança em Camadas
 
-```
+`
 ┌─────────────────────────────────────┐
 │     Network Level                   │
 │  - HTTPS/TLS (Traefik)              │
@@ -387,7 +387,7 @@ Display metrics in real-time charts
 │  - Security monitoring              │
 │  - Incident response                │
 └─────────────────────────────────────┘
-```
+`
 
 ---
 
@@ -395,7 +395,7 @@ Display metrics in real-time charts
 
 ### Horizontal Scaling
 
-```
+`
 Multiple API instances
   ↓
 Load balancer (Traefik)
@@ -405,7 +405,7 @@ Shared database (PostgreSQL)
 Shared cache (Redis)
   ↓
 Shared Docker daemon (or cluster)
-```
+`
 
 ### Caching Strategy
 
@@ -426,7 +426,7 @@ Shared Docker daemon (or cluster)
 
 ### Unit Tests (Vitest)
 
-```
+`
 services/
   ├── auth.service.test.ts
   ├── project.service.test.ts
@@ -435,25 +435,25 @@ services/
 lib/
   ├── docker.test.ts
   └── ...
-```
+`
 
 ### Integration Tests
 
-```
+`
 routes/
   ├── auth.integration.test.ts
   ├── projects.integration.test.ts
   └── ...
-```
+`
 
 ### E2E Tests
 
-```
+`
 e2e/
   ├── auth.flow.test.ts
   ├── project.creation.test.ts
   └── ...
-```
+`
 
 ---
 
@@ -461,14 +461,14 @@ e2e/
 
 ### Development
 
-```bash
+`bash
 npm run dev        # Frontend + Backend local
 docker-compose up  # Infrastructure
-```
+`
 
 ### Production
 
-```bash
+`bash
 Docker Compose (single node)
   or
 Kubernetes (multi-node)
@@ -476,7 +476,7 @@ Kubernetes (multi-node)
   - Nginx Ingress
   - StatefulSet for DB
   - Sealed Secrets for API keys
-```
+`
 
 ---
 
@@ -504,3 +504,4 @@ Kubernetes (multi-node)
 
 **Versão**: 0.1.0
 **Última atualização**: 2024-11-24
+

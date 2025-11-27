@@ -37,7 +37,7 @@ Permite organizar aplicações em projetos isolados, compartilhar acesso entre m
 
 ## 3. Data Models
 
-```prisma
+`prisma
 enum ProjectStatus {
   ACTIVE      // Projeto rodando
   PAUSED      // Temporariamente pausado
@@ -152,7 +152,7 @@ model TeamInvite {
   @@index([token])
   @@map("team_invites")
 }
-```
+`
 
 ---
 
@@ -184,7 +184,7 @@ model TeamInvite {
 Lista projetos do usuário (owned + teams)
 
 **Response**:
-```json
+`json
 {
   "projects": [
     {
@@ -198,13 +198,13 @@ Lista projetos do usuário (owned + teams)
     }
   ]
 }
-```
+`
 
 ### POST /api/projects
 Cria novo projeto
 
 **Request**:
-```json
+`json
 {
   "name": "My App",
   "slug": "my-app",
@@ -212,7 +212,7 @@ Cria novo projeto
   "dockerImage": "node:20",
   "teamId": "clx..." // Opcional (se omitido, ownerId = current user)
 }
-```
+`
 
 ### PUT /api/projects/:projectId
 Atualiza configuração do projeto
@@ -242,7 +242,7 @@ Aceita convite de time
 ### Key Routes
 
 **`apps/api/src/routes/projects.ts`**
-```typescript
+`typescript
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { prisma } from '../lib/prisma'
@@ -296,10 +296,10 @@ projects.post('/', zValidator('json', createProjectSchema), async (c) => {
 })
 
 export default projects
-```
+`
 
 **`apps/api/src/routes/teams.ts`**
-```typescript
+`typescript
 import { Hono } from 'hono'
 import { prisma } from '../lib/prisma'
 import { createTeamSchema } from '@openpanel/shared'
@@ -368,7 +368,7 @@ teams.post('/:teamId/members', async (c) => {
 })
 
 export default teams
-```
+`
 
 ---
 
@@ -392,3 +392,4 @@ export default teams
 
 **Última Atualização**: 2025-11-26
 **Status**: ✅ Implementado (85% - faltam invites e RBAC)
+

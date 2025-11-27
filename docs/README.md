@@ -105,3 +105,4 @@ See **[domains/INDEX.md](./domains/INDEX.md)** for more details.
 **Welcome to OpenPanel! 🎉**
 
 Version: 0.1.0 | Last updated: 2025-11-26
+

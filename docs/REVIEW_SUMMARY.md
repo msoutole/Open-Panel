@@ -27,7 +27,7 @@ Uma **revisão técnica completa** do projeto Open Panel, incluindo:
 
 ### 3. 🎯 Roadmap Detalhado
 
-```
+`
 FASE 1: CRÍTICO (3-5h) - Bloqueia Produção
 ├─ Corrigir Dockerfiles (45 min)
 ├─ Converter logging (60 min)
@@ -51,7 +51,7 @@ FASE 4: MANUTENIBILIDADE (6-8h)
 └─ Component refactor (3-4h)
 
 TOTAL: 26-43 horas de desenvolvimento
-```
+`
 
 ---
 
@@ -114,7 +114,7 @@ TOTAL: 26-43 horas de desenvolvimento
 
 ## 📊 Métricas Atuais vs Alvo
 
-```
+`
 ┌─────────────────────────────────────────────────────┐
 │ Métrica                  ATUAL    →    ALVO    ✓   │
 ├─────────────────────────────────────────────────────┤
@@ -129,7 +129,7 @@ TOTAL: 26-43 horas de desenvolvimento
 │ Code Quality Score       6.5/10   →    8.5/10  ✓   │
 │ Production Ready         40%      →    95%     ✓   │
 └─────────────────────────────────────────────────────┘
-```
+`
 
 ---
 
@@ -261,7 +261,7 @@ Dashboard visual com:
 
 Após implementar este plano:
 
-```
+`
 ┌──────────────────────────────────────────────────┐
 │         Antes         │        Depois            │
 ├──────────────────────────────────────────────────┤
@@ -278,7 +278,7 @@ Após implementar este plano:
 
 Timeline: 3 semanas | Effort: 26-43 horas
 Risk Reduction: 60% → 5% | Quality Lift: 6.5 → 8.5 / 10
-```
+`
 
 ---
 
@@ -294,7 +294,7 @@ O Open Panel tem uma **arquitetura sólida** e **boas práticas de segurança**,
 
 ## 📚 Documentação Completa
 
-```
+`
 Arquivos Criados:
 ├─ IMPROVEMENT_PLAN.md          (Roteiro 4 fases)
 ├─ TECHNICAL_ANALYSIS.md        (Análise profunda)
@@ -306,7 +306,7 @@ Documentação Existente:
 ├─ CLAUDE.md                    (Dev guide)
 ├─ README.md                    (Getting started)
 └─ docs/                        (Architecture docs)
-```
+`
 
 ---
 
@@ -316,3 +316,4 @@ Documentação Existente:
 **Confiança**: 95%
 
 Vamos melhorar o Open Panel! 🚀
+

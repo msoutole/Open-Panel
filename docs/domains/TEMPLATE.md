@@ -92,7 +92,7 @@
 ### Componentes
 
 #### Backend (`apps/api`)
-```
+`
 src/
 ├── routes/
 │   └── [domain].ts          # Rotas HTTP do domínio
@@ -102,10 +102,10 @@ src/
 │   └── [specific].ts        # Middlewares específicos
 └── queues/
     └── [domain].queue.ts    # Jobs assíncronos
-```
+`
 
 #### Frontend (`apps/web`)
-```
+`
 src/
 ├── pages/
 │   └── [Domain]/            # Views do domínio
@@ -113,14 +113,14 @@ src/
 │   └── [Domain]/            # Componentes específicos
 └── services/
     └── [domain].service.ts  # API client
-```
+`
 
 ### Fluxo de Dados
-```
+`
 User → Frontend → API Route → Middleware → Service → Database
                                     ↓
                                  Queue (se assíncrono)
-```
+`
 
 ### Integrações
 - **Banco de Dados**: PostgreSQL via Prisma
@@ -134,7 +134,7 @@ User → Frontend → API Route → Middleware → Service → Database
 
 ### Prisma Schema
 
-```prisma
+`prisma
 // Enums
 enum [DomainStatus] {
   ACTIVE
@@ -158,7 +158,7 @@ model [DomainEntity] {
   @@index([name])
   @@map("[table_name]")
 }
-```
+`
 
 ### Relacionamentos
 - **1:N**: [Entity] → [Related Entity]
@@ -182,7 +182,7 @@ model [DomainEntity] {
 - `status` (enum, opcional): Filtro por status
 
 **Response 200**:
-```json
+`json
 {
   "data": [
     {
@@ -198,7 +198,7 @@ model [DomainEntity] {
     "limit": 20
   }
 }
-```
+`
 
 **Errors**:
 - `401`: Unauthorized
@@ -213,32 +213,32 @@ model [DomainEntity] {
 **Auth**: Requerido (JWT)
 
 **Request Body**:
-```json
+`json
 {
   "name": "Example",
   "status": "ACTIVE"
 }
-```
+`
 
 **Validation** (Zod):
-```typescript
+`typescript
 import { z } from 'zod'
 
 const createSchema = z.object({
   name: z.string().min(1).max(100),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional()
 })
-```
+`
 
 **Response 201**:
-```json
+`json
 {
   "id": "clx...",
   "name": "Example",
   "status": "ACTIVE",
   "createdAt": "2024-01-01T00:00:00Z"
 }
-```
+`
 
 **Errors**:
 - `400`: Validation Error
@@ -267,7 +267,7 @@ const createSchema = z.object({
 ### Key Files
 
 #### Route Handler (`apps/api/src/routes/[domain].ts`)
-```typescript
+`typescript
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { [DomainService] } from '../services/[domain].service'
@@ -283,10 +283,10 @@ app.get('/', async (c) => {
 // ... outros endpoints
 
 export default app
-```
+`
 
 #### Service (`apps/api/src/services/[domain].service.ts`)
-```typescript
+`typescript
 import { prisma } from '../lib/prisma'
 
 export class [DomainService] {
@@ -294,7 +294,7 @@ export class [DomainService] {
 
   static getInstance() {
     if (!this.instance) {
-      this.instance = new [DomainService]()
+      this.instance = new [DomainService]
     }
     return this.instance
   }
@@ -309,10 +309,10 @@ export class [DomainService] {
 
   // ... outros métodos
 }
-```
+`
 
 #### Frontend Service (`apps/web/src/services/[domain].service.ts`)
-```typescript
+`typescript
 const API_URL = import.meta.env.VITE_API_URL
 
 export const [DomainService] = {
@@ -337,11 +337,11 @@ export const [DomainService] = {
     return res.json()
   }
 }
-```
+`
 
 ### Middlewares Específicos
 
-```typescript
+`typescript
 // Exemplo: validação de permissões
 export const require[Domain]Access = async (c, next) => {
   const user = c.get('user')
@@ -356,11 +356,11 @@ export const require[Domain]Access = async (c, next) => {
 
   await next()
 }
-```
+`
 
 ### Background Jobs
 
-```typescript
+`typescript
 // apps/api/src/queues/[domain].queue.ts
 import { Queue, Worker } from 'bullmq'
 import { redis } from '../lib/redis'
@@ -380,7 +380,7 @@ const worker = new Worker('[domain]-jobs', async (job) => {
 }, { connection: redis })
 
 export { queue, worker }
-```
+`
 
 ### Security Considerations
 
@@ -397,7 +397,7 @@ export { queue, worker }
 
 ### Unit Tests
 
-```typescript
+`typescript
 // apps/api/src/__tests__/unit/services/[domain].test.ts
 import { describe, it, expect } from 'vitest'
 import { [DomainService] } from '../../../services/[domain].service'
@@ -419,11 +419,11 @@ describe('[DomainService]', () => {
     })
   })
 })
-```
+`
 
 ### Integration Tests
 
-```typescript
+`typescript
 // apps/api/src/__tests__/integration/[domain].test.ts
 import { describe, it, expect, beforeAll } from 'vitest'
 import { testClient } from '../helpers/test-client'
@@ -450,7 +450,7 @@ describe('POST /api/[domain]', () => {
     // ...
   })
 })
-```
+`
 
 ### Manual Testing Checklist
 
@@ -496,3 +496,4 @@ describe('POST /api/[domain]', () => {
 **Última Atualização**: [DATA]
 **Mantido por**: [EQUIPE/PESSOA]
 **Status**: ✅ Implementado | 🔄 Em Desenvolvimento | 📋 Planejado
+

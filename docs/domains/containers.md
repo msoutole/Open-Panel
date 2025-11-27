@@ -21,7 +21,7 @@
 
 ## 2. Data Models
 
-```prisma
+`prisma
 enum ContainerStatus {
   RUNNING
   STOPPED
@@ -103,7 +103,7 @@ model Deployment {
   @@index([status])
   @@map("deployments")
 }
-```
+`
 
 ---
 
@@ -137,7 +137,7 @@ Lista containers do usuário
 Cria novo container
 
 **Request**:
-```json
+`json
 {
   "projectId": "clx...",
   "image": "node:20",
@@ -147,7 +147,7 @@ Cria novo container
   "cpuLimit": 1,
   "memoryLimit": 512
 }
-```
+`
 
 ### POST /api/containers/:id/start
 Inicia container parado
@@ -168,13 +168,13 @@ Stream de logs do container (WebSocket)
 Triggera novo build
 
 **Request**:
-```json
+`json
 {
   "projectId": "clx...",
   "branch": "main",
   "commitSha": "abc123"
 }
-```
+`
 
 ### GET /api/deployments
 Lista histórico de deployments
@@ -188,7 +188,7 @@ Detalhes de deployment específico
 
 ### Container Service (`apps/api/src/services/docker.service.ts`)
 
-```typescript
+`typescript
 import Docker from 'dockerode'
 import { prisma } from '../lib/prisma'
 
@@ -302,11 +302,11 @@ export class DockerService {
     return bindings
   }
 }
-```
+`
 
 ### Build Queue (`apps/api/src/queues/build.queue.ts`)
 
-```typescript
+`typescript
 import { Queue, Worker } from 'bullmq'
 import { redis } from '../lib/redis'
 import { DockerService } from '../services/docker.service'
@@ -385,11 +385,11 @@ const buildWorker = new Worker('builds', async (job) => {
 }, { connection: redis })
 
 export { buildQueue, buildWorker }
-```
+`
 
 ### WebSocket Logs Gateway (`apps/api/src/websocket/container-logs.ts`)
 
-```typescript
+`typescript
 import { WebSocketServer } from 'ws'
 import { verifyToken } from '../lib/jwt'
 import { DockerService } from '../services/docker.service'
@@ -421,7 +421,7 @@ wss.on('connection', async (ws, req) => {
     ws.close()
   }
 })
-```
+`
 
 ---
 
@@ -438,3 +438,4 @@ wss.on('connection', async (ws, req) => {
 
 **Última Atualização**: 2025-11-26
 **Status**: ✅ Implementado (90%)
+
