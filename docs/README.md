@@ -1,108 +1,109 @@
-# 📚 OpenPanel Documentation
+# 📚 OpenPanel - Documentação
 
-Welcome to the complete OpenPanel documentation!
-
-## 🎯 What is OpenPanel?
-
-OpenPanel is a **modern, self-hosted control panel** for managing containerized applications with integrated AI support.
+Documentação completa do OpenPanel - painel de controle self-hosted moderno com IA integrada.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Início Rápido
 
-### 👤 For Users
-1. **[Main README](../README.md)** ⭐ - Installation and quick start
-2. **[Environment Setup](../.env.example)** - Configuration guide
+### Para Usuários
+- **[README Principal](../README.md)** - Instalação e guia rápido
+- **[Guia de Setup](./SETUP_GUIDE.md)** - Instalação detalhada por plataforma
+- **[Quick Start](./QUICK_START.md)** - Primeiros passos
+- **[Troubleshooting](./TROUBLESHOOTING.md)** - Solução de problemas
 
-### 👨‍💻 For Developers
-1. **[CLAUDE.md](../CLAUDE.md)** ⭐ - Complete technical guide
-2. **[Domain Documentation](./domains/)** ⭐⭐⭐ - **Domain-driven docs (optimized for LLMs)**
-3. **[System Architecture](./architecture/01-system-architecture.md)** - Architecture overview
+### Para Desenvolvedores
+- **[CLAUDE.md](../.claude/CLAUDE.md)** - Guia técnico completo
+- **[Domain Docs](./domains/)** - Documentação por domínio (otimizada para LLMs)
+- **[API Reference](./API.md)** - Documentação da API REST
+- **[Arquitetura](./architecture/)** - Design do sistema
 
 ---
 
-## 📂 Documentation Structure
+## 📂 Estrutura da Documentação
 
-### 🎯 **NEW: Domain-Driven Documentation** (Recommended)
+```
+docs/
+├── README.md                    # Este arquivo
+├── SETUP_GUIDE.md              # Guia de instalação (todas as plataformas)
+├── QUICK_START.md              # Início rápido
+├── TROUBLESHOOTING.md          # Solução de problemas
+├── API.md                      # Documentação da API
+├── NEXT_STEPS.md               # Roadmap e próximos passos
+├── TESTING_CHECKLIST.md        # Checklist de testes
+│
+├── domains/                    # Documentação por domínio
+│   ├── INDEX.md               # Índice de todos os domínios
+│   ├── authentication.md      # Autenticação e autorização
+│   ├── projects-teams.md      # Projetos e colaboração
+│   ├── containers.md          # Docker e deployments
+│   ├── networking.md          # Domínios, SSL, Traefik
+│   └── storage.md             # Backups e databases
+│
+└── architecture/              # Arquitetura do sistema
+    └── 01-system-architecture.md
+```
 
-**Location**: [`docs/domains/`](./domains/)
+---
 
-**Why?** Each domain file contains **100% of the context** needed - from business rules to implementation code - in a single file. Perfect for LLMs!
+## 🎯 Documentação por Domínio (Recomendado)
 
-**Available Domains**:
+A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um único arquivo:
+
+**Por que usar?**
+- ✅ Contexto completo em um só lugar
+- ✅ Perfeito para LLMs (Claude, ChatGPT)
+- ✅ Reduz fragmentação de informação
+- ✅ Business rules + código juntos
+
+**Domínios Disponíveis**:
 - **[authentication.md](./domains/authentication.md)** - Login, JWT, users, API keys
-- **[projects-teams.md](./domains/projects-teams.md)** - Projects and team collaboration
+- **[projects-teams.md](./domains/projects-teams.md)** - Projetos e times
 - **[containers.md](./domains/containers.md)** - Docker, builds, deployments
-- **[networking.md](./domains/networking.md)** - Domains, SSL, Traefik
-- **[storage.md](./domains/storage.md)** - Backups and databases
+- **[networking.md](./domains/networking.md)** - Domínios, SSL, proxy reverso
+- **[storage.md](./domains/storage.md)** - Backups e bancos de dados
 
-**Full Index**: [domains/INDEX.md](./domains/INDEX.md)
-
----
-
-### 🏗️ Architecture Documentation
-
-**Location**: [`docs/architecture/`](./architecture/)
-
-- **[01-system-architecture.md](./architecture/01-system-architecture.md)** - High-level system design
-- Monorepo structure (apps/api, apps/web, packages/shared)
-- Tech stack decisions
+→ **[Ver índice completo](./domains/INDEX.md)**
 
 ---
 
-## 📊 Project Status
+## 🧭 Guia de Navegação
 
-| Aspect | Status |
-|--------|--------|
-| Core Features | ✅ 85% Complete |
-| Domain Docs | ✅ Complete |
-| Testing | 🔄 In Progress |
+**Se você quer...**
 
----
-
-## 🧭 Navigation Guide
-
-### If you want to...
-
-**...understand how a feature works end-to-end:**
-→ Read the corresponding **[domain doc](./domains/)**
-
-**...get started quickly:**
-→ Read **[Main README](../README.md)**
-
-**...develop a new feature:**
-→ Read **[CLAUDE.md](../CLAUDE.md)** + relevant **[domain doc](./domains/)**
-
-**...understand the big picture:**
-→ Read **[System Architecture](./architecture/01-system-architecture.md)**
+| Objetivo | Documento |
+|----------|-----------|
+| Instalar o projeto | [SETUP_GUIDE.md](./SETUP_GUIDE.md) |
+| Começar rapidamente | [QUICK_START.md](./QUICK_START.md) |
+| Resolver problemas | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) |
+| Consultar API | [API.md](./API.md) |
+| Entender uma feature | [Domain Docs](./domains/) |
+| Desenvolver nova feature | [CLAUDE.md](../.claude/CLAUDE.md) + [Domain Docs](./domains/) |
+| Entender arquitetura | [System Architecture](./architecture/01-system-architecture.md) |
+| Ver roadmap | [NEXT_STEPS.md](./NEXT_STEPS.md) |
 
 ---
 
-## 🔗 Quick Links
+## 📊 Status do Projeto
 
-- **[CLAUDE.md](../CLAUDE.md)** - Development guide
-- **[Domain Index](./domains/INDEX.md)** - All domains
-- **[GitHub](https://github.com/msoutole/openpanel)** - Repository
-- **[Main README](../README.md)** - Project README
-
----
-
-## 💡 About Domain-Driven Documentation
-
-Traditional docs separate content by type (user stories, API docs, architecture). This creates fragmentation.
-
-**Domain-Driven approach**: Everything about a feature in ONE file.
-
-**Benefits for LLMs**:
-- ✅ Single file read = 100% context
-- ✅ Less hallucination (business rules + code together)
-- ✅ Faster responses (no file hopping)
-
-See **[domains/INDEX.md](./domains/INDEX.md)** for more details.
+| Aspecto | Status |
+|---------|--------|
+| Core Features | ✅ 85% |
+| Documentação | ✅ Atualizada |
+| Testes | 🔄 Em progresso |
+| Produção-Ready | ⚠️ 80% |
 
 ---
 
-**Welcome to OpenPanel! 🎉**
+## 🔗 Links Importantes
 
-Version: 0.1.0 | Last updated: 2025-11-26
+- **[Repositório GitHub](https://github.com/msoutole/openpanel)**
+- **[README Principal](../README.md)**
+- **[Guia de Desenvolvimento](../.claude/CLAUDE.md)**
+- **[Review Geral do Projeto](../REVIEW_GERAL.md)**
+
+---
+
+**Última atualização**: 2025-11-27
+**Versão**: 1.0
 
