@@ -309,11 +309,7 @@ function Start-Spinner {
 # Para spinner
 #
 function Stop-Spinner {
-    if ($null -ne $global:SpinnerJob) {
-        Stop-Job -Job $global:SpinnerJob -ErrorAction SilentlyContinue
-        Remove-Job -Job $global:SpinnerJob -ErrorAction SilentlyContinue
-        $global:SpinnerJob = $null
-    }
+    $global:SpinnerJob = $null
     Write-Host ""
 }
 
@@ -434,7 +430,7 @@ function Wait-ContainerHealth {
             return $true
         }
 
-        Write-Debug-Log "Container $ContainerName: $status (aguardado: ${waited}s/${MaxWait}s)"
+        Write-Debug-Log "Container ${ContainerName}: $status (aguardado: ${waited}s/${MaxWait}s)"
         Start-Sleep -Seconds $interval
         $waited += $interval
     }

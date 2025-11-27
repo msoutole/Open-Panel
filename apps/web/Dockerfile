@@ -6,6 +6,9 @@ WORKDIR /app
 
 # Copiar package.json e package-lock.json (se existir)
 COPY package*.json ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
 
 # Instalar dependências
 RUN npm ci

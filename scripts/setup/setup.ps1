@@ -58,6 +58,7 @@ Set-Location $ProjectRoot
 
 # Configurar log level
 if ($Debug) { $global:LogLevel = "DEBUG" }
+$global:PostSetupMessages = @()
 
 Write-Info-Log "=== Iniciando Open-Panel Setup ==="
 Write-Info-Log "Projeto: $ProjectRoot"
@@ -106,6 +107,33 @@ else {
     }
 }
 
+# Atualizar npm para a versão mais recente
+Print-Info "Verificando atualizações do npm..."
+try {
+    $currentNpmVersion = (npm --version)
+    $latestNpmVersion = (npm view npm version)
+    
+    if ($currentNpmVersion -ne $latestNpmVersion) {
+        Print-Info "Nova versão do npm encontrada: $latestNpmVersion (Atual: $currentNpmVersion)"
+        Print-Info "Atualizando npm..."
+        Write-Info-Log "Updating npm from $currentNpmVersion to $latestNpmVersion..."
+        
+        npm install -g npm@latest | Out-Null
+        
+        $newNpmVersion = (npm --version)
+        Print-Success "npm atualizado para versão $newNpmVersion"
+        Write-Info-Log "npm updated to version $newNpmVersion"
+    }
+    else {
+        Print-Success "npm já está na versão mais recente ($currentNpmVersion)"
+        Write-Info-Log "npm is already at latest version ($currentNpmVersion)"
+    }
+}
+catch {
+    Print-Warn "Falha ao verificar/atualizar npm. Continuando com versão atual."
+    Write-Warn-Log "Failed to check/update npm: $_"
+}
+
 # Verificar Docker
 if (Test-CommandExists "docker") {
     try {
@@ -149,7 +177,7 @@ else {
 # Verificar Docker Compose
 if (Test-CommandExists "docker-compose") {
     try {
-        $composeVersion = (docker-compose --version) -replace '.*version ', '' -replace ',.*', ''
+        $composeVersion = (docker-compose --version) -replace '^.*?v?(\d+(\.\d+)+).*$', '$1'
         if (Test-MinVersion "docker-compose" $composeVersion $MIN_DOCKER_COMPOSE_VERSION) {
             Print-Success "Docker Compose $composeVersion detectado"
             Write-Info-Log "Docker Compose version: $composeVersion"
@@ -220,39 +248,117 @@ if (Test-FileExists $ENV_FILE) {
     }
 }
 
-# Criar .env se não existe ou se foi decidido sobrescrever
-if (-not (Test-FileExists $ENV_FILE) -or $Force) {
+# Sempre gerar novos secrets para segurança (Rotação de Credenciais)
+Print-Info "Gerando novos secrets criptográficos (Rotação de Credenciais)..."
+
+$JwtSecret = New-RandomHex 64
+$PostgresPassword = New-RandomString 32
+$RedisPassword = New-RandomString 32
+
+Write-Debug-Log "Generated JWT_SECRET (length: $($JwtSecret.Length))"
+Write-Debug-Log "Generated POSTGRES_PASSWORD (length: $($PostgresPassword.Length))"
+Write-Debug-Log "Generated REDIS_PASSWORD (length: $($RedisPassword.Length))"
+
+# Se .env não existe, criar do exemplo
+if (-not (Test-FileExists $ENV_FILE)) {
     if (-not (Test-FileExists $ENV_EXAMPLE_FILE)) {
         Write-Fatal-Log "Arquivo $ENV_EXAMPLE_FILE não encontrado"
     }
-
     Print-Info "Criando .env a partir de $ENV_EXAMPLE_FILE..."
     Copy-Item -Path $ENV_EXAMPLE_FILE -Destination $ENV_FILE -Force
     Write-Info-Log "Created .env from .env.example"
-
-    # Gerar secrets criptográficos
-    Print-Info "Gerando secrets criptográficos..."
-
-    $JwtSecret = New-RandomHex 64
-    $PostgresPassword = New-RandomString 32
-    $RedisPassword = New-RandomString 32
-
-    Write-Debug-Log "Generated JWT_SECRET (length: $($JwtSecret.Length))"
-    Write-Debug-Log "Generated POSTGRES_PASSWORD (length: $($PostgresPassword.Length))"
-    Write-Debug-Log "Generated REDIS_PASSWORD (length: $($RedisPassword.Length))"
-
-    # Atualizar variáveis no .env
-    $envContent = Get-Content -Path $ENV_FILE
-    $envContent = $envContent -replace "JWT_SECRET=.*", "JWT_SECRET=$JwtSecret"
-    $envContent = $envContent -replace "POSTGRES_PASSWORD=.*", "POSTGRES_PASSWORD=$PostgresPassword"
-    $envContent = $envContent -replace "REDIS_PASSWORD=.*", "REDIS_PASSWORD=$RedisPassword"
-    Set-Content -Path $ENV_FILE -Value $envContent -Encoding UTF8
-
-    Print-Success ".env criado com secrets criptográficos"
-    Write-Info-Log ".env created with cryptographically secure secrets"
 }
-else {
-    Print-Success ".env mantido"
+
+# Atualizar variáveis no .env
+$envContent = Get-Content -Path $ENV_FILE
+$envContent = $envContent -replace "JWT_SECRET=.*", "JWT_SECRET=$JwtSecret"
+$envContent = $envContent -replace "POSTGRES_PASSWORD=.*", "POSTGRES_PASSWORD=$PostgresPassword"
+$envContent = $envContent -replace "REDIS_PASSWORD=.*", "REDIS_PASSWORD=$RedisPassword"
+
+# Update Connection Strings
+$envContent = $envContent -replace "postgresql://openpanel:.*@", "postgresql://openpanel:$PostgresPassword@"
+$envContent = $envContent -replace "redis://:.*@", "redis://:$RedisPassword@"
+
+Set-Content -Path $ENV_FILE -Value $envContent -Encoding UTF8
+
+Print-Success "Credenciais atualizadas no .env"
+Write-Info-Log "Credentials rotated in .env"
+
+# Configuração de AI Provider (Obrigatória)
+if (-not $Silent) {
+    Print-Subsection "Configuração de IA (Obrigatória)"
+    $aiOptions = @("Ollama (Local)", "Google Gemini", "Anthropic Claude", "GitHub Copilot")
+    
+    $aiChoice = $null
+    while ($null -eq $aiChoice) {
+        $aiChoice = Select-Option "Qual provedor de IA você deseja utilizar?" $aiOptions
+    }
+
+    $envContent = Get-Content -Path $ENV_FILE
+    $aiMessage = ""
+    $installOllama = $false
+
+    switch ($aiChoice) {
+        1 { # Ollama
+            $envContent = $envContent -replace "# OLLAMA_HOST=", "OLLAMA_HOST="
+            $aiMessage = "Ollama selecionado. O serviço Ollama será iniciado localmente."
+            $installOllama = $true
+        }
+        2 { # Gemini
+            $apiKey = Read-Host "Por favor, insira sua Google Gemini API Key (Obrigatório)"
+            while ([string]::IsNullOrWhiteSpace($apiKey)) {
+                Print-Warn "A API Key é obrigatória para este provedor."
+                $apiKey = Read-Host "Por favor, insira sua Google Gemini API Key"
+            }
+            $envContent = $envContent -replace "# GEMINI_API_KEY=", "GEMINI_API_KEY=$apiKey"
+            $aiMessage = "Google Gemini configurado."
+        }
+        3 { # Claude
+            $apiKey = Read-Host "Por favor, insira sua Anthropic API Key (Obrigatório)"
+            while ([string]::IsNullOrWhiteSpace($apiKey)) {
+                Print-Warn "A API Key é obrigatória para este provedor."
+                $apiKey = Read-Host "Por favor, insira sua Anthropic API Key"
+            }
+            $envContent = $envContent -replace "# ANTHROPIC_API_KEY=", "ANTHROPIC_API_KEY=$apiKey"
+            $aiMessage = "Anthropic Claude configurado."
+        }
+        4 { # Copilot
+            $apiKey = Read-Host "Por favor, insira sua GitHub Copilot API Key (Obrigatório)"
+            while ([string]::IsNullOrWhiteSpace($apiKey)) {
+                Print-Warn "A API Key é obrigatória para este provedor."
+                $apiKey = Read-Host "Por favor, insira sua GitHub Copilot API Key"
+            }
+            $envContent = $envContent -replace "# COPILOT_API_KEY=", "COPILOT_API_KEY=$apiKey"
+            $aiMessage = "GitHub Copilot configurado."
+        }
+    }
+
+    # Se não escolheu Ollama como principal, perguntar se quer instalar opcionalmente
+    if (-not $installOllama) {
+        if (Confirm-Action "Deseja instalar e rodar o Ollama localmente também? (Recomendado para fallback)") {
+            $installOllama = $true
+            $aiMessage += " (Ollama também será instalado)"
+        }
+        else {
+            Print-Warn "Atenção: Sem o Ollama local, você depende exclusivamente da chave de API fornecida."
+        }
+    }
+
+    # Configurar perfil do Docker Compose
+    if ($installOllama) {
+        $env:COMPOSE_PROFILES = "ollama"
+        Write-Info-Log "Docker Compose Profile: ollama enabled"
+    }
+    else {
+        $env:COMPOSE_PROFILES = ""
+        Write-Info-Log "Docker Compose Profile: default only"
+    }
+
+    Set-Content -Path $ENV_FILE -Value $envContent -Encoding UTF8
+    Print-Success "Provedor de IA configurado no .env"
+    
+    # Adicionar lembrete para o final do script
+    $global:PostSetupMessages += $aiMessage
 }
 
 # Carregar .env
@@ -312,6 +418,10 @@ Print-Subsection "Iniciando serviços Docker"
 Print-Info "Iniciando containers Docker (docker-compose up -d)..."
 Write-Info-Log "Running: docker-compose up -d"
 
+# Enable BuildKit for faster builds
+$env:DOCKER_BUILDKIT = 1
+$env:COMPOSE_DOCKER_CLI_BUILD = 1
+
 $null = Invoke-WithSpinner "Iniciando Docker services" {
     docker-compose up -d
     if ($LASTEXITCODE -ne 0) {
@@ -330,6 +440,17 @@ Print-Info "Aguardando PostgreSQL..."
 if (Wait-ContainerHealth $CONTAINER_POSTGRES ($HEALTHCHECK_RETRIES * $HEALTHCHECK_INTERVAL)) {
     Print-Success "PostgreSQL está saudável"
     Write-Info-Log "PostgreSQL is healthy"
+    
+    # Atualizar senha no PostgreSQL se o container já existia
+    Print-Info "Atualizando senha do banco de dados..."
+    try {
+        docker exec $CONTAINER_POSTGRES psql -U openpanel -d openpanel -c "ALTER USER openpanel WITH PASSWORD '$PostgresPassword';" | Out-Null
+        Print-Success "Senha do PostgreSQL atualizada"
+        Write-Info-Log "PostgreSQL password updated"
+    }
+    catch {
+        Write-Warn-Log "Falha ao atualizar senha do PostgreSQL (pode ser a primeira execução): $_"
+    }
 }
 else {
     Write-Fatal-Log "PostgreSQL não ficou saudável após timeout"
@@ -340,6 +461,18 @@ Print-Info "Aguardando Redis..."
 if (Wait-ContainerHealth $CONTAINER_REDIS ($HEALTHCHECK_RETRIES * $HEALTHCHECK_INTERVAL)) {
     Print-Success "Redis está saudável"
     Write-Info-Log "Redis is healthy"
+    
+    # Redis geralmente pega a senha da env var na inicialização, 
+    # mas se quisermos mudar em tempo de execução:
+    try {
+        docker exec $CONTAINER_REDIS redis-cli -a $RedisPassword CONFIG SET requirepass $RedisPassword | Out-Null
+        Print-Success "Senha do Redis atualizada"
+        Write-Info-Log "Redis password updated"
+    }
+    catch {
+        # Ignorar erro se não conseguir conectar (senha antiga pode ser necessária)
+        Write-Warn-Log "Tentativa de atualizar senha do Redis falhou: $_"
+    }
 }
 else {
     Write-Fatal-Log "Redis não ficou saudável após timeout"
@@ -392,23 +525,32 @@ Print-Info "Executando health checks..."
 foreach ($container in $CONTAINERS_MAIN) {
     $status = docker inspect --format='{{.State.Health.Status}}' $container 2>$null
     if ($status -eq "healthy") {
-        Print-Success "$container: Healthy"
-        Write-Info-Log "$container: healthy"
+        Print-Success "${container}: Healthy"
+        Write-Info-Log "${container}: healthy"
     }
     else {
-        Print-Warn "$container: $status"
-        Write-Warn-Log "$container: $status (may be starting)"
+        Print-Warn "${container}: $status"
+        Write-Warn-Log "${container}: $status (may be starting)"
     }
 }
 
 # ============================================================================
-# STEP 9: CRIAR USUÁRIO ADMIN (opcional)
+# STEP 9: CRIAR USUÁRIO ADMIN
 # ============================================================================
 
-Print-Subsection "Configuração final"
+Print-Subsection "Criando usuário admin"
 
-Print-Info "O usuário admin pode ser criado após a API iniciar completamente"
-Print-Info "Você pode criar manualmente via: npm run create:admin"
+Print-Info "Criando usuário admin padrão..."
+Write-Info-Log "Running: npm run create:admin"
+
+$null = Invoke-WithSpinner "Criando usuário admin" {
+    npm run create:admin
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warn-Log "Falha ao criar usuário admin (pode já existir)"
+    }
+}
+
+Print-Success "Usuário admin configurado"
 
 # ============================================================================
 # SUCESSO
@@ -437,6 +579,14 @@ Write-Host "  npm run dev:web          - Inicia apenas Web"
 Write-Host "  npm run status           - Verifica status dos serviços"
 Write-Host "  npm run db:studio        - Abre Prisma Studio"
 Write-Host "  docker-compose logs -f   - Visualiza logs em tempo real"
+
+if ($global:PostSetupMessages.Count -gt 0) {
+    Write-Host ""
+    Print-Section "⚠️  Atenção Necessária"
+    foreach ($msg in $global:PostSetupMessages) {
+        Print-Warn $msg
+    }
+}
 
 Write-Host ""
 Write-Info-Log "Setup completed successfully!"

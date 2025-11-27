@@ -1,5 +1,5 @@
 {
-  "name": "openpanel",
+  "name": "Open Panel",
   "version": "0.1.0",
   "private": true,
   "description": "Modern self-hosted server control panel with AI-powered assistance",
@@ -31,6 +31,7 @@
     "build:api": "npm run build -w apps/api",
     "build:web": "npm run build -w apps/web",
     "db:generate": "npm run db:generate -w apps/api",
+    "create:admin": "tsx scripts/create-admin.ts",
     "db:migrate": "npm run db:migrate -w apps/api",
     "db:push": "npm run db:push -w apps/api",
     "db:studio": "npm run db:studio -w apps/api",
