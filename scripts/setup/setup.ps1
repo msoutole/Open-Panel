@@ -143,24 +143,34 @@ Write-Host "------------------------------------------------" -ForegroundColor G
 # Create admin user
 Create-AdminUser
 
-# Start services in background
-Write-Host "Starting services in background..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-Command", "npm run dev" -WindowStyle Hidden
+# Start services visibly
+Write-Host "Starting services..." -ForegroundColor Yellow
+Write-Host "Note: Keep this window open. Press Ctrl+C to stop all services." -ForegroundColor Cyan
+Write-Host "" -ForegroundColor White
 
-Write-Host "------------------------------------------------" -ForegroundColor Green
-Write-Host "✅ OpenPanel is now running!" -ForegroundColor Green
-Write-Host "------------------------------------------------" -ForegroundColor Green
+# Display access information before starting
+Write-Host "=================================================" -ForegroundColor Green
+Write-Host "✅ OpenPanel Setup is Complete!" -ForegroundColor Green
+Write-Host "=================================================" -ForegroundColor Green
+Write-Host "" -ForegroundColor White
 Write-Host "📋 Access Information:" -ForegroundColor Cyan
 Write-Host "   Web Interface: http://localhost:3000" -ForegroundColor White
-Write-Host "   API Endpoint:  http://localhost:3001" -ForegroundColor White
+Write-Host "   API Endpoint:  http://localhost:8000 or http://localhost:3001" -ForegroundColor White
 Write-Host "   Traefik Panel: http://localhost:8080" -ForegroundColor White
 Write-Host "" -ForegroundColor White
 Write-Host "🔐 Default Admin Credentials:" -ForegroundColor Cyan
 Write-Host "   Email: admin@openpanel.dev" -ForegroundColor White
 Write-Host "   Password: admin123" -ForegroundColor White
 Write-Host "" -ForegroundColor White
-Write-Host "📝 Next Steps:" -ForegroundColor Cyan
-Write-Host "   1. Open http://localhost:3000 in your browser" -ForegroundColor White
-Write-Host "   2. Login with the admin credentials above" -ForegroundColor White
-Write-Host "   3. Start managing your Docker containers!" -ForegroundColor White
-Write-Host "------------------------------------------------" -ForegroundColor Green
+Write-Host "📝 What's running:" -ForegroundColor Cyan
+Write-Host "   ✓ Database (PostgreSQL) running on localhost:5432" -ForegroundColor Green
+Write-Host "   ✓ Cache (Redis) running on localhost:6379" -ForegroundColor Green
+Write-Host "   ✓ LLM (Ollama) running on localhost:11434" -ForegroundColor Green
+Write-Host "   ✓ Reverse Proxy (Traefik) running" -ForegroundColor Green
+Write-Host "   → Starting Web Frontend and API Server..." -ForegroundColor Yellow
+Write-Host "" -ForegroundColor White
+Write-Host "=================================================" -ForegroundColor Green
+Write-Host "" -ForegroundColor White
+
+# Start services (will run in foreground)
+npm run dev
