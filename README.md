@@ -1,49 +1,45 @@
-# OpenPanel
+# OpenPanel 🚀
 
-## Quick Start
+<div align="center">
 
-### Linux / macOS
+![Status](https://img.shields.io/badge/status-active-success.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
 
-```bash
-chmod +x scripts/setup/setup.sh
-./scripts/setup/setup.sh
-```
+**Modern self-hosted server control panel with AI-powered assistance**
 
-### Windows
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing)
 
-```powershell
-./scripts/setup/setup.ps1
-```
+</div>
 
-### Check Status
-
-After installation, you can check the status of all services:
-
-#### Using Shell Scripts
-
-##### Linux / macOS
-```bash
-chmod +x scripts/status/check-status.sh
-./scripts/status/check-status.sh
-```
-
-##### Windows
-```powershell
-./scripts/status/check-status.ps1
-```
-
-#### Using Node.js Scripts (Cross-platform)
-```bash
-npm run status
-```
-
-This will show the status of all Docker services and API endpoints.
-
-Modern self-hosted server control panel with AI-powered assistance.
+---
 
 ## Overview
 
 OpenPanel is a privacy-first, AI-powered server control panel for managing Docker containers, deployments, and infrastructure. Built as a modern monorepo with TypeScript, it offers an intuitive interface for DevOps and server management.
+
+## ✨ What's New
+
+### 🎯 **100% Automated Installation**
+- **Zero User Interaction**: Complete setup without manual configuration
+- **Auto-Generated Credentials**: Secure passwords for PostgreSQL, Redis, and JWT
+- **Cross-Platform Support**: Works on Linux (all distros), macOS, Windows/WSL
+- **Idempotent Scripts**: Safely re-run setup without breaking existing installations
+- **Health Checks**: Validates all services before completion
+
+### 🎨 **Smart Onboarding System**
+- **First-Login Wizard**: Configure your environment in 3 easy steps
+- **AI Provider Setup**: Connect to Google Gemini, Claude, GitHub Copilot, or Ollama
+- **Real-Time Validation**: Verify API keys before saving
+- **Theme Selection**: Choose light or dark mode
+- **Password Enforcement**: Mandatory strong password on first use
+
+### 🔐 **Enhanced Security**
+- **AES-256-GCM Encryption**: All API keys encrypted at rest
+- **Strong Password Requirements**: 8+ chars, uppercase, lowercase, numbers, symbols
+- **Rate Limiting**: Protection against brute force attacks
+- **Audit Logging**: Track all sensitive actions
 
 ## Features
 
@@ -83,11 +79,81 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
-- npm >= 10.0.0
-- Docker (for infrastructure services)
+- **Node.js** >= 18.0.0 (recommended 20+)
+- **npm** >= 10.0.0
+- **Docker** >= 20.10.0 (for infrastructure services)
+- **Git** (for cloning the repository)
 
-### Installation
+### ⚡ Automated Installation (Recommended)
+
+The easiest way to get started is using our automated setup script that handles everything for you:
+
+#### Linux / macOS
+
+```bash
+git clone https://github.com/msoutole/openpanel.git
+cd openpanel
+chmod +x scripts/setup/setup.sh
+./scripts/setup/setup.sh
+```
+
+#### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/msoutole/openpanel.git
+cd openpanel
+./scripts/setup/setup.ps1
+```
+
+#### What the script does:
+✅ Installs all dependencies (Node.js, Docker, etc.)
+✅ Generates secure random passwords
+✅ Creates `.env` file with proper configuration
+✅ Starts Docker services (PostgreSQL, Redis, Ollama, Traefik)
+✅ Runs database migrations
+✅ Creates admin user automatically
+✅ Validates all services are healthy
+
+### 🔑 Default Admin Credentials
+
+After installation, login with:
+
+- **Email**: `admin@admin.com.br`
+- **Password**: `admin123`
+
+> ⚠️ **IMPORTANT**: You will be prompted to change this password on first login through the onboarding wizard.
+
+### 🎯 First Login - Onboarding Wizard
+
+After logging in for the first time, you'll go through a 3-step onboarding:
+
+1. **Theme Selection**: Choose light or dark mode
+2. **AI Provider Setup**: Configure at least one AI provider (Gemini, Claude, GitHub, or Ollama)
+3. **Password Change**: Create a strong, secure password
+
+### 🔍 Check Installation Status
+
+After installation, verify all services are running:
+
+```bash
+npm run status
+# or
+./scripts/status/check-status.sh  # Linux/macOS
+./scripts/status/check-status.ps1 # Windows
+```
+
+### 🌐 Access the Application
+
+- **Web UI**: http://localhost:3000
+- **API**: http://localhost:8000
+- **Traefik Dashboard**: http://localhost:8080 (Docker proxy)
+- **Ollama**: http://localhost:11434 (Local AI models)
+
+---
+
+### 🛠️ Manual Installation (Advanced)
+
+If you prefer manual setup or need more control:
 
 1. **Clone the repository**
 
@@ -106,10 +172,13 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration (DATABASE_URL, JWT_SECRET, etc.)
+   # Edit .env with your configuration
+   # REQUIRED: Set strong JWT_SECRET (min 32 chars)
+   # REQUIRED: Configure DATABASE_URL
+   # REQUIRED: Configure REDIS_URL
    ```
 
-4. **Start infrastructure (PostgreSQL, Redis, Ollama, Traefik)**
+4. **Start infrastructure**
 
    ```bash
    docker-compose up -d
@@ -121,13 +190,17 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
    npm run db:push
    ```
 
-6. **Start development servers**
+6. **Create admin user**
+
+   ```bash
+   npm run create:admin
+   ```
+
+7. **Start development servers**
 
    ```bash
    npm run dev
    ```
-
-The API will be available at `http://localhost:8000` and the Web UI at `http://localhost:3000`.
 
 ## Development Commands
 
@@ -211,9 +284,24 @@ Key environment variables (see `.env.example` for full list):
 
 ## Documentation
 
-- [CLAUDE.md](./CLAUDE.md) - Comprehensive development guide
-- [Architecture](./docs/architecture/) - System architecture documentation
-- [Features](./docs/features/) - Feature documentation
+### 📚 Main Documentation
+
+- **[CLAUDE.md](./CLAUDE.md)** - Comprehensive development guide for contributors
+- **[DEPLOYMENT_PLAN.md](./docs/DEPLOYMENT_PLAN.md)** - Complete deployment and automation strategy
+- **[NEXT_STEPS.md](./docs/NEXT_STEPS.md)** - Roadmap and improvement suggestions
+- **[API.md](./docs/API.md)** - API endpoints documentation and examples
+- **[TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
+
+### 🔧 Technical Documentation
+
+- [Architecture](./docs/architecture/) - System architecture documentation (if available)
+- [Features](./docs/features/) - Feature documentation (if available)
+
+### 💡 Getting Help
+
+- **Issues**: Check existing issues or report problems on GitHub
+- **Email**: msoutole@hotmail.com
+- **Logs**: Check `.logs/` directory for detailed error logs
 
 ## Contributing
 

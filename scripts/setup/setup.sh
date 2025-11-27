@@ -271,6 +271,32 @@ if [ ! -f "$ENV_FILE" ]; then
     print_info ".env criado a partir de .env.example"
 fi
 
+# ============================================================================
+# BACKUP AUTOMÁTICO DE .ENV
+# ============================================================================
+
+# Fazer backup do .env antes de modificar (se já existe)
+if [ -f "$ENV_FILE" ]; then
+    BACKUP_DIR=".env.backups"
+    ensure_dir "$BACKUP_DIR"
+
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="$BACKUP_DIR/.env.backup.$TIMESTAMP"
+
+    # Copiar .env atual para backup
+    cp "$ENV_FILE" "$BACKUP_FILE"
+    print_info "Backup do .env criado: $BACKUP_FILE"
+    log_info "Created backup of .env at $BACKUP_FILE"
+
+    # Manter apenas os últimos 10 backups (limpar backups antigos)
+    BACKUP_COUNT=$(ls -1 "$BACKUP_DIR"/.env.backup.* 2>/dev/null | wc -l)
+    if [ "$BACKUP_COUNT" -gt 10 ]; then
+        print_info "Limpando backups antigos (mantendo últimos 10)..."
+        # Listar backups por data (mais antigos primeiro) e remover excedentes
+        ls -1t "$BACKUP_DIR"/.env.backup.* | tail -n +11 | xargs rm -f 2>/dev/null || true
+    fi
+fi
+
 # Atualizar credenciais no .env (uso de sed cross-platform)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS

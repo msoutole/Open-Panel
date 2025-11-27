@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Sparkles, Key, Palette, Lock, Check, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Sparkles, Key, Palette, Lock, Check, AlertCircle, Loader2, ExternalLink, ShieldCheck, ShieldAlert, Shield } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -69,9 +70,36 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+  // Calcular força da senha
+  const passwordStrength = useMemo(() => {
+    if (!newPassword) return { score: 0, label: '', color: '' };
+
+    let score = 0;
+    const checks = {
+      length: newPassword.length >= 8,
+      uppercase: /[A-Z]/.test(newPassword),
+      lowercase: /[a-z]/.test(newPassword),
+      number: /[0-9]/.test(newPassword),
+      special: /[^A-Za-z0-9]/.test(newPassword),
+    };
+
+    score += checks.length ? 1 : 0;
+    score += checks.uppercase ? 1 : 0;
+    score += checks.lowercase ? 1 : 0;
+    score += checks.number ? 1 : 0;
+    score += checks.special ? 1 : 0;
+
+    if (score <= 2) return { score, label: 'Fraca', color: 'bg-red-500', icon: ShieldAlert };
+    if (score <= 3) return { score, label: 'Média', color: 'bg-yellow-500', icon: Shield };
+    if (score <= 4) return { score, label: 'Forte', color: 'bg-green-500', icon: ShieldCheck };
+    return { score, label: 'Muito Forte', color: 'bg-green-600', icon: ShieldCheck };
+  }, [newPassword]);
+
   const validateProvider = async (providerId: string) => {
     setValidating(providerId);
     setError('');
+
+    const toastId = toast.loading(`Validando ${AI_PROVIDERS.find(p => p.id === providerId)?.name}...`);
 
     try {
       const provider = selectedProviders[providerId];
@@ -97,11 +125,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           ...prev,
           [providerId]: { ...prev[providerId], validated: true },
         }));
+        toast.success(`${AI_PROVIDERS.find(p => p.id === providerId)?.name} validado com sucesso!`, { id: toastId });
       } else {
-        setError(`${AI_PROVIDERS.find(p => p.id === providerId)?.name}: ${data.error || 'Validação falhou'}`);
+        const errorMsg = `${AI_PROVIDERS.find(p => p.id === providerId)?.name}: ${data.error || 'Validação falhou'}`;
+        setError(errorMsg);
+        toast.error(errorMsg, { id: toastId });
       }
     } catch (err) {
-      setError(`Erro ao validar ${providerId}: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
+      const errorMsg = `Erro ao validar ${providerId}: ${err instanceof Error ? err.message : 'Erro desconhecido'}`;
+      setError(errorMsg);
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setValidating(null);
     }
@@ -112,33 +145,51 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
     // Validar senha
     if (newPassword !== confirmPassword) {
-      setError('As senhas não coincidem');
+      const errorMsg = 'As senhas não coincidem';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (newPassword && newPassword.length < 8) {
-      setError('A senha deve ter pelo menos 8 caracteres');
+      const errorMsg = 'A senha deve ter pelo menos 8 caracteres';
+      setError(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+
+    if (passwordStrength.score < 4) {
+      const errorMsg = 'Por favor, use uma senha mais forte (deve conter maiúsculas, minúsculas, números e caracteres especiais)';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (!newPassword) {
-      setError('Por segurança, você deve alterar a senha padrão');
+      const errorMsg = 'Por segurança, você deve alterar a senha padrão';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     // Verificar se há pelo menos um provedor validado
     const validatedProviders = Object.entries(selectedProviders).filter(([_, v]) => v.validated);
     if (validatedProviders.length === 0) {
-      setError('Configure pelo menos um provedor de IA');
+      const errorMsg = 'Configure pelo menos um provedor de IA';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (!defaultProvider) {
-      setError('Selecione um provedor padrão');
+      const errorMsg = 'Selecione um provedor padrão';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     setIsLoading(true);
+    const toastId = toast.loading('Finalizando configuração...');
 
     try {
       const token = localStorage.getItem('openpanel_access_token');
@@ -169,16 +220,23 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       // Aplicar tema imediatamente
       document.documentElement.classList.toggle('dark', theme === 'dark');
 
-      onComplete();
+      toast.success('Configuração concluída com sucesso! 🎉', { id: toastId, duration: 4000 });
+
+      // Pequeno delay para mostrar o toast de sucesso
+      setTimeout(() => onComplete(), 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao completar onboarding');
+      const errorMsg = err instanceof Error ? err.message : 'Erro ao completar onboarding';
+      setError(errorMsg);
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <>
+      <Toaster position="top-right" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-8 md:p-10">
         {/* Header */}
         <div className="text-center mb-8">
@@ -415,6 +473,60 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     required
                   />
                 </div>
+
+                {/* Password Strength Indicator */}
+                {newPassword && (
+                  <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Força da senha:</span>
+                      <div className="flex items-center gap-2">
+                        {React.createElement(passwordStrength.icon, {
+                          size: 20,
+                          className: passwordStrength.score <= 2 ? 'text-red-500' : passwordStrength.score <= 3 ? 'text-yellow-500' : 'text-green-500'
+                        })}
+                        <span className={`text-sm font-semibold ${
+                          passwordStrength.score <= 2 ? 'text-red-600' :
+                          passwordStrength.score <= 3 ? 'text-yellow-600' :
+                          'text-green-600'
+                        }`}>
+                          {passwordStrength.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                      />
+                    </div>
+
+                    {/* Requirements Checklist */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div className={`flex items-center gap-2 ${newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                        {newPassword.length >= 8 ? <Check size={14} /> : <AlertCircle size={14} />}
+                        <span>8+ caracteres</span>
+                      </div>
+                      <div className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        {/[A-Z]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                        <span>Letra maiúscula</span>
+                      </div>
+                      <div className={`flex items-center gap-2 ${/[a-z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        {/[a-z]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                        <span>Letra minúscula</span>
+                      </div>
+                      <div className={`flex items-center gap-2 ${/[0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        {/[0-9]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                        <span>Número</span>
+                      </div>
+                      <div className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                        {/[^A-Za-z0-9]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                        <span>Caractere especial</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">

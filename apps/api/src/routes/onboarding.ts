@@ -6,6 +6,7 @@ import { encrypt, decrypt } from '../lib/encryption'
 import { hashPassword } from '../lib/hash'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../types'
+import { authRateLimiter } from '../middlewares/rate-limit'
 
 const app = new Hono<{ Variables: Variables }>()
 
@@ -19,9 +20,16 @@ const aiProviderSchema = z.object({
   apiUrl: z.string().url().optional(),
 })
 
+const passwordSchema = z.string()
+  .min(8, 'Senha deve ter pelo menos 8 caracteres')
+  .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
+  .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
+  .regex(/[0-9]/, 'Senha deve conter pelo menos um número')
+  .regex(/[^A-Za-z0-9]/, 'Senha deve conter pelo menos um caractere especial')
+
 const onboardingSchema = z.object({
   theme: z.enum(['light', 'dark']),
-  newPassword: z.string().min(8).optional(),
+  newPassword: passwordSchema.optional(),
   aiProviders: z.array(aiProviderSchema),
   defaultProvider: z.string().optional(),
 })
@@ -156,10 +164,10 @@ app.post('/complete', zValidator('json', onboardingSchema), async (c) => {
 
 // ============================================================================
 // POST /api/onboarding/validate-provider
-// Valida API key de um provedor
+// Valida API key de um provedor (com rate limiting para prevenir abuse)
 // ============================================================================
 
-app.post('/validate-provider', zValidator('json', aiProviderSchema), async (c) => {
+app.post('/validate-provider', authRateLimiter, zValidator('json', aiProviderSchema), async (c) => {
   const data = c.req.valid('json')
 
   const validation = await validateAIProvider(data.provider, data.apiKey, data.apiUrl)
