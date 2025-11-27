@@ -9,8 +9,9 @@ import { Login } from './pages/Login';
 import { Onboarding } from './pages/Onboarding';
 import { GeminiChat } from './components/GeminiChat';
 import { ViewState, Project } from './types';
+import { I18nProvider } from './src/i18n/i18n-react';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   // Initialize state from localStorage to persist session across refreshes
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -150,6 +151,14 @@ const App: React.FC = () => {
         <GeminiChat />
       </div>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
   );
 };
 
