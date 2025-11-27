@@ -88,13 +88,12 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 
 The easiest way to get started is using our automated setup script that handles everything for you:
 
-#### Linux / macOS
+#### Linux / macOS / WSL
 
 ```bash
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
-chmod +x scripts/setup/setup.sh
-./scripts/setup/setup.sh
+bash scripts/setup.sh
 ```
 
 #### Windows (PowerShell)
@@ -102,7 +101,15 @@ chmod +x scripts/setup/setup.sh
 ```powershell
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
-./scripts/setup/setup.ps1
+.\scripts\setup.ps1
+```
+
+#### Node.js (Any Platform)
+
+```bash
+git clone https://github.com/msoutole/openpanel.git
+cd openpanel
+node scripts/setup.js
 ```
 
 #### What the script does:

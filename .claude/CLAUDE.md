@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Responder sempre em portugues brasileiro
+
+
 ## Visão Geral
 
 OpenPanel é um painel de controle auto-hospedado (self-hosted) moderno para gerenciamento de servidores, com assistente de IA integrado. O projeto é um **monorepo** estruturado em npm workspaces, com arquitetura bem definida e foco em segurança, observabilidade e integração com IA.

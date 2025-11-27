@@ -94,8 +94,10 @@ services:
       - "443:443"
       - "8080:8080" # Dashboard
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik-data:/letsencrypt
+      # Docker socket mounting
+      # Use DOCKER_SOCK env var that's set per platform in .env
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:${DOCKER_SOCK:-/var/run/docker.sock}:ro
     networks:
       - openpanel
     healthcheck:
@@ -115,11 +117,26 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-openpanel}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-openpanel}
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      - APP_URL=http://localhost:3000
+      - APP_PORT=3000
+      - API_PORT=3001
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openpanel}:${POSTGRES_PASSWORD:-changeme}@openpanel-postgres:5432/${POSTGRES_DB:-openpanel}
+      - POSTGRES_USER=${POSTGRES_USER:-openpanel}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - POSTGRES_DB=${POSTGRES_DB:-openpanel}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@openpanel-redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production-min-32-chars}
+      - JWT_ACCESS_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:3000
+      - LOG_LEVEL=info
+      - LOG_FORMAT=json
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - openpanel
     labels:
@@ -136,8 +153,12 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+      - NODE_ENV=development
     depends_on:
-      - api
+      api:
+        condition: service_started
     networks:
       - openpanel
     labels:

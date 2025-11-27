@@ -1,5 +1,5 @@
 # Dockerfile para OpenPanel API
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Criar diretório de trabalho
 WORKDIR /app

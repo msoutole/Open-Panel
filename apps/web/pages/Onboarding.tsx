@@ -14,6 +14,7 @@ interface AIProvider {
   description: string;
   icon: string;
   requiresApiKey: boolean;
+  optionalApiKey?: boolean;
   requiresUrl?: boolean;
   helpUrl: string;
   helpText?: string;
@@ -68,6 +69,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       description: LL.onboarding.step2.providers.ollama.description(),
       icon: '🦙',
       requiresApiKey: false,
+      optionalApiKey: true,
       requiresUrl: true,
       helpUrl: 'https://ollama.com',
       helpText: LL.onboarding.step2.providers.ollama.helpText()
@@ -107,7 +109,25 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     const toastId = toast.loading(LL.onboarding.step2.validating({ provider: providerName }));
 
     try {
-      const provider = selectedProviders[providerId];
+      let provider = selectedProviders[providerId];
+
+      // Initialize provider with defaults if not yet added
+      if (!provider) {
+        const providerConfig = AI_PROVIDERS.find(p => p.id === providerId);
+        if (!providerConfig) {
+          throw new Error('Provider configuration not found.');
+        }
+        provider = {
+          apiKey: providerConfig.requiresApiKey ? '' : undefined,
+          apiUrl: providerConfig.requiresUrl ? 'http://localhost:11434' : undefined,
+          validated: false
+        };
+        setSelectedProviders(prev => ({
+          ...prev,
+          [providerId]: provider
+        }));
+      }
+
       const token = localStorage.getItem('openpanel_access_token');
 
       const response = await fetch(`${API_URL}/api/onboarding/validate-provider`, {
@@ -399,6 +419,25 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                         <p className="text-xs text-gray-500 bg-yellow-50 p-2 rounded border border-yellow-200" dangerouslySetInnerHTML={{ __html: LL.onboarding.step2.ollamaNote() }} />
                       </div>
                     )}
+
+                    {provider.optionalApiKey && (
+                      <div className="mt-3 space-y-2 pt-3 border-t border-gray-200">
+                        <label className="block text-sm font-medium text-gray-700">
+                          {LL.onboarding.step2.apiKeyPlaceholder()} (opcional para cloud)
+                        </label>
+                        <input
+                          type="password"
+                          placeholder={LL.onboarding.step2.apiKeyPlaceholder()}
+                          value={selectedProviders[provider.id]?.apiKey || ''}
+                          onChange={(e) => setSelectedProviders(prev => ({
+                            ...prev,
+                            [provider.id]: { ...prev[provider.id], apiKey: e.target.value, validated: false },
+                          }))}
+                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <p className="text-xs text-gray-600">Deixe em branco para usar Ollama localmente, ou adicione a API key se usar um serviço em nuvem</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -577,5 +616,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
