@@ -1,25 +1,22 @@
 #!/bin/bash
 
 ################################################################################
-# Open-Panel Setup Script for Linux/macOS
+# Open-Panel Setup Script - 100% Automatizado
 #
-# Este script configura completamente o Open-Panel com zero intervenção manual
+# Este script configura completamente o Open-Panel com ZERO intervenção manual
 # Características:
-# - ✅ Completamente automatizado
-# - ✅ Multi-plataforma (Linux, macOS)
+# - ✅ 100% Automatizado (sem prompts interativos)
+# - ✅ Multi-plataforma (Linux, macOS, WSL)
 # - ✅ Idempotente (seguro rodar múltiplas vezes)
 # - ✅ Robusto com tratamento de erros
-# - ✅ Informativo com logs detalhados
-# - ✅ Seguro com geração de secrets criptográficos
-# - ✅ Backup automático de configurações
-# - ✅ Verificação completa pós-instalação
-# - ✅ UX profissional
+# - ✅ Health checks completos
+# - ✅ Criação automática de admin
+# - ✅ Notificação de erros por email
 #
 # Uso: ./scripts/setup/setup.sh [options]
 # Opções:
-#   --silent              Modo silencioso (sem prompts)
-#   --force               Sobrescrever .env sem confirmar
 #   --debug               Ativa logs DEBUG
+#   --reset-state         Reseta estado de instalação
 #   --help                Exibe esta ajuda
 ################################################################################
 
@@ -36,10 +33,10 @@ cd "$PROJECT_ROOT"
 # Carregar configurações e utilitários
 source "$SCRIPT_DIR/../config.sh"
 source "$SCRIPT_DIR/../lib/common.sh"
+source "$SCRIPT_DIR/../lib/installation-state.sh"
 
 # Variáveis locais do script
-FORCE_ENV_OVERWRITE=false
-SILENT_MODE=false
+RESET_STATE=false
 
 # ============================================================================
 # PARSE ARGUMENTOS
@@ -47,16 +44,20 @@ SILENT_MODE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --silent) SILENT_MODE=true; shift ;;
-        --force) FORCE_ENV_OVERWRITE=true; shift ;;
-        --debug) LOG_LEVEL="DEBUG"; shift ;;
+        --debug)
+            LOG_LEVEL="DEBUG"
+            shift
+            ;;
+        --reset-state)
+            RESET_STATE=true
+            shift
+            ;;
         --help)
             echo "Uso: $0 [options]"
             echo "Opções:"
-            echo "  --silent    Modo silencioso (sem prompts interativos)"
-            echo "  --force     Sobrescrever .env sem confirmar"
-            echo "  --debug     Ativa logs DEBUG"
-            echo "  --help      Exibe esta ajuda"
+            echo "  --debug         Ativa logs DEBUG"
+            echo "  --reset-state   Reseta estado de instalação"
+            echo "  --help          Exibe esta ajuda"
             exit 0
             ;;
         *)
@@ -70,10 +71,46 @@ done
 # BANNER E INICIALIZAÇÃO
 # ============================================================================
 
-print_section "🚀 Open-Panel Setup"
+print_section "🚀 Open-Panel Setup - Instalação Automática"
 log_info "Iniciando setup do Open-Panel"
 log_info "Projeto: $PROJECT_ROOT"
-log_info "Sistema: $(uname -s) $(uname -m)"
+log_info "Sistema: $OS ($DISTRO ${DISTRO_VERSION:-unknown})"
+
+# Resetar estado se solicitado
+if [ "$RESET_STATE" = true ]; then
+    print_warn "Resetando estado de instalação..."
+    reset_installation_state
+fi
+
+# Inicializar estado de instalação
+init_installation_state
+
+# ============================================================================
+# STEP 0: PRÉ-VERIFICAÇÃO E INSTALAÇÃO DE DEPENDÊNCIAS
+# ============================================================================
+
+print_subsection "Verificando e instalando dependências"
+
+# Lista de comandos necessários
+REQUIRED_COMMANDS=("curl" "git" "openssl")
+
+# Verificar e instalar cada comando
+for cmd in "${REQUIRED_COMMANDS[@]}"; do
+    if ! command_exists "$cmd"; then
+        print_warn "$cmd não encontrado. Instalando automaticamente..."
+        if ! install_command "$cmd"; then
+            handle_install_failure "$cmd" "Falha ao instalar via gerenciador de pacotes"
+            exit 1
+        fi
+    else
+        print_success "$cmd detectado"
+    fi
+done
+
+# Atualizar estado
+if ! is_step_completed "dependencies_installed"; then
+    update_state "dependencies_installed" "true"
+fi
 
 # ============================================================================
 # STEP 1: VERIFICAÇÕES DE PRÉ-REQUISITOS
@@ -93,24 +130,12 @@ if command_exists node; then
         exit 2
     fi
 else
-    print_warn "Node.js não encontrado. Tentando instalar automaticamente..."
+    print_warn "Node.js não encontrado. Instalando automaticamente..."
     log_info "Node.js não instalado. Tentando instalar..."
 
-    if command_exists apt-get; then
-        log_info "Detectado apt-get (Debian/Ubuntu). Instalando Node.js..."
-        sudo apt-get update || log_fatal "Falha ao atualizar apt"
-        sudo apt-get install -y nodejs npm || log_fatal "Falha ao instalar Node.js"
-    elif command_exists brew; then
-        log_info "Detectado brew (macOS). Instalando Node.js..."
-        brew install node || log_fatal "Falha ao instalar Node.js via brew"
-    elif command_exists dnf; then
-        log_info "Detectado dnf (Fedora/CentOS). Instalando Node.js..."
-        sudo dnf install -y nodejs npm || log_fatal "Falha ao instalar Node.js"
-    elif command_exists pacman; then
-        log_info "Detectado pacman (Arch). Instalando Node.js..."
-        sudo pacman -S --noconfirm nodejs npm || log_fatal "Falha ao instalar Node.js"
-    else
-        log_fatal "Não foi possível instalar Node.js automaticamente. Por favor, instale manualmente."
+    if ! install_command "node"; then
+        handle_install_failure "node" "Falha ao instalar Node.js"
+        exit 1
     fi
 
     NODE_VERSION=$(node -v | sed 's/v//')
@@ -128,29 +153,28 @@ if command_exists docker; then
         exit 2
     fi
 else
-    print_warn "Docker não encontrado. Tentando instalar automaticamente..."
-    log_info "Docker não instalado. Tentando instalar via get.docker.com..."
+    print_warn "Docker não encontrado. Instalando automaticamente..."
+    log_info "Docker não instalado. Tentando instalar..."
 
-    if ! command_exists curl; then
-        log_fatal "curl é obrigatório para instalar Docker"
+    if ! install_command "docker"; then
+        handle_install_failure "docker" "Falha ao instalar Docker"
+        exit 1
     fi
 
-    curl -fsSL https://get.docker.com | sh || log_fatal "Falha ao instalar Docker"
     print_success "Docker instalado"
 fi
 
 # Verificar Docker Compose
-if command_exists docker-compose; then
-    DOCKER_COMPOSE_VERSION=$(docker-compose --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-    if version_gte "$DOCKER_COMPOSE_VERSION" "$MIN_DOCKER_COMPOSE_VERSION"; then
-        print_success "Docker Compose ${DOCKER_COMPOSE_VERSION} detectado"
-        log_info "Docker Compose version: $DOCKER_COMPOSE_VERSION"
-    else
-        print_warn "Docker Compose versão antiga encontrada. Atualizando..."
-        sudo apt-get install -y docker-compose || log_fatal "Falha ao atualizar Docker Compose"
-    fi
+if command_exists docker-compose || docker compose version >/dev/null 2>&1; then
+    print_success "Docker Compose detectado"
+    log_info "Docker Compose disponível"
 else
-    log_fatal "Docker Compose não encontrado. Por favor, instale Docker Compose v2.0.0+"
+    print_warn "Docker Compose não encontrado. Instalando..."
+
+    if ! install_command "docker-compose"; then
+        handle_install_failure "docker-compose" "Falha ao instalar Docker Compose"
+        exit 1
+    fi
 fi
 
 # Verificar Docker daemon
@@ -160,16 +184,17 @@ if ! is_docker_running; then
     log_warn "Docker daemon is not running. Attempting to start..."
 
     if command_exists systemctl; then
-        sudo systemctl start docker || log_fatal "Falha ao iniciar Docker (systemctl)"
+        sudo systemctl start docker || log_error "Falha ao iniciar Docker (systemctl)"
     elif [[ "$OSTYPE" == "darwin"* ]]; then
-        open -a Docker || log_fatal "Falha ao iniciar Docker Desktop (macOS)"
-        sleep 5
-    else
-        log_fatal "Não foi possível iniciar Docker daemon automaticamente"
+        open -a Docker || log_error "Falha ao iniciar Docker Desktop (macOS)"
+        sleep 10
     fi
 
+    # Verificar novamente
+    sleep 5
     if ! is_docker_running; then
-        log_fatal "Docker daemon ainda não está rodando após 5s"
+        handle_install_failure "docker-daemon" "Docker daemon não está rodando após tentativa de inicialização"
+        exit 1
     fi
 fi
 print_success "Docker daemon está rodando"
@@ -182,68 +207,91 @@ fi
 print_success "Espaço em disco adequado (>$MIN_DISK_SPACE_MB MB)"
 
 # ============================================================================
-# STEP 2: SETUP DE VARIÁVEIS DE AMBIENTE
+# STEP 2: GERENCIAMENTO INTELIGENTE DE CREDENCIAIS
 # ============================================================================
 
-print_subsection "Configurando variáveis de ambiente"
+print_subsection "Configurando credenciais do sistema"
 
+# Arquivo de metadados de credenciais
+CREDENTIALS_META_FILE=".env.backups/.credentials.meta"
+ensure_dir ".env.backups"
+
+# Função para verificar se credenciais já foram geradas
+credentials_already_generated() {
+    [ -f "$CREDENTIALS_META_FILE" ] && grep -q "GENERATED=true" "$CREDENTIALS_META_FILE"
+}
+
+# Carregar credenciais existentes do .env se existir
 if [ -f "$ENV_FILE" ]; then
-    print_info ".env já existe"
-
-    if [ "$FORCE_ENV_OVERWRITE" = false ] && [ "$SILENT_MODE" = false ]; then
-        if confirm "Você deseja sobrescrever o arquivo .env existente?"; then
-            FORCE_ENV_OVERWRITE=true
-        else
-            print_info "Mantendo .env existente"
-        fi
-    fi
-
-    if [ "$FORCE_ENV_OVERWRITE" = true ]; then
-        BACKUP_FILE=$(backup_file "$ENV_FILE")
-        print_info "Backup de .env salvo: $BACKUP_FILE"
-        log_info "Backed up .env to $BACKUP_FILE"
-    fi
+    set -a
+    source "$ENV_FILE" 2>/dev/null || true
+    set +a
+    EXISTING_POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
+    EXISTING_REDIS_PASSWORD="$REDIS_PASSWORD"
+    EXISTING_JWT_SECRET="$JWT_SECRET"
 fi
 
-# Criar .env se não existe ou se foi decidido sobrescrever
-if [ ! -f "$ENV_FILE" ] || [ "$FORCE_ENV_OVERWRITE" = true ]; then
+# Decidir se precisa gerar novas credenciais
+if credentials_already_generated && [ -n "$EXISTING_POSTGRES_PASSWORD" ] && [ "$EXISTING_POSTGRES_PASSWORD" != "changeme" ]; then
+    print_success "Credenciais existentes detectadas. Reutilizando..."
+    POSTGRES_PASSWORD="$EXISTING_POSTGRES_PASSWORD"
+    REDIS_PASSWORD="$EXISTING_REDIS_PASSWORD"
+    JWT_SECRET="$EXISTING_JWT_SECRET"
+    log_info "Reusing existing credentials"
+else
+    print_info "Gerando novas credenciais criptográficas..."
+
+    # Gerar credenciais seguras
+    POSTGRES_PASSWORD=$(generate_random_string 32)
+    REDIS_PASSWORD=$(generate_random_string 32)
+    JWT_SECRET=$(generate_random_string 64)
+
+    # Salvar metadata
+    cat > "$CREDENTIALS_META_FILE" <<EOF
+GENERATED=true
+GENERATED_AT=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)
+POSTGRES_PASSWORD_HASH=$(echo -n "$POSTGRES_PASSWORD" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "no-hash")
+REDIS_PASSWORD_HASH=$(echo -n "$REDIS_PASSWORD" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "no-hash")
+JWT_SECRET_HASH=$(echo -n "$JWT_SECRET" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "no-hash")
+EOF
+
+    print_success "Novas credenciais geradas"
+    log_info "Generated new cryptographically secure credentials"
+
+    # Marcar no estado
+    update_state "credentials_generated" "true"
+fi
+
+# Criar ou atualizar .env
+if [ ! -f "$ENV_FILE" ]; then
     if [ ! -f "$ENV_EXAMPLE_FILE" ]; then
         log_fatal "Arquivo $ENV_EXAMPLE_FILE não encontrado"
     fi
-
-    print_info "Criando .env a partir de $ENV_EXAMPLE_FILE..."
     cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
-    log_info "Created .env from .env.example"
-
-    # Gerar secrets criptográficos
-    print_info "Gerando secrets criptográficos..."
-
-    JWT_SECRET=$(generate_random_string 64)
-    POSTGRES_PASSWORD=$(generate_random_string 32)
-    REDIS_PASSWORD=$(generate_random_string 32)
-
-    log_debug "Generated JWT_SECRET (length: ${#JWT_SECRET})"
-    log_debug "Generated POSTGRES_PASSWORD (length: ${#POSTGRES_PASSWORD})"
-    log_debug "Generated REDIS_PASSWORD (length: ${#REDIS_PASSWORD})"
-
-    # Atualizar variáveis no .env
-    sed -i.bak "s/JWT_SECRET=.*/JWT_SECRET=$JWT_SECRET/g" "$ENV_FILE"
-    sed -i.bak "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/g" "$ENV_FILE"
-    sed -i.bak "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$REDIS_PASSWORD/g" "$ENV_FILE"
-    rm -f "${ENV_FILE}.bak"
-
-    print_success ".env criado com secrets criptográficos"
-    log_info ".env created with cryptographically secure secrets"
-else
-    print_success ".env mantido"
+    print_info ".env criado a partir de .env.example"
 fi
 
-# Carregar variáveis de ambiente
+# Atualizar credenciais no .env (uso de sed cross-platform)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    sed -i '' "s|POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$POSTGRES_PASSWORD|g" "$ENV_FILE"
+    sed -i '' "s|REDIS_PASSWORD=.*|REDIS_PASSWORD=$REDIS_PASSWORD|g" "$ENV_FILE"
+    sed -i '' "s|JWT_SECRET=.*|JWT_SECRET=$JWT_SECRET|g" "$ENV_FILE"
+else
+    # Linux
+    sed -i "s|POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$POSTGRES_PASSWORD|g" "$ENV_FILE"
+    sed -i "s|REDIS_PASSWORD=.*|REDIS_PASSWORD=$REDIS_PASSWORD|g" "$ENV_FILE"
+    sed -i "s|JWT_SECRET=.*|JWT_SECRET=$JWT_SECRET|g" "$ENV_FILE"
+fi
+
+print_success "Arquivo .env configurado com credenciais"
+
+# Recarregar variáveis de ambiente
 if [ -f "$ENV_FILE" ]; then
     set -a
     source "$ENV_FILE"
     set +a
-    log_debug ".env loaded into environment"
+    log_debug ".env reloaded into environment"
 fi
 
 # ============================================================================
@@ -256,8 +304,11 @@ if [ ! -d "$NODE_MODULES_DIR" ] || [ ! -f "package-lock.json" ]; then
     print_info "Instalando npm dependencies..."
     log_info "Running: npm install"
 
-    spinner_with_result "Instalando dependências (isso pode levar alguns minutos)" \
-        npm install --prefer-offline || log_fatal "Falha ao instalar dependências"
+    if ! npm install --prefer-offline 2>&1 | tee -a "$LOG_FILE"; then
+        log_fatal "Falha ao instalar dependências npm"
+    fi
+
+    print_success "Dependências instaladas"
 else
     print_success "Dependências já estão instaladas"
     log_info "npm dependencies already installed, skipping npm install"
@@ -281,35 +332,79 @@ print_success "Estrutura de diretórios criada"
 
 print_subsection "Iniciando serviços Docker"
 
-print_info "Iniciando containers Docker (docker-compose up -d)..."
+print_info "Iniciando containers Docker..."
 log_info "Running: docker-compose up -d"
 
-spinner_with_result "Iniciando Docker services" \
-    docker-compose up -d || log_fatal "Falha ao iniciar docker-compose"
-
-# ============================================================================
-# STEP 6: AGUARDAR SERVIÇOS FICAREM HEALTHY
-# ============================================================================
-
-print_subsection "Aguardando serviços ficarem saudáveis"
-
-# PostgreSQL
-print_info "Aguardando PostgreSQL..."
-if wait_for_container_health "$CONTAINER_POSTGRES" "$((HEALTHCHECK_RETRIES * HEALTHCHECK_INTERVAL))"; then
-    print_success "PostgreSQL está saudável"
-    log_info "PostgreSQL is healthy"
-else
-    log_fatal "PostgreSQL não ficou saudável após timeout"
+if ! docker-compose up -d 2>&1 | tee -a "$LOG_FILE"; then
+    log_fatal "Falha ao iniciar docker-compose"
 fi
 
-# Redis
-print_info "Aguardando Redis..."
-if wait_for_container_health "$CONTAINER_REDIS" "$((HEALTHCHECK_RETRIES * HEALTHCHECK_INTERVAL))"; then
-    print_success "Redis está saudável"
-    log_info "Redis is healthy"
-else
-    log_fatal "Redis não ficou saudável após timeout"
+print_success "Containers Docker iniciados"
+
+# ============================================================================
+# STEP 6: AGUARDAR SERVIÇOS FICAREM HEALTHY (OBRIGATÓRIO)
+# ============================================================================
+
+print_subsection "Aguardando serviços ficarem saudáveis (obrigatório)"
+
+# Lista de todos os containers críticos
+CRITICAL_CONTAINERS=(
+    "openpanel-postgres"
+    "openpanel-redis"
+    "openpanel-traefik"
+)
+
+# Verificar containers críticos
+all_healthy=true
+for container in "${CRITICAL_CONTAINERS[@]}"; do
+    print_info "Verificando: $container..."
+
+    # Verificar se container está rodando
+    if ! docker ps --filter "name=$container" --format "{{.Names}}" | grep -q "$container"; then
+        print_error "$container não está rodando!"
+        all_healthy=false
+
+        # Tentar ver por que falhou
+        print_info "Verificando logs de $container:"
+        docker logs --tail 30 "$container" 2>&1 | sed 's/^/  /' | tee -a "$LOG_FILE"
+        continue
+    fi
+
+    # Aguardar ficar healthy
+    if wait_for_container_health "$container" 120; then
+        print_success "$container está saudável ✓"
+    else
+        print_error "$container não ficou saudável em 120s"
+        all_healthy=false
+
+        # Mostrar logs do container com falha
+        print_info "Últimas 30 linhas de log de $container:"
+        docker logs --tail 30 "$container" 2>&1 | sed 's/^/  /' | tee -a "$LOG_FILE"
+    fi
+done
+
+if [ "$all_healthy" = false ]; then
+    print_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    print_error "❌ ALGUNS SERVIÇOS CRÍTICOS NÃO ESTÃO SAUDÁVEIS"
+    print_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    print_info "📝 AÇÕES RECOMENDADAS:"
+    echo "  1. Verifique os logs acima para identificar o problema"
+    echo "  2. Execute: docker-compose logs -f [container-name]"
+    echo "  3. Tente reiniciar os serviços: docker-compose restart"
+    echo "  4. Se o problema persistir: msoutole@hotmail.com"
+    echo ""
+    print_info "📧 Um email de erro foi enviado automaticamente."
+    echo ""
+
+    # Enviar email de erro
+    send_error_email "docker-services" "Um ou mais containers não ficaram healthy. Veja logs em $LOG_FILE"
+
+    log_fatal "Instalação falhou: Serviços não ficaram saudáveis"
 fi
+
+print_success "Todos os serviços críticos estão saudáveis!"
+update_state "docker_services_healthy" "true"
 
 # ============================================================================
 # STEP 7: CONFIGURAR BANCO DE DADOS
@@ -317,66 +412,87 @@ fi
 
 print_subsection "Configurando banco de dados"
 
-print_info "Gerando Prisma client..."
-log_info "Running: npm run db:generate"
-if ! npm run db:generate 2>&1 | tee -a "$LOG_FILE"; then
-    log_fatal "Falha ao gerar Prisma client"
+if ! is_step_completed "database_initialized"; then
+    print_info "Gerando Prisma client..."
+    log_info "Running: npm run db:generate"
+    if ! npm run db:generate 2>&1 | tee -a "$LOG_FILE"; then
+        log_fatal "Falha ao gerar Prisma client"
+    fi
+
+    print_info "Sincronizando schema do banco de dados..."
+    log_info "Running: npm run db:push"
+    if ! npm run db:push 2>&1 | tee -a "$LOG_FILE"; then
+        log_fatal "Falha ao sincronizar banco de dados"
+    fi
+
+    print_success "Banco de dados configurado com sucesso"
+    update_state "database_initialized" "true"
+else
+    print_success "Banco de dados já está inicializado"
 fi
 
-print_info "Sincronizando schema do banco de dados..."
-log_info "Running: npm run db:push"
-if ! npm run db:push 2>&1 | tee -a "$LOG_FILE"; then
-    log_fatal "Falha ao sincronizar banco de dados"
+# ============================================================================
+# STEP 8: CRIAR USUÁRIO ADMINISTRADOR AUTOMATICAMENTE
+# ============================================================================
+
+print_subsection "Criando usuário administrador"
+
+if ! is_step_completed "admin_created"; then
+    print_info "Criando usuário admin padrão..."
+
+    # Definir credenciais padrão
+    export ADMIN_EMAIL="admin@admin.com.br"
+    export ADMIN_PASSWORD="admin123"
+
+    # Executar script de criação de admin
+    if npm run create:admin 2>&1 | tee -a "$LOG_FILE"; then
+        print_success "Usuário administrador criado com sucesso!"
+        echo ""
+        print_warn "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        print_warn "⚠️  IMPORTANTE - CREDENCIAIS PADRÃO"
+        print_warn "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "  Email:    ${COLOR_CYAN}$ADMIN_EMAIL${COLOR_NC}"
+        echo "  Senha:    ${COLOR_CYAN}$ADMIN_PASSWORD${COLOR_NC}"
+        echo ""
+        print_warn "🔒 VOCÊ DEVE ALTERAR A SENHA IMEDIATAMENTE APÓS O LOGIN!"
+        print_warn "   A senha será solicitada na tela de boas-vindas."
+        echo ""
+
+        update_state "admin_created" "true"
+        log_info "Admin user created: $ADMIN_EMAIL"
+    else
+        print_warn "Falha ao criar usuário administrador (pode já existir)"
+        log_warn "Failed to create admin user - may already exist"
+        # Não bloquear instalação, admin pode já existir
+    fi
+else
+    print_success "Usuário administrador já foi criado"
 fi
 
-print_success "Banco de dados configurado com sucesso"
-
 # ============================================================================
-# STEP 8: VERIFICAÇÃO COMPLETA PÓS-SETUP
+# STEP 9: VERIFICAÇÃO FINAL
 # ============================================================================
 
-print_subsection "Verificação completa pós-setup"
+print_subsection "Verificação final"
 
-# Aguardar API iniciar
-print_info "Aguardando API ficar pronta..."
-sleep 3  # Dar tempo para API iniciar
+# Aguardar API iniciar (opcional, não bloqueia)
+print_info "Aguardando API ficar pronta (opcional)..."
+sleep 5
 
-if wait_for_port "$PORT_API" "$TIMEOUT_HTTP"; then
+if wait_for_port "$PORT_API" 30; then
     print_success "API está respondendo na porta $PORT_API"
     log_info "API responding on port $PORT_API"
 else
-    print_warn "API ainda não está respondendo (esperado se não iniciou)"
-    log_warn "API not responding yet - may still be starting"
+    print_warn "API ainda não está respondendo (será iniciada com 'npm run dev')"
+    log_warn "API not responding yet - will start with npm run dev"
 fi
 
-# Verificações de health
-print_info "Executando health checks..."
-
-# Docker health
-docker_checks_passed=true
-for container in "${CONTAINERS_MAIN[@]}"; do
-    status=$(docker inspect --format='{{.State.Health.Status}}' "$container" 2>/dev/null)
-    if [ "$status" = "healthy" ]; then
-        print_success "$container: Healthy"
-        log_info "$container: healthy"
-    else
-        print_warn "$container: $status"
-        log_warn "$container: $status (may be starting)"
-    fi
-done
-
 # ============================================================================
-# STEP 9: CRIAR USUÁRIO ADMIN (opcional)
+# SUCESSO - MARCAR INSTALAÇÃO COMO COMPLETA
 # ============================================================================
 
-print_subsection "Configuração final"
-
-print_info "O usuário admin pode ser criado após a API iniciar completamente"
-print_info "Você pode criar manualmente via: npm run create:admin"
-
-# ============================================================================
-# SUCESSO
-# ============================================================================
+mark_installation_complete
 
 print_section "✅ Setup Concluído com Sucesso!"
 
@@ -387,11 +503,18 @@ echo "  API Endpoint:   ${COLOR_CYAN}http://localhost:${PORT_API}${COLOR_NC}"
 echo "  Traefik Panel:  ${COLOR_CYAN}http://localhost:${PORT_TRAEFIK_DASHBOARD}${COLOR_NC}"
 
 echo ""
+print_info "Credenciais de Admin:"
+echo "  Email:    ${COLOR_CYAN}admin@admin.com.br${COLOR_NC}"
+echo "  Senha:    ${COLOR_CYAN}admin123${COLOR_NC}"
+echo "  ${COLOR_YELLOW}⚠️  Altere a senha no primeiro login!${COLOR_NC}"
+
+echo ""
 print_info "Próximos passos:"
-echo "  1. Aguarde a API iniciar completamente (verificar logs: npm run dev)"
+echo "  1. Inicie a aplicação: ${COLOR_CYAN}npm run dev${COLOR_NC}"
 echo "  2. Abra ${COLOR_CYAN}http://localhost:${PORT_WEB}${COLOR_NC} no navegador"
-echo "  3. Crie um novo usuário via interface"
-echo "  4. Comece a gerenciar seus containers!"
+echo "  3. Faça login com as credenciais acima"
+echo "  4. Complete o onboarding (configurar IA, alterar senha)"
+echo "  5. Comece a gerenciar seus containers!"
 
 echo ""
 print_info "Comandos úteis:"
@@ -405,5 +528,6 @@ echo "  docker-compose logs -f   - Visualiza logs em tempo real"
 echo ""
 log_info "Setup completed successfully!"
 log_info "Log file: $LOG_FILE"
+log_info "Installation state: $STATE_FILE"
 
 print_section "Happy coding! 🎉"

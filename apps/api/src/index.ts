@@ -27,6 +27,7 @@ import ssl from './routes/ssl'
 import databases from './routes/databases'
 import health from './routes/health'
 import backups from './routes/backups'
+import onboarding from './routes/onboarding'
 
 // Import middlewares
 import { authMiddleware } from './middlewares/auth'
@@ -127,6 +128,7 @@ app.route('/api/ssl', ssl)
 app.route('/api/databases', databases)
 app.route('/api/health', health)
 app.route('/api/backups', backups)
+app.route('/api/onboarding', onboarding)
 
 app.get('/api/protected', (c) => {
   const user = c.get('user')
