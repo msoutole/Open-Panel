@@ -438,7 +438,7 @@ After successful installation:
 4. **Read the documentation:**
    - [Quick Start Guide](QUICKSTART.md)
    - [Full Setup Guide](SETUP_GUIDE.md)
-   - [Architecture Overview](CLAUDE.md)
+   - [Architecture Overview](ARCHITECTURE.md)
 
 ---
 
