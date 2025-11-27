@@ -66,7 +66,18 @@ function checkDockerServices() {
 // Function to check if a port is listening
 function checkPort(port, name) {
   try {
-    execSync(`nc -z localhost ${port}`, { stdio: 'ignore' });
+    // Try different methods to check port depending on OS
+    if (process.platform === 'win32') {
+      // On Windows, use PowerShell to check for listening ports
+      execSync(`powershell -Command "Get-NetTCPConnection -LocalPort ${port}"`, { stdio: 'ignore' });
+    } else {
+      // On Unix-like systems, use nc or ss
+      try {
+        execSync(`nc -z localhost ${port}`, { stdio: 'ignore' });
+      } catch {
+        execSync(`ss -tuln | grep :${port}`, { stdio: 'ignore' });
+      }
+    }
     console.log(`${colors.green}✓ ${name} is listening on port ${port}${colors.reset}`);
     return true;
   } catch {

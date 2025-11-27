@@ -38,7 +38,7 @@
     "type-check": "npm run type-check -w apps/api && npm run type-check -w apps/web && npm run type-check -w packages/shared",
     "setup": "node ./scripts/setup.js",
     "start": "node ./scripts/start.js",
-    "start:all": "npm run setup && npm run dev",
+    "start:all": "node ./scripts/start-all.js",
     "status": "node ./scripts/status.js"
   },
   "devDependencies": {

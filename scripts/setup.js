@@ -21,7 +21,11 @@ console.log(`${colors.green}========================================${colors.res
 // Function to check if a command exists
 function commandExists(command) {
   try {
-    execSync(`which ${command}`, { stdio: 'ignore' });
+    if (process.platform === 'win32') {
+      execSync(`where ${command}`, { stdio: 'ignore' });
+    } else {
+      execSync(`which ${command}`, { stdio: 'ignore' });
+    }
     return true;
   } catch {
     return false;
@@ -35,7 +39,12 @@ function waitForService(serviceName, maxRetries = 30) {
     console.log(`${colors.yellow}Waiting for ${serviceName} to be ready...${colors.reset}`);
     
     const checkService = () => {
-      execSync('sleep 2', { stdio: 'ignore' }); // Sleep for 2 seconds
+      // Sleep for 2 seconds (cross-platform)
+      if (process.platform === 'win32') {
+        execSync('powershell -Command "Start-Sleep -Seconds 2"', { stdio: 'ignore' });
+      } else {
+        execSync('sleep 2', { stdio: 'ignore' });
+      }
       
       try {
         const status = execSync(`docker inspect --format='{{.State.Health.Status}}' ${serviceName}`, { 
@@ -49,7 +58,7 @@ function waitForService(serviceName, maxRetries = 30) {
           retryCount++;
           if (retryCount < maxRetries) {
             process.stdout.write(`${colors.gray}Waiting for ${serviceName}... (${retryCount}/${maxRetries})\r${colors.reset}`);
-            setTimeout(checkService, 100); // Check again soon
+            setTimeout(checkService, 2000); // Check again in 2 seconds
           } else {
             console.log(`${colors.red}✗ ${serviceName} failed to become ready!${colors.reset}`);
             resolve(false);
@@ -58,7 +67,7 @@ function waitForService(serviceName, maxRetries = 30) {
       } catch (error) {
         retryCount++;
         if (retryCount < maxRetries) {
-          setTimeout(checkService, 100);
+          setTimeout(checkService, 2000);
         } else {
           console.log(`${colors.red}✗ ${serviceName} failed to become ready!${colors.reset}`);
           resolve(false);

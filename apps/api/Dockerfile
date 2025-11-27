@@ -1,0 +1,23 @@
+# Dockerfile para OpenPanel API
+FROM node:18-alpine
+
+# Criar diretório de trabalho
+WORKDIR /app
+
+# Copiar package.json e package-lock.json (se existir)
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm ci
+
+# Copiar arquivos da aplicação
+COPY . .
+
+# Gerar o cliente Prisma
+RUN npm run db:generate
+
+# Expor porta
+EXPOSE 3001
+
+# Comando para iniciar a aplicação
+CMD ["npm", "run", "dev"]

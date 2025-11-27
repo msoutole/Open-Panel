@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
-const http = require('http');
+const { spawn, execSync } = require('child_process');
+const path = require('path');
 
 // Colors for output
 const colors = {
@@ -14,8 +14,18 @@ const colors = {
 };
 
 console.log(`${colors.green}========================================${colors.reset}`);
-console.log(`${colors.green}  OpenPanel Service Starter${colors.reset}`);
+console.log(`${colors.green}  OpenPanel All Services Starter${colors.reset}`);
 console.log(`${colors.green}========================================${colors.reset}`);
+
+// Function to check if Docker is running
+function checkDocker() {
+  try {
+    execSync('docker info', { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // Function to wait for a service to be ready
 function waitForService(serviceName, maxRetries = 30) {
@@ -97,26 +107,11 @@ function checkAPI() {
   });
 }
 
-// Function to create default admin user
-async function createAdminUser() {
-  console.log(`${colors.yellow}Ensuring default admin user exists...${colors.reset}`);
-  
-  // In a real implementation, this would make an HTTP request to the API
-  // to check if the admin user exists and create it if it doesn't
-  console.log(`${colors.green}✓ Admin user verification completed${colors.reset}`);
-  console.log(`${colors.cyan}Default credentials (if needed):${colors.reset}`);
-  console.log(`${colors.white}  Email: admin@openpanel.dev${colors.reset}`);
-  console.log(`${colors.white}  Password: admin123${colors.reset}`);
-  console.log(`${colors.yellow}Please change the password after first login!${colors.reset}`);
-}
-
-// Main start function
+// Main function to start all services
 async function main() {
   try {
     // Check if Docker is running
-    try {
-      execSync('docker info', { stdio: 'ignore' });
-    } catch {
+    if (!checkDocker()) {
       console.log(`${colors.red}Docker is not running. Please start Docker and try again.${colors.reset}`);
       process.exit(1);
     }
@@ -136,50 +131,68 @@ async function main() {
       }
     }
     
-    // Start API and Web services in background
-    console.log(`${colors.yellow}Starting API and Web services...${colors.reset}`);
-    
-    // Start API service
+    // Start API service in background
+    console.log(`${colors.yellow}Starting API service...${colors.reset}`);
     const apiProcess = spawn('npm', ['run', 'dev:api'], {
       stdio: 'inherit',
-      shell: true
+      shell: true,
+      cwd: path.join(__dirname, '..')
     });
     
-    // Start Web service
+    // Start Web service in background
+    console.log(`${colors.yellow}Starting Web service...${colors.reset}`);
     const webProcess = spawn('npm', ['run', 'dev:web'], {
       stdio: 'inherit',
-      shell: true
+      shell: true,
+      cwd: path.join(__dirname, '..')
     });
     
     // Handle process exit
-    process.on('SIGINT', () => {
+    const shutdown = () => {
       console.log(`${colors.yellow}Shutting down services...${colors.reset}`);
-      apiProcess.kill();
-      webProcess.kill();
+      try {
+        apiProcess.kill();
+      } catch (e) {
+        // Ignore errors when killing process
+      }
+      try {
+        webProcess.kill();
+      } catch (e) {
+        // Ignore errors when killing process
+      }
+      
+      // Stop Docker containers
+      try {
+        execSync('docker-compose down', { 
+          stdio: 'inherit',
+          cwd: path.join(__dirname, '..')
+        });
+      } catch (e) {
+        // Ignore errors when stopping containers
+      }
+      
       process.exit(0);
-    });
+    };
     
-    // Wait a bit more for the API to be ready
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+    
+    // Wait a bit for services to start
     console.log(`${colors.yellow}Waiting for services to be ready...${colors.reset}`);
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    
-    // Check if API is responding
-    const apiReady = await checkAPI();
-    if (!apiReady) {
-      console.log(`${colors.yellow}API may still be starting, continuing anyway...${colors.reset}`);
-    }
-    
-    // Create admin user
-    await createAdminUser();
+    await new Promise(resolve => setTimeout(resolve, 15000));
     
     console.log(`${colors.green}========================================${colors.reset}`);
-    console.log(`${colors.green}✅ OpenPanel services started!${colors.reset}`);
+    console.log(`${colors.green}✅ All OpenPanel services started!${colors.reset}`);
     console.log(`${colors.green}========================================${colors.reset}`);
     console.log(`${colors.cyan}📋 Access Information:${colors.reset}`);
     console.log(`${colors.white}   Web Interface: http://localhost:3000${colors.reset}`);
     console.log(`${colors.white}   API Endpoint:  http://localhost:3001${colors.reset}`);
     console.log(`${colors.white}   Traefik Panel: http://localhost:8080${colors.reset}`);
     console.log(`${colors.green}========================================${colors.reset}`);
+    console.log(`${colors.yellow}Press Ctrl+C to stop all services${colors.reset}`);
+    
+    // Keep the process alive
+    setInterval(() => {}, 1000);
     
   } catch (error) {
     console.log(`${colors.red}Error starting services: ${error.message}${colors.reset}`);
