@@ -1,116 +1,143 @@
-# Open-Panel Status Checker for Windows
+# Open-Panel Status Check Script for Windows
 
-# Colors for output
-$green = [System.ConsoleColor]::Green
-$yellow = [System.ConsoleColor]::Yellow
-$red = [System.ConsoleColor]::Red
-$cyan = [System.ConsoleColor]::Cyan
-$white = [System.ConsoleColor]::White
+param(
+    [switch]$Json,
+    [switch]$Csv,
+    [switch]$Watch,
+    [switch]$Help
+)
 
-Write-Host "------------------------------------------------" -ForegroundColor $green
-Write-Host "OpenPanel Status Checker" -ForegroundColor $green
-Write-Host "------------------------------------------------" -ForegroundColor $green
+if ($Help) {
+    Write-Host "Uso: .\scripts\status\check-status.ps1 [options]"
+    Write-Host ""
+    Write-Host "Opções:"
+    Write-Host "  -Json       Output em JSON"
+    Write-Host "  -Csv        Output em CSV"
+    Write-Host "  -Watch      Monitor contínuo"
+    exit 0
+}
 
-# Function to check if Docker is running
-function Check-Docker {
-    try {
-        $dockerInfo = docker info 2>$null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "✓ Docker is running" -ForegroundColor $green
-            return $true
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent (Split-Path -Parent $ScriptDir)
+Set-Location $ProjectRoot
+
+. "$ScriptDir\..\config.ps1"
+. "$ScriptDir\..\lib\common.ps1"
+
+function Collect-ContainerData {
+    $containers = @{}
+
+    foreach ($container in $CONTAINERS_MAIN) {
+        $status = docker inspect --format='{{.State.Status}}' $container 2>$null
+        $health = docker inspect --format='{{.State.Health.Status}}' $container 2>$null
+
+        if ($status -eq "running") {
+            $stats = docker stats --no-stream $container 2>$null | Select-Object -Last 1
+            $cpu = if ($stats) { ($stats -split '\s+')[2] } else { "N/A" }
+            $memory = if ($stats) { ($stats -split '\s+')[3] } else { "N/A" }
         } else {
-            Write-Host "✗ Docker is not running" -ForegroundColor $red
-            return $false
+            $cpu = "N/A"
+            $memory = "N/A"
         }
-    } catch {
-        Write-Host "✗ Docker is not installed or not running" -ForegroundColor $red
-        return $false
+
+        $containers[$container] = @{
+            Status = $status
+            Health = $health
+            CPU = $cpu
+            Memory = $memory
+        }
     }
+
+    return $containers
 }
 
-# Function to check Docker services status
-function Check-DockerServices {
-    Write-Host "`nChecking Docker services..." -ForegroundColor $cyan
-    
-    $services = @("openpanel-postgres", "openpanel-redis", "openpanel-ollama", "openpanel-traefik")
-    
-    foreach ($service in $services) {
+function Test-Ports {
+    $ports = @($PORT_WEB, $PORT_API, $PORT_TRAEFIK_DASHBOARD)
+    $result = @{}
+
+    foreach ($port in $ports) {
         try {
-            $status = docker inspect --format='{{.State.Status}}' $service 2>$null
-            $health = docker inspect --format='{{.State.Health.Status}}' $service 2>$null
-            
-            if ($status -eq "running") {
-                if ($health -and $health -ne "<no value>") {
-                    if ($health -eq "healthy") {
-                        Write-Host "✓ $service is running and healthy" -ForegroundColor $green
-                    } else {
-                        Write-Host "⚠ $service is running but $health" -ForegroundColor $yellow
-                    }
-                } else {
-                    Write-Host "✓ $service is running" -ForegroundColor $green
-                }
-            } else {
-                Write-Host "✗ $service is not running (Status: $status)" -ForegroundColor $red
-            }
-        } catch {
-            Write-Host "✗ $service is not found or not running" -ForegroundColor $red
+            $tcpClient = New-Object Net.Sockets.TcpClient
+            $tcpClient.Connect("localhost", $port)
+            $tcpClient.Close()
+            $result[$port] = "✓ Open"
         }
+        catch {
+            $result[$port] = "✗ Closed"
+        }
+    }
+
+    return $result
+}
+
+function Print-TextFormat {
+    Print-Section "📊 Open-Panel Status Report"
+
+    Print-Subsection "🐳 Docker Daemon"
+    if (Test-DockerRunning) {
+        Print-Success "Docker: Running"
+    } else {
+        Print-Error "Docker: Not Running"
+    }
+
+    Print-Subsection "📦 Containers"
+    Write-Host "Container                 Status          Health          CPU        Memory"
+    Write-Host "─────────────────────────────────────────────────────────────────────────────"
+
+    $containers = Collect-ContainerData
+    foreach ($name in $containers.Keys) {
+        $c = $containers[$name]
+        Write-Host ("{0,-25} {1,-15} {2,-15} {3,-10} {4}" -f $name, $c.Status, $c.Health, $c.CPU, $c.Memory)
+    }
+
+    Print-Subsection "🔌 Ports"
+    $ports = Test-Ports
+    foreach ($port in $ports.Keys) {
+        Write-Host "  Port $port : $($ports[$port])"
+    }
+
+    Print-Subsection "📍 Access"
+    Write-Host "  Web: http://localhost:$PORT_WEB" -ForegroundColor Cyan
+    Write-Host "  API: http://localhost:$PORT_API" -ForegroundColor Cyan
+}
+
+function Print-JsonFormat {
+    $containers = Collect-ContainerData
+    $ports = Test-Ports
+
+    $data = @{
+        timestamp = (Get-Date -Format "o")
+        docker_running = (Test-DockerRunning)
+        containers = $containers
+        ports = $ports
+    }
+
+    $data | ConvertTo-Json | Write-Host
+}
+
+function Print-CsvFormat {
+    Write-Host "Container,Status,Health,CPU,Memory"
+    $containers = Collect-ContainerData
+
+    foreach ($name in $containers.Keys) {
+        $c = $containers[$name]
+        Write-Host "$name,$($c.Status),$($c.Health),$($c.CPU),$($c.Memory)"
     }
 }
 
-# Function to check API endpoints
-function Check-APIEndpoints {
-    Write-Host "`nChecking API endpoints..." -ForegroundColor $cyan
-    
-    $endpoints = @{
-        "Health Check" = "http://localhost:3001/api/health"
-        "Auth Endpoint" = "http://localhost:3001/api/auth/status"
+# Main
+if ($Watch) {
+    while ($true) {
+        Clear-Host
+        Print-TextFormat
+        Write-Host ""
+        Write-Host "Refreshing in 5 seconds... (Ctrl+C to stop)"
+        Start-Sleep -Seconds 5
     }
-    
-    foreach ($endpoint in $endpoints.Keys) {
-        try {
-            $response = Invoke-RestMethod -Uri $endpoints[$endpoint] -TimeoutSec 5
-            Write-Host "✓ $endpoint is responding" -ForegroundColor $green
-        } catch {
-            Write-Host "⚠ $endpoint is not responding" -ForegroundColor $yellow
-        }
-    }
-}
-
-# Function to check web interface
-function Check-WebInterface {
-    Write-Host "`nChecking Web Interface..." -ForegroundColor $cyan
-    
-    try {
-        $response = Invoke-WebRequest -Uri "http://localhost:3000" -TimeoutSec 5
-        if ($response.StatusCode -eq 200) {
-            Write-Host "✓ Web Interface is accessible" -ForegroundColor $green
-        } else {
-            Write-Host "⚠ Web Interface returned status $($response.StatusCode)" -ForegroundColor $yellow
-        }
-    } catch {
-        Write-Host "✗ Web Interface is not accessible" -ForegroundColor $red
-    }
-}
-
-# Main execution
-if (Check-Docker) {
-    Check-DockerServices
-    Check-APIEndpoints
-    Check-WebInterface
-    
-    Write-Host "`n------------------------------------------------" -ForegroundColor $green
-    Write-Host "📋 Summary:" -ForegroundColor $cyan
-    Write-Host "   Web Interface: http://localhost:3000" -ForegroundColor $white
-    Write-Host "   API Endpoint:  http://localhost:3001" -ForegroundColor $white
-    Write-Host "   Traefik Panel: http://localhost:8080" -ForegroundColor $white
-    Write-Host "------------------------------------------------" -ForegroundColor $green
-    Write-Host "🔐 Default Admin Credentials:" -ForegroundColor $cyan
-    Write-Host "   Email: admin@openpanel.dev" -ForegroundColor $white
-    Write-Host "   Password: admin123" -ForegroundColor $white
-    Write-Host "   Please change the password after first login!" -ForegroundColor $yellow
-    Write-Host "------------------------------------------------" -ForegroundColor $green
 } else {
-    Write-Host "`nPlease ensure Docker is installed and running." -ForegroundColor $yellow
-    Write-Host "Then run this script again." -ForegroundColor $yellow
+    if ($Json) { Print-JsonFormat }
+    elseif ($Csv) { Print-CsvFormat }
+    else { Print-TextFormat }
 }
+
+Write-Info-Log "Status check completed"
