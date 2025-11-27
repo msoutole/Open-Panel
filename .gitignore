@@ -21,6 +21,9 @@ build/
 !.env.example
 .env.local
 .env.*.local
+.env.backups/
+.credentials/
+.openpanel.state
 
 # IDE
 .vscode/*

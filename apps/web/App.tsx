@@ -6,10 +6,12 @@ import { ProjectDetails } from './components/ProjectDetails';
 import { SettingsView } from './components/SettingsView';
 import { SecurityView } from './components/SecurityView';
 import { Login } from './pages/Login';
+import { Onboarding } from './pages/Onboarding';
 import { GeminiChat } from './components/GeminiChat';
 import { ViewState, Project } from './types';
+import { I18nProvider } from './src/i18n/i18n-react';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   // Initialize state from localStorage to persist session across refreshes
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -17,7 +19,8 @@ const App: React.FC = () => {
     }
     return false;
   });
-  
+
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -30,9 +33,40 @@ const App: React.FC = () => {
     }
   }, [isLoggedIn]);
 
+  // Check onboarding status after login
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (isLoggedIn && !showOnboarding) {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+          const token = localStorage.getItem('openpanel_access_token');
+
+          const response = await fetch(`${API_URL}/api/onboarding/status`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setShowOnboarding(!data.onboardingCompleted);
+          }
+        } catch (error) {
+          console.error('Erro ao verificar status de onboarding:', error);
+        }
+      }
+    };
+
+    checkOnboarding();
+  }, [isLoggedIn, showOnboarding]);
+
   const handleLogin = () => {
     setIsLoggedIn(true);
     setCurrentView('dashboard');
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
   };
 
   const handleLogout = () => {
@@ -53,6 +87,10 @@ const App: React.FC = () => {
 
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
+  }
+
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
   const getPageTitle = (view: ViewState) => {
@@ -113,6 +151,14 @@ const App: React.FC = () => {
         <GeminiChat />
       </div>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <I18nProvider>
+      <AppContent />
+    </I18nProvider>
   );
 };
 

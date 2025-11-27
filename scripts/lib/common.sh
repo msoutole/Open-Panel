@@ -669,12 +669,386 @@ confirm() {
 }
 
 # ============================================================================
+# DETECÇÃO E SUPORTE MULTIPLATAFORMA
+# ============================================================================
+
+##
+# Detecta sistema operacional
+#
+detect_os() {
+    case "$OSTYPE" in
+        linux-gnu*)
+            OS="linux"
+            if [ -f /etc/os-release ]; then
+                . /etc/os-release
+                DISTRO=$ID
+                DISTRO_VERSION=$VERSION_ID
+            fi
+            ;;
+        darwin*)
+            OS="macos"
+            DISTRO="macos"
+            DISTRO_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "unknown")
+            ;;
+        msys*|mingw*|cygwin*)
+            OS="windows"
+            DISTRO="windows"
+            # Verificar se é WSL
+            if grep -qi microsoft /proc/version 2>/dev/null; then
+                OS="wsl"
+                DISTRO="wsl"
+            fi
+            ;;
+        *)
+            OS="unknown"
+            DISTRO="unknown"
+            ;;
+    esac
+
+    export OS DISTRO DISTRO_VERSION
+    log_debug "Sistema operacional detectado: $OS ($DISTRO ${DISTRO_VERSION:-unknown})"
+}
+
+##
+# Instala comando de forma multiplataforma
+#
+install_command() {
+    local cmd="$1"
+
+    log_info "Tentando instalar $cmd para $OS..."
+
+    case "$OS" in
+        linux)
+            install_linux "$cmd"
+            ;;
+        macos)
+            install_macos "$cmd"
+            ;;
+        windows|wsl)
+            install_windows "$cmd"
+            ;;
+        *)
+            log_error "Sistema operacional não suportado: $OS"
+            return 1
+            ;;
+    esac
+}
+
+##
+# Instalação para Linux
+#
+install_linux() {
+    local cmd="$1"
+
+    if command_exists apt-get; then
+        # Debian/Ubuntu
+        case "$cmd" in
+            node)
+                sudo apt-get update && sudo apt-get install -y nodejs npm
+                ;;
+            docker)
+                curl -fsSL https://get.docker.com | sh
+                sudo usermod -aG docker $USER || true
+                ;;
+            docker-compose)
+                sudo apt-get install -y docker-compose
+                ;;
+            git)
+                sudo apt-get install -y git
+                ;;
+            curl)
+                sudo apt-get install -y curl
+                ;;
+            openssl)
+                sudo apt-get install -y openssl
+                ;;
+            jq)
+                sudo apt-get install -y jq
+                ;;
+            *)
+                log_warn "Não sei como instalar $cmd"
+                return 1
+                ;;
+        esac
+    elif command_exists dnf; then
+        # Fedora/CentOS/RHEL
+        case "$cmd" in
+            node)
+                sudo dnf install -y nodejs npm
+                ;;
+            docker)
+                sudo dnf install -y docker docker-compose
+                sudo systemctl start docker
+                sudo systemctl enable docker
+                sudo usermod -aG docker $USER || true
+                ;;
+            git)
+                sudo dnf install -y git
+                ;;
+            curl)
+                sudo dnf install -y curl
+                ;;
+            openssl)
+                sudo dnf install -y openssl
+                ;;
+            jq)
+                sudo dnf install -y jq
+                ;;
+            *)
+                log_warn "Não sei como instalar $cmd"
+                return 1
+                ;;
+        esac
+    elif command_exists pacman; then
+        # Arch Linux
+        case "$cmd" in
+            node)
+                sudo pacman -S --noconfirm nodejs npm
+                ;;
+            docker)
+                sudo pacman -S --noconfirm docker docker-compose
+                sudo systemctl start docker
+                sudo systemctl enable docker
+                sudo usermod -aG docker $USER || true
+                ;;
+            git)
+                sudo pacman -S --noconfirm git
+                ;;
+            curl)
+                sudo pacman -S --noconfirm curl
+                ;;
+            openssl)
+                sudo pacman -S --noconfirm openssl
+                ;;
+            jq)
+                sudo pacman -S --noconfirm jq
+                ;;
+            *)
+                log_warn "Não sei como instalar $cmd"
+                return 1
+                ;;
+        esac
+    else
+        log_error "Gerenciador de pacotes não suportado"
+        return 1
+    fi
+}
+
+##
+# Instalação para macOS
+#
+install_macos() {
+    local cmd="$1"
+
+    if ! command_exists brew; then
+        log_info "Instalando Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+
+    case "$cmd" in
+        node)
+            brew install node
+            ;;
+        docker)
+            brew install --cask docker
+            # Aguardar Docker Desktop iniciar
+            log_info "Aguarde o Docker Desktop iniciar..."
+            sleep 10
+            ;;
+        docker-compose)
+            brew install docker-compose
+            ;;
+        git)
+            brew install git
+            ;;
+        curl)
+            brew install curl
+            ;;
+        openssl)
+            brew install openssl
+            ;;
+        jq)
+            brew install jq
+            ;;
+        *)
+            log_warn "Não sei como instalar $cmd"
+            return 1
+            ;;
+    esac
+}
+
+##
+# Instalação para Windows/WSL
+#
+install_windows() {
+    local cmd="$1"
+
+    if [ "$OS" = "wsl" ]; then
+        # WSL usa instalação Linux
+        install_linux "$cmd"
+    else
+        # Git Bash / MSYS2
+        print_warn "Instalação automática não disponível no Windows nativo"
+        print_info "Por favor, instale manualmente:"
+        case "$cmd" in
+            node)
+                print_info "  → Baixe de: https://nodejs.org"
+                ;;
+            docker)
+                print_info "  → Baixe Docker Desktop de: https://docker.com"
+                ;;
+            git)
+                print_info "  → Baixe de: https://git-scm.com"
+                ;;
+            *)
+                print_info "  → Instale $cmd manualmente"
+                ;;
+        esac
+        return 1
+    fi
+}
+
+# ============================================================================
+# TRATAMENTO DE ERROS E NOTIFICAÇÕES
+# ============================================================================
+
+##
+# Trata falha de instalação de dependência
+# Envia email e exibe instruções ao usuário
+#
+handle_install_failure() {
+    local cmd="$1"
+    local error_details="${2:-Falha desconhecida}"
+
+    log_error "Falha ao instalar: $cmd"
+    log_error "Detalhes: $error_details"
+
+    print_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    print_error "❌ FALHA NA INSTALAÇÃO"
+    print_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    print_error "Não foi possível instalar automaticamente: $cmd"
+    echo ""
+    print_info "📝 RESOLUÇÃO DO PROBLEMA:"
+    echo ""
+
+    # Instruções específicas por comando
+    case "$cmd" in
+        node)
+            echo "  1. Instale Node.js manualmente:"
+            echo "     • Ubuntu/Debian: sudo apt-get install -y nodejs npm"
+            echo "     • macOS: brew install node"
+            echo "     • Windows: Baixe de https://nodejs.org"
+            ;;
+        docker)
+            echo "  1. Instale Docker manualmente:"
+            echo "     • Linux: curl -fsSL https://get.docker.com | sh"
+            echo "     • macOS: brew install --cask docker"
+            echo "     • Windows: Baixe Docker Desktop de https://docker.com"
+            ;;
+        docker-compose)
+            echo "  1. Instale Docker Compose manualmente:"
+            echo "     • Veja: https://docs.docker.com/compose/install/"
+            ;;
+        *)
+            echo "  1. Instale $cmd manualmente seguindo a documentação oficial"
+            ;;
+    esac
+
+    echo ""
+    echo "  2. Execute o script novamente após instalar: ./scripts/setup/setup.sh"
+    echo ""
+    print_info "📧 PRECISA DE AJUDA?"
+    echo "  Se o problema persistir, envie um email para: msoutole@hotmail.com"
+    echo "  Inclua o arquivo de log: $LOG_FILE"
+    echo ""
+
+    # Enviar email de notificação (se configurado)
+    send_error_email "$cmd" "$error_details"
+
+    return 1
+}
+
+##
+# Envia email de notificação de erro
+#
+send_error_email() {
+    local cmd="$1"
+    local error_details="$2"
+    local recipient="${ERROR_EMAIL:-msoutole@hotmail.com}"
+
+    # Verificar se mail está disponível
+    if ! command_exists mail && ! command_exists mailx && ! command_exists sendmail; then
+        log_debug "Email não configurado. Pulando notificação."
+        return 0
+    fi
+
+    local subject="[Open Panel] Falha na Instalação - $cmd"
+    local body="
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Open Panel - Relatório de Erro de Instalação
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Sistema Operacional: $OS ($DISTRO ${DISTRO_VERSION:-unknown})
+Usuário: $(whoami)
+Hostname: $(hostname)
+Data: $(date)
+
+Comando com falha: $cmd
+Erro: $error_details
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para mais detalhes, veja o arquivo de log anexado.
+"
+
+    if command_exists mail; then
+        echo "$body" | mail -s "$subject" "$recipient" 2>/dev/null || true
+    elif command_exists mailx; then
+        echo "$body" | mailx -s "$subject" "$recipient" 2>/dev/null || true
+    fi
+
+    log_debug "Tentativa de envio de email de notificação para $recipient"
+}
+
+# ============================================================================
+# VERSÃO COMPARAÇÃO
+# ============================================================================
+
+##
+# Compara versões (maior ou igual)
+# Retorna 0 se version1 >= version2
+#
+version_gte() {
+    local version1="$1"
+    local version2="$2"
+
+    # Remove 'v' prefix se existir
+    version1="${version1#v}"
+    version2="${version2#v}"
+
+    # Usar sort -V se disponível
+    if sort --version-sort </dev/null >/dev/null 2>&1; then
+        local sorted=$(printf "%s\n%s" "$version1" "$version2" | sort -V | head -n1)
+        [ "$sorted" = "$version2" ]
+    else
+        # Fallback: comparação simples
+        [ "$version1" = "$version2" ] || [ "$version1" \> "$version2" ]
+    fi
+}
+
+# ============================================================================
 # EXPORT LOG FILE PATH
 # ============================================================================
 
+# Detectar OS no carregamento
+detect_os
+
 # Export para que scripts child possam acessar
 export LOG_FILE
+export OS DISTRO DISTRO_VERSION
 
 # Print de inicialização
 log_info "=== Iniciando $SCRIPT_NAME ==="
 log_debug "Log file: $LOG_FILE"
+log_debug "Sistema: $OS ($DISTRO ${DISTRO_VERSION:-unknown})"
