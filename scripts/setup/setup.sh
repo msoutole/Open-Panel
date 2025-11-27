@@ -277,14 +277,23 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     sed -i '' "s|POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$POSTGRES_PASSWORD|g" "$ENV_FILE"
     sed -i '' "s|REDIS_PASSWORD=.*|REDIS_PASSWORD=$REDIS_PASSWORD|g" "$ENV_FILE"
     sed -i '' "s|JWT_SECRET=.*|JWT_SECRET=$JWT_SECRET|g" "$ENV_FILE"
+    # Atualizar DATABASE_URL completa
+    sed -i '' "s|DATABASE_URL=.*|DATABASE_URL=postgresql://openpanel:$POSTGRES_PASSWORD@localhost:5432/openpanel|g" "$ENV_FILE"
+    # Atualizar REDIS_URL completa
+    sed -i '' "s|REDIS_URL=.*|REDIS_URL=redis://:$REDIS_PASSWORD@localhost:6379|g" "$ENV_FILE"
 else
     # Linux
     sed -i "s|POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$POSTGRES_PASSWORD|g" "$ENV_FILE"
     sed -i "s|REDIS_PASSWORD=.*|REDIS_PASSWORD=$REDIS_PASSWORD|g" "$ENV_FILE"
     sed -i "s|JWT_SECRET=.*|JWT_SECRET=$JWT_SECRET|g" "$ENV_FILE"
+    # Atualizar DATABASE_URL completa
+    sed -i "s|DATABASE_URL=.*|DATABASE_URL=postgresql://openpanel:$POSTGRES_PASSWORD@localhost:5432/openpanel|g" "$ENV_FILE"
+    # Atualizar REDIS_URL completa
+    sed -i "s|REDIS_URL=.*|REDIS_URL=redis://:$REDIS_PASSWORD@localhost:6379|g" "$ENV_FILE"
 fi
 
 print_success "Arquivo .env configurado com credenciais"
+log_info "DATABASE_URL e REDIS_URL atualizados com senhas geradas"
 
 # Recarregar variáveis de ambiente
 if [ -f "$ENV_FILE" ]; then
