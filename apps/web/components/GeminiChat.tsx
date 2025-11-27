@@ -529,8 +529,8 @@ export const GeminiChat: React.FC = () => {
                 ref={buttonRef}
                 onClick={handleOpenToggle}
                 className={`fixed bottom-6 right-6 w-16 h-16 rounded-2xl transition-all duration-300 z-50 flex items-center justify-center group ${isOpen
-                    ? 'bg-slate-900 rotate-90 scale-90 text-white shadow-2xl'
-                    : 'bg-slate-900 border border-slate-700 hover:scale-110 active:scale-95'
+                    ? 'bg-primary rotate-90 scale-90 text-white shadow-2xl shadow-blue-200'
+                    : 'bg-primary border border-transparent hover:bg-blue-700 hover:scale-110 active:scale-95 shadow-lg shadow-blue-200'
                     }`}
                 style={{
                     transform: !isOpen
