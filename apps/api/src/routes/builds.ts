@@ -5,6 +5,7 @@ import { buildService } from '../services/build'
 import { gitService } from '../services/git'
 import { dockerService } from '../services/docker'
 import { prisma } from '../lib/prisma'
+import { logger, logError, logInfo, logWarn } from '../lib/logger'
 import type { Variables } from '../types'
 
 const builds = new Hono<{ Variables: Variables }>()
@@ -63,7 +64,7 @@ builds.post('/', zValidator('json', createBuildSchema), async (c) => {
     // If Git URL is provided, clone repo first
     let buildContext = data.context
     if (data.gitUrl && !buildContext) {
-      console.log(`Cloning repository: ${data.gitUrl}`)
+      logInfo('Cloning repository', { gitUrl: data.gitUrl, userId: (user as any).id })
       buildContext = await gitService.clone({
         url: data.gitUrl,
         branch: data.gitBranch || 'main',
@@ -89,7 +90,7 @@ builds.post('/', zValidator('json', createBuildSchema), async (c) => {
       201
     )
   } catch (error: any) {
-    console.error('Error creating build:', error)
+    logError('Error creating build', error, { userId: c.get('user')?.id })
     return c.json({ error: error.message }, 500)
   }
 })
@@ -131,7 +132,7 @@ builds.get('/:id', async (c) => {
 
     return c.json({ deployment })
   } catch (error: any) {
-    console.error('Error getting deployment:', error)
+    logError('Error getting deployment', error, { deploymentId: c.req.param('id'), userId: c.get('user')?.id })
     return c.json({ error: error.message }, 500)
   }
 })
@@ -177,7 +178,7 @@ builds.get('/project/:projectId', async (c) => {
       total: deployments.length,
     })
   } catch (error: any) {
-    console.error('Error listing deployments:', error)
+    logError('Error listing deployments', error, { projectId: c.req.param('projectId'), userId: c.get('user')?.id })
     return c.json({ error: error.message }, 500)
   }
 })
@@ -220,7 +221,7 @@ builds.post('/:id/rollback', async (c) => {
     }
 
     // Implement rollback logic
-    console.log(`Initiating rollback to deployment ${deployment.id}`)
+    logInfo('Initiating rollback', { deploymentId: deployment.id, projectId: deployment.projectId, userId: (user as any).id })
 
     // Create new deployment with rollback flag
     const newDeployment = await prisma.deployment.create({
@@ -245,7 +246,7 @@ builds.post('/:id/rollback', async (c) => {
           await dockerService.stopContainer(container.dockerId, 30)
           await dockerService.removeContainer(container.dockerId, true)
         } catch (error: any) {
-          console.warn(`Failed to remove container during rollback: ${error.message}`)
+          logWarn('Failed to remove container during rollback', { containerId: container.dockerId, error: error.message })
         }
       }
 
@@ -280,7 +281,7 @@ builds.post('/:id/rollback', async (c) => {
         },
       })
 
-      console.log(`Rollback completed successfully for deployment ${deployment.id}`)
+      logInfo('Rollback completed successfully', { deploymentId: deployment.id, newDeploymentId: newDeployment.id })
 
       return c.json({
         message: 'Rollback completed successfully',
@@ -300,7 +301,7 @@ builds.post('/:id/rollback', async (c) => {
       throw error
     }
   } catch (error: any) {
-    console.error('Error rolling back deployment:', error)
+    logError('Error rolling back deployment', error, { deploymentId: c.req.param('id'), userId: c.get('user')?.id })
     return c.json({ error: error.message }, 500)
   }
 })
@@ -330,7 +331,7 @@ builds.post('/detect', zValidator('json', detectProjectTypeSchema), async (c) =>
       },
     })
   } catch (error: any) {
-    console.error('Error detecting project type:', error)
+    logError('Error detecting project type', error, { userId: c.get('user')?.id })
     return c.json({ error: error.message }, 500)
   }
 })
@@ -379,7 +380,7 @@ builds.post('/webhooks/github', async (c) => {
       ...result,
     })
   } catch (error: any) {
-    console.error('Error handling GitHub webhook:', error)
+    logError('Error handling GitHub webhook', error)
     return c.json({ error: error.message }, 500)
   }
 })
@@ -423,7 +424,7 @@ builds.post('/webhooks/gitlab', async (c) => {
       ...result,
     })
   } catch (error: any) {
-    console.error('Error handling GitLab webhook:', error)
+    logError('Error handling GitLab webhook', error)
     return c.json({ error: error.message }, 500)
   }
 })
@@ -457,7 +458,7 @@ builds.post('/webhooks/bitbucket', async (c) => {
       ...result,
     })
   } catch (error: any) {
-    console.error('Error handling Bitbucket webhook:', error)
+    logError('Error handling Bitbucket webhook', error)
     return c.json({ error: error.message }, 500)
   }
 })
