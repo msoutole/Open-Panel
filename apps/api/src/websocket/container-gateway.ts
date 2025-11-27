@@ -10,6 +10,9 @@ interface WebSocketClient extends WebSocket {
   userId?: string
   containerId?: string
   isAlive: boolean
+  authenticated: boolean
+  messageCount: number
+  lastMessageTime: number
 }
 
 interface StreamSession {
@@ -62,17 +65,33 @@ export class ContainerWebSocketGateway {
     const client = ws as WebSocketClient
     client.id = this.generateClientId()
     client.isAlive = true
+    client.authenticated = false
+    client.messageCount = 0
+    client.lastMessageTime = Date.now()
 
     this.clients.set(client.id, client)
 
     logInfo('New container WebSocket client connected', { clientId: client.id })
 
-    // Send welcome message
+    // Send welcome message with authentication requirement
     this.sendToClient(client, {
       type: 'connected',
       clientId: client.id,
       timestamp: new Date().toISOString(),
+      message: 'Please authenticate within 30 seconds',
     })
+
+    // Force authentication within 30 seconds
+    setTimeout(() => {
+      if (!client.authenticated) {
+        logWarn('Client failed to authenticate within timeout', { clientId: client.id })
+        this.sendToClient(client, {
+          type: 'error',
+          message: 'Authentication timeout',
+        })
+        client.close()
+      }
+    }, 30000)
 
     // Setup event handlers
     client.on('pong', () => {
@@ -100,6 +119,23 @@ export class ContainerWebSocketGateway {
     try {
       const message = JSON.parse(data.toString())
 
+      // Rate limiting: max 100 messages per minute
+      const now = Date.now()
+      if (now - client.lastMessageTime < 60000) {
+        client.messageCount++
+        if (client.messageCount > 100) {
+          logWarn('Client exceeded rate limit', { clientId: client.id, userId: client.userId })
+          this.sendToClient(client, {
+            type: 'error',
+            message: 'Rate limit exceeded. Please slow down.',
+          })
+          return
+        }
+      } else {
+        client.messageCount = 0
+        client.lastMessageTime = now
+      }
+
       logInfo('WebSocket message received', { clientId: client.id, messageType: message.type })
 
       switch (message.type) {
@@ -108,18 +144,42 @@ export class ContainerWebSocketGateway {
           break
 
         case 'subscribe_logs':
+          if (!client.authenticated) {
+            return this.sendToClient(client, {
+              type: 'error',
+              message: 'Authentication required before subscribing to logs',
+            })
+          }
           await this.handleSubscribeLogs(client, message)
           break
 
         case 'unsubscribe_logs':
+          if (!client.authenticated) {
+            return this.sendToClient(client, {
+              type: 'error',
+              message: 'Authentication required',
+            })
+          }
           await this.handleUnsubscribeLogs(client, message)
           break
 
         case 'subscribe_stats':
+          if (!client.authenticated) {
+            return this.sendToClient(client, {
+              type: 'error',
+              message: 'Authentication required before subscribing to stats',
+            })
+          }
           await this.handleSubscribeStats(client, message)
           break
 
         case 'unsubscribe_stats':
+          if (!client.authenticated) {
+            return this.sendToClient(client, {
+              type: 'error',
+              message: 'Authentication required',
+            })
+          }
           await this.handleUnsubscribeStats(client, message)
           break
 
@@ -159,6 +219,7 @@ export class ContainerWebSocketGateway {
       // Verify JWT token
       const payload = verifyToken(token)
       client.userId = payload.userId
+      client.authenticated = true
 
       logInfo('Client authenticated', { clientId: client.id, userId: client.userId })
 
@@ -168,12 +229,13 @@ export class ContainerWebSocketGateway {
       })
     } catch (error: any) {
       logError('Authentication failed for client', new Error(error.message), { clientId: client.id })
+      client.authenticated = false
       this.sendToClient(client, {
         type: 'error',
         message: 'Authentication failed: Invalid or expired token',
       })
       // Close connection on authentication failure
-      client.close()
+      setTimeout(() => client.close(), 1000)
     }
   }
 
@@ -181,20 +243,64 @@ export class ContainerWebSocketGateway {
    * Handle subscribe to container logs
    */
   private async handleSubscribeLogs(client: WebSocketClient, message: any) {
-    // Check if client is authenticated
-    if (!client.userId) {
-      return this.sendToClient(client, {
-        type: 'error',
-        message: 'Authentication required',
-      })
-    }
-
     const { containerId } = message
 
     if (!containerId) {
       return this.sendToClient(client, {
         type: 'error',
         message: 'Container ID is required',
+      })
+    }
+
+    // Verify user has permission to access this container
+    try {
+      const container = await prisma.container.findFirst({
+        where: {
+          dockerId: containerId,
+        },
+        include: {
+          project: {
+            include: {
+              owner: true,
+              teamMembers: true,
+            },
+          },
+        },
+      })
+
+      if (!container) {
+        return this.sendToClient(client, {
+          type: 'error',
+          message: 'Container not found',
+        })
+      }
+
+      // Check if user is owner or team member
+      const isOwner = container.project.ownerId === client.userId
+      const isTeamMember = container.project.teamMembers.some(
+        (member: any) => member.userId === client.userId
+      )
+
+      if (!isOwner && !isTeamMember) {
+        logWarn('Unauthorized container access attempt', {
+          clientId: client.id,
+          userId: client.userId,
+          containerId,
+        })
+        return this.sendToClient(client, {
+          type: 'error',
+          message: 'Permission denied: You do not have access to this container',
+        })
+      }
+    } catch (error: any) {
+      logError('Error verifying container permissions', error, {
+        clientId: client.id,
+        userId: client.userId,
+        containerId,
+      })
+      return this.sendToClient(client, {
+        type: 'error',
+        message: 'Error verifying permissions',
       })
     }
 

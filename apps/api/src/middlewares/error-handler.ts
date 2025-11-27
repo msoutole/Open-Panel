@@ -1,200 +1,166 @@
-import { Context } from 'hono'
-import { HTTPException } from 'hono/http-exception'
-import { ZodError } from 'zod'
-import { Prisma } from '@prisma/client'
-import { logError, logWarn } from '../lib/logger'
+import type { Context } from 'hono'
+import { logError, logger } from '../lib/logger'
 
 /**
- * Tipos de erros customizados
+ * Standard error response format
+ */
+export interface ErrorResponse {
+  error: string
+  code: string
+  message: string
+  details?: any
+  timestamp: string
+  requestId?: string
+}
+
+/**
+ * Error codes for better error categorization
+ */
+export enum ErrorCode {
+  // Authentication & Authorization
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  FORBIDDEN = 'FORBIDDEN',
+  INVALID_TOKEN = 'INVALID_TOKEN',
+  TOKEN_EXPIRED = 'TOKEN_EXPIRED',
+
+  // Validation
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  INVALID_INPUT = 'INVALID_INPUT',
+  MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
+
+  // Resources
+  NOT_FOUND = 'NOT_FOUND',
+  ALREADY_EXISTS = 'ALREADY_EXISTS',
+  CONFLICT = 'CONFLICT',
+
+  // External Services
+  DOCKER_ERROR = 'DOCKER_ERROR',
+  DATABASE_ERROR = 'DATABASE_ERROR',
+  EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
+
+  // Rate Limiting
+  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
+
+  // Generic
+  INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
+  BAD_REQUEST = 'BAD_REQUEST',
+}
+
+/**
+ * Custom application error class
  */
 export class AppError extends Error {
   constructor(
     public message: string,
     public statusCode: number = 500,
-    public code?: string
+    public code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR,
+    public details?: any
   ) {
     super(message)
     this.name = 'AppError'
+    Error.captureStackTrace(this, this.constructor)
   }
 }
 
-export class ValidationError extends AppError {
-  constructor(message: string, public details?: any) {
-    super(message, 400, 'VALIDATION_ERROR')
-    this.name = 'ValidationError'
-  }
-}
+/**
+ * Create standardized error response
+ */
+function createErrorResponse(
+  error: Error | AppError,
+  context?: Context
+): ErrorResponse {
+  const isAppError = error instanceof AppError
+  const statusCode = isAppError ? error.statusCode : 500
+  const code = isAppError ? error.code : ErrorCode.INTERNAL_SERVER_ERROR
 
-export class UnauthorizedError extends AppError {
-  constructor(message: string = 'Unauthorized') {
-    super(message, 401, 'UNAUTHORIZED')
-    this.name = 'UnauthorizedError'
-  }
-}
+  // Don't expose internal errors in production
+  const message =
+    process.env.NODE_ENV === 'production' && statusCode === 500
+      ? 'An internal server error occurred'
+      : error.message
 
-export class ForbiddenError extends AppError {
-  constructor(message: string = 'Forbidden') {
-    super(message, 403, 'FORBIDDEN')
-    this.name = 'ForbiddenError'
-  }
-}
-
-export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found') {
-    super(message, 404, 'NOT_FOUND')
-    this.name = 'NotFoundError'
-  }
-}
-
-export class ConflictError extends AppError {
-  constructor(message: string) {
-    super(message, 409, 'CONFLICT')
-    this.name = 'ConflictError'
+  return {
+    error: error.name,
+    code,
+    message,
+    details: isAppError ? error.details : undefined,
+    timestamp: new Date().toISOString(),
+    requestId: context?.get('requestId'),
   }
 }
 
 /**
  * Global error handler middleware
  */
-export const errorHandler = (err: Error, c: Context) => {
-  const requestId = c.get('requestId')
+export function errorHandler(error: Error, c: Context) {
+  const isAppError = error instanceof AppError
+  const statusCode = isAppError ? error.statusCode : 500
 
   // Log error with context
-  logError('Error handler caught exception', err, {
-    requestId,
-    errorName: err.name,
-    path: c.req.path,
-    method: c.req.method,
-  })
-
-  // Hono HTTP Exception
-  if (err instanceof HTTPException) {
-    return c.json(
-      {
-        error: err.message,
-        code: 'HTTP_EXCEPTION',
-      },
-      err.status
-    )
+  if (statusCode >= 500) {
+    logError('Server error occurred', error, {
+      url: c.req.url,
+      method: c.req.method,
+      userId: c.get('user')?.id,
+      requestId: c.get('requestId'),
+      userAgent: c.req.header('user-agent'),
+    })
+  } else if (statusCode >= 400) {
+    logger.warn('Client error occurred', {
+      message: error.message,
+      code: isAppError ? error.code : ErrorCode.BAD_REQUEST,
+      url: c.req.url,
+      method: c.req.method,
+      userId: c.get('user')?.id,
+      requestId: c.get('requestId'),
+    })
   }
 
-  // Custom App Errors
-  if (err instanceof AppError) {
-    const response: any = {
-      error: err.message,
-      code: err.code,
-    }
+  // Return standardized error response
+  const response = createErrorResponse(error, c)
+  return c.json(response, statusCode)
+}
 
-    if (err instanceof ValidationError) {
-      response.details = err.details
-    }
-
-    return c.json(response, err.statusCode as any)
-  }
-
-  // Zod Validation Errors
-  if (err instanceof ZodError) {
-    return c.json(
-      {
-        error: 'Validation failed',
-        code: 'VALIDATION_ERROR',
-        details: (err as any).errors.map((e: any) => ({
-          path: e.path.join('.'),
-          message: e.message,
-        })),
-      } as any,
-      400
-    )
-  }
-
-  // Prisma Errors
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    // Unique constraint violation
-    if (err.code === 'P2002') {
-      const field = (err.meta?.target as string[])?.join(', ') || 'field'
-      return c.json(
-        {
-          error: `${field} already exists`,
-          code: 'DUPLICATE_ENTRY',
-        },
-        409
-      )
-    }
-
-    // Record not found
-    if (err.code === 'P2025') {
-      return c.json(
-        {
-          error: 'Record not found',
-          code: 'NOT_FOUND',
-        },
-        404
-      )
-    }
-
-    // Foreign key constraint
-    if (err.code === 'P2003') {
-      return c.json(
-        {
-          error: 'Related record not found',
-          code: 'FOREIGN_KEY_CONSTRAINT',
-        },
-        400
-      )
-    }
-
-    // Generic Prisma error
-    return c.json(
-      {
-        error: 'Database operation failed',
-        code: 'DATABASE_ERROR',
-        ...(process.env.NODE_ENV === 'development' && { details: err.message }),
-      },
-      500
-    )
-  }
-
-  if (err instanceof Prisma.PrismaClientValidationError) {
-    return c.json(
-      {
-        error: 'Invalid data provided',
-        code: 'VALIDATION_ERROR',
-      },
-      400
-    )
-  }
-
-  // JWT Errors
-  if (err.name === 'JsonWebTokenError') {
-    return c.json(
-      {
-        error: 'Invalid token',
-        code: 'INVALID_TOKEN',
-      },
-      401
-    )
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    return c.json(
-      {
-        error: 'Token expired',
-        code: 'TOKEN_EXPIRED',
-      },
-      401
-    )
-  }
-
-  // Default 500 error
-  return c.json(
-    {
-      error:
-        process.env.NODE_ENV === 'production'
-          ? 'Internal server error'
-          : err.message,
-      code: 'INTERNAL_SERVER_ERROR',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    },
-    500
+/**
+ * Not found handler
+ */
+export function notFoundHandler(c: Context) {
+  const error = new AppError(
+    \`Route \${c.req.method} \${c.req.path} not found\`,
+    404,
+    ErrorCode.NOT_FOUND
   )
+
+  return c.json(createErrorResponse(error, c), 404)
+}
+
+/**
+ * Helper functions to throw common errors
+ */
+export const throwUnauthorized = (message = 'Unauthorized access') => {
+  throw new AppError(message, 401, ErrorCode.UNAUTHORIZED)
+}
+
+export const throwForbidden = (message = 'Forbidden') => {
+  throw new AppError(message, 403, ErrorCode.FORBIDDEN)
+}
+
+export const throwNotFound = (resource: string) => {
+  throw new AppError(\`\${resource} not found\`, 404, ErrorCode.NOT_FOUND)
+}
+
+export const throwValidationError = (message: string, details?: any) => {
+  throw new AppError(message, 400, ErrorCode.VALIDATION_ERROR, details)
+}
+
+export const throwConflict = (message: string) => {
+  throw new AppError(message, 409, ErrorCode.CONFLICT)
+}
+
+export const throwBadRequest = (message: string) => {
+  throw new AppError(message, 400, ErrorCode.BAD_REQUEST)
+}
+
+export const throwRateLimitExceeded = (message = 'Rate limit exceeded') => {
+  throw new AppError(message, 429, ErrorCode.RATE_LIMIT_EXCEEDED)
 }
