@@ -95,9 +95,9 @@ services:
       - "8080:8080" # Dashboard
     volumes:
       - ./traefik-data:/letsencrypt
-      # Docker socket mounting
-      # Use DOCKER_SOCK env var that's set per platform in .env
-      - ${DOCKER_SOCK:-/var/run/docker.sock}:${DOCKER_SOCK:-/var/run/docker.sock}:ro
+      # Docker socket mounting (works on Linux/macOS/WSL2)
+      # Windows users should enable Docker's TCP socket at 2375 or use WSL2 backend
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - openpanel
     healthcheck:

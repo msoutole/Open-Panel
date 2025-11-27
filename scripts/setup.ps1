@@ -16,6 +16,17 @@ if (Test-Path $detectScript) {
     exit 1
 }
 
+# Windows-specific note
+if ($PSVersionTable.Platform -eq "Win32NT" -or $PSVersionTable.OS -like "*Windows*") {
+    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║  Windows Docker Desktop Detected                             ║" -ForegroundColor Cyan
+    Write-Host "║  For best results, please use WSL2 backend or enable TCP.    ║" -ForegroundColor Cyan
+    Write-Host "║  See SETUP_WINDOWS.md for detailed instructions.             ║" -ForegroundColor Cyan
+    Write-Host "╚════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+}
+
 # Verify prerequisites
 Write-Host "Verifying prerequisites..." -ForegroundColor Yellow
 

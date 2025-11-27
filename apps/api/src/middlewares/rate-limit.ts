@@ -1,7 +1,7 @@
 import { Context, Next } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { redis } from '../lib/redis'
-import { env } from '../lib/env'
+import { env, isDevelopment } from '../lib/env'
 import { logWarn } from '../lib/logger'
 
 /**
@@ -121,22 +121,24 @@ export function rateLimiter(config: Partial<RateLimitConfig> = {}) {
  */
 
 // Strict rate limiter for auth endpoints (prevent brute force)
+// In development, be much more permissive for testing
 export const authRateLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts
+  max: isDevelopment ? 1000 : 5, // 1000 attempts in dev, 5 in production
   message: 'Too many authentication attempts, please try again later',
 })
 
 // Standard rate limiter for API endpoints
+// In development, be more permissive
 export const apiRateLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests
+  max: isDevelopment ? 10000 : 100, // Much higher in development
 })
 
 // Relaxed rate limiter for public endpoints
 export const publicRateLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // 300 requests
+  max: isDevelopment ? 10000 : 300, // Much higher in development
 })
 
 // Strict rate limiter for webhook endpoints

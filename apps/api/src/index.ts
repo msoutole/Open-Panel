@@ -68,29 +68,38 @@ app.use(
   '*',
   cors({
     origin: (origin) => {
-      // In development, allow both localhost and 127.0.0.1
+      // In development, be permissive with localhost origins
+      if (isDevelopment) {
+        // Allow requests from any localhost variant
+        if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+          return origin || '*';
+        }
+      }
+
+      // In production, use configured origins
       const allowedOrigins = [
         'http://localhost:3000',
         'http://127.0.0.1:3000',
+        'http://localhost:3000/',
         env.CORS_ORIGIN,
       ].filter(Boolean);
-
-      // If no origin (e.g., Postman, curl), allow any in development
-      if (!origin && isDevelopment) {
-        return '*';
-      }
 
       // Check if origin is in allowed list and return it
       if (origin && allowedOrigins.includes(origin)) {
         return origin;
       }
 
-      // Deny all other origins by returning undefined
+      // In development, allow anyway; in production, deny
+      if (isDevelopment) {
+        return origin || '*';
+      }
+
+      // Deny unknown origins in production
       return undefined;
     },
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     exposeHeaders: ['Content-Length', 'X-Request-Id'],
     maxAge: 86400, // 24 hours
   })

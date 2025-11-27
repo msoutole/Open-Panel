@@ -10,28 +10,42 @@ $envFile = Join-Path $projectRoot ".env"
 # Detect OS
 $platform = "windows"
 $dockerSock = "//./pipe/docker_engine"
+$dockerSockTarget = "/var/run/docker.sock"
 
 Write-Host "Detected Platform: $platform" -ForegroundColor Green
-Write-Host "Docker Socket: $dockerSock" -ForegroundColor Green
+Write-Host "Docker Socket (Host): $dockerSock" -ForegroundColor Green
+Write-Host "Docker Socket (Target): $dockerSockTarget" -ForegroundColor Green
 
-# Update .env file with DOCKER_SOCK value
+# Update .env file with DOCKER_SOCK values
 if (Test-Path $envFile) {
-    # Read the entire file
-    $envContent = Get-Content $envFile -Raw
+    # Read lines from file
+    $envLines = @(Get-Content $envFile)
+    $foundSock = $false
+    $foundTarget = $false
 
-    # Check if DOCKER_SOCK is already in the file
-    if ($envContent -match "^DOCKER_SOCK=") {
-        # Replace existing value
-        $envContent = $envContent -replace "^DOCKER_SOCK=.*$", "DOCKER_SOCK=$dockerSock"
-        Write-Host "✓ Updated DOCKER_SOCK in .env" -ForegroundColor Green
-    } else {
-        # The variable should already exist, but just in case
-        $envContent += "`nDOCKER_SOCK=$dockerSock"
-        Write-Host "✓ Added DOCKER_SOCK to .env" -ForegroundColor Green
+    # Find and replace DOCKER_SOCK and DOCKER_SOCK_TARGET lines
+    for ($i = 0; $i -lt $envLines.Count; $i++) {
+        if ($envLines[$i] -match "^DOCKER_SOCK=" -and $envLines[$i] -notmatch "DOCKER_SOCK_TARGET") {
+            $envLines[$i] = "DOCKER_SOCK=$dockerSock"
+            $foundSock = $true
+        }
+        elseif ($envLines[$i] -match "^DOCKER_SOCK_TARGET=") {
+            $envLines[$i] = "DOCKER_SOCK_TARGET=$dockerSockTarget"
+            $foundTarget = $true
+        }
+    }
+
+    # If not found, append them
+    if (-not $foundSock) {
+        $envLines += "DOCKER_SOCK=$dockerSock"
+    }
+    if (-not $foundTarget) {
+        $envLines += "DOCKER_SOCK_TARGET=$dockerSockTarget"
     }
 
     # Write back to file
-    Set-Content -Path $envFile -Value $envContent -Encoding UTF8
+    Set-Content -Path $envFile -Value $envLines -Encoding UTF8
+    Write-Host "✓ Updated Docker socket configuration in .env" -ForegroundColor Green
 
 } else {
     Write-Host "✗ .env file not found. Please create it from .env.example first." -ForegroundColor Red
