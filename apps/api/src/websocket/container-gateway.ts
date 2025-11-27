@@ -3,6 +3,7 @@ import type { Server } from 'http'
 import { dockerService } from '../services/docker'
 import { prisma } from '../lib/prisma'
 import { verifyToken } from '../lib/jwt'
+import { logger, logError, logInfo, logWarn } from '../lib/logger'
 
 interface WebSocketClient extends WebSocket {
   id: string
@@ -34,7 +35,7 @@ export class ContainerWebSocketGateway {
       path: '/ws/containers',
     })
 
-    console.log('🔌 Container WebSocket Gateway initialized')
+    logInfo('Container WebSocket Gateway initialized')
 
     // Setup connection handler
     this.wss.on('connection', this.handleConnection.bind(this))
@@ -44,7 +45,7 @@ export class ContainerWebSocketGateway {
       this.wss.clients.forEach((ws) => {
         const client = ws as WebSocketClient
         if (!client.isAlive) {
-          console.log(`🔌 Terminating dead client: ${client.id}`)
+          logWarn('Terminating dead WebSocket client', { clientId: client.id })
           return client.terminate()
         }
 
@@ -64,7 +65,7 @@ export class ContainerWebSocketGateway {
 
     this.clients.set(client.id, client)
 
-    console.log(`🔌 New container WebSocket client connected: ${client.id}`)
+    logInfo('New container WebSocket client connected', { clientId: client.id })
 
     // Send welcome message
     this.sendToClient(client, {
@@ -87,7 +88,7 @@ export class ContainerWebSocketGateway {
     })
 
     client.on('error', (error) => {
-      console.error(`🔌 WebSocket error for client ${client.id}:`, error)
+      logError('WebSocket error for client', error, { clientId: client.id })
       this.handleDisconnect(client)
     })
   }
@@ -99,7 +100,7 @@ export class ContainerWebSocketGateway {
     try {
       const message = JSON.parse(data.toString())
 
-      console.log(`🔌 Message from ${client.id}:`, message.type)
+      logInfo('WebSocket message received', { clientId: client.id, messageType: message.type })
 
       switch (message.type) {
         case 'auth':
@@ -133,7 +134,7 @@ export class ContainerWebSocketGateway {
           })
       }
     } catch (error: any) {
-      console.error(`🔌 Error handling message from ${client.id}:`, error)
+      logError('Error handling WebSocket message', error, { clientId: client.id })
       this.sendToClient(client, {
         type: 'error',
         message: error.message,
@@ -159,14 +160,14 @@ export class ContainerWebSocketGateway {
       const payload = verifyToken(token)
       client.userId = payload.userId
 
-      console.log(`🔌 Client ${client.id} authenticated as user ${client.userId}`)
+      logInfo('Client authenticated', { clientId: client.id, userId: client.userId })
 
       this.sendToClient(client, {
         type: 'authenticated',
         userId: client.userId,
       })
     } catch (error: any) {
-      console.error(`🔌 Authentication failed for client ${client.id}:`, error.message)
+      logError('Authentication failed for client', new Error(error.message), { clientId: client.id })
       this.sendToClient(client, {
         type: 'error',
         message: 'Authentication failed: Invalid or expired token',
@@ -247,7 +248,7 @@ export class ContainerWebSocketGateway {
         session.stream = stream
         this.logStreams.set(containerId, session)
 
-        console.log(`🔌 Started log stream for container: ${containerId}`)
+        logInfo('Started log stream for container', { containerId })
       } catch (error: any) {
         return this.sendToClient(client, {
           type: 'error',
@@ -286,7 +287,7 @@ export class ContainerWebSocketGateway {
         session.stream.destroy()
       }
       this.logStreams.delete(containerId)
-      console.log(`🔌 Stopped log stream for container: ${containerId}`)
+      logInfo('Stopped log stream for container', { containerId })
     }
 
     this.sendToClient(client, {
@@ -348,7 +349,7 @@ export class ContainerWebSocketGateway {
           timestamp: new Date().toISOString(),
         })
       } catch (error: any) {
-        console.error(`Error getting stats for ${containerId}:`, error)
+        logError('Error getting stats for container', error, { containerId })
         // Don't send error to avoid spam, just log it
       }
     }, interval)
@@ -387,7 +388,7 @@ export class ContainerWebSocketGateway {
    * Handle client disconnect
    */
   private handleDisconnect(client: WebSocketClient) {
-    console.log(`🔌 Client disconnected: ${client.id}`)
+    logInfo('Client disconnected', { clientId: client.id, userId: client.userId })
 
     // Remove from clients map
     this.clients.delete(client.id)
@@ -459,7 +460,7 @@ export class ContainerWebSocketGateway {
    * Close WebSocket server
    */
   close() {
-    console.log('🔌 Closing Container WebSocket Gateway...')
+    logInfo('Closing Container WebSocket Gateway')
 
     // Clear heartbeat
     clearInterval(this.heartbeatInterval)
@@ -487,7 +488,7 @@ export class ContainerWebSocketGateway {
     // Close WebSocket server
     this.wss.close()
 
-    console.log('✅ Container WebSocket Gateway closed')
+    logInfo('Container WebSocket Gateway closed')
   }
 
   /**
