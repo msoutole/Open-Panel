@@ -1,3 +1,233 @@
+#!/usr/bin/env pwsh
+
+# OpenPanel setup script for Windows (PowerShell Core / Windows PowerShell)
+Write-Host "========================================"
+Write-Host "  OpenPanel Setup"
+Write-Host "========================================"
+
+Write-Host "Checking prerequisites..."
+
+function ExitWithMessage($msg) {
+    Write-Host $msg -ForegroundColor Red
+    exit 1
+}
+
+# Node.js check
+try {
+    $nodeVersion = node --version
+    Write-Host "Node.js installed: $nodeVersion"
+} catch {
+    ExitWithMessage "Node.js not found. Please install Node.js and try again."
+}
+
+# Docker check
+try {
+    $dockerVersion = docker --version
+    Write-Host "Docker installed: $dockerVersion"
+} catch {
+    ExitWithMessage "Docker not found. Please install Docker and try again."
+}
+
+# Docker running
+try {
+    $dockerInfo = docker info 2>$null
+    Write-Host "Docker is running."
+} catch {
+    ExitWithMessage "Docker is not running. Please start Docker and try again."
+}
+
+# Ensure .env exists
+if (-not (Test-Path -Path ".env")) {
+    Write-Host ".env file not found. Creating from .env.example..."
+    if (Test-Path -Path ".env.example") {
+        Copy-Item -Path ".env.example" -Destination ".env"
+        Write-Host ".env created." -ForegroundColor Green
+    } else {
+        Write-Host "Warning: .env.example not found; a .env file was not created." -ForegroundColor Yellow
+    }
+} else {
+    Write-Host ".env already exists." -ForegroundColor Green
+}
+
+# Install dependencies
+Write-Host "Installing dependencies..."
+try {
+    npm install --silent
+    Write-Host "Dependencies installed." -ForegroundColor Green
+} catch {
+    ExitWithMessage "Failed to run npm install." 
+}
+
+# Start Docker services
+Write-Host "Starting Docker services..."
+try {
+    docker-compose up -d
+    Write-Host "Docker services started (detached)." -ForegroundColor Green
+} catch {
+    ExitWithMessage "Failed to start Docker services with docker-compose up -d."
+}
+
+# Wait for services to become healthy
+Write-Host "Waiting for critical containers to become healthy..."
+$services = @("openpanel-postgres", "openpanel-redis", "openpanel-traefik")
+foreach ($svc in $services) {
+    $retry = 0
+    $maxRetries = 60
+    $healthy = $false
+    while (-not $healthy -and $retry -lt $maxRetries) {
+        try {
+            $health = docker inspect --format='{{.State.Health.Status}}' $svc 2>$null
+        } catch {
+            $health = $null
+        }
+        if ($health -eq 'healthy') {
+            Write-Host "$svc is healthy." -ForegroundColor Green
+            $healthy = $true
+            break
+        }
+        Start-Sleep -Seconds 2
+        $retry++
+        Write-Host "Waiting $svc... ($retry/$maxRetries)" -ForegroundColor Yellow
+    }
+    if (-not $healthy) {
+        ExitWithMessage "Container $svc did not become healthy in time."
+    }
+}
+
+# Run database tasks
+Write-Host "Setting up the database (Prisma)..."
+try {
+    npm run db:generate
+    npm run db:push
+    Write-Host "Database ready." -ForegroundColor Green
+} catch {
+    ExitWithMessage "Database setup failed. Check Prisma and database connectivity."
+}
+
+Write-Host "========================================"
+Write-Host "Setup complete!"
+Write-Host "========================================"
+Write-Host "Web Interface: http://localhost:3000"
+Write-Host "API Endpoint:  http://localhost:3001"
+Write-Host "Traefik:        http://localhost:8080"
+Write-Host "========================================"
+
+Write-Host "If you need to start dev servers, run: npm run dev" -ForegroundColor Cyan
+#!/usr/bin/env pwsh
+
+# OpenPanel setup script for Windows (PowerShell Core / PowerShell)
+Write-Host "========================================"
+Write-Host "  OpenPanel Setup"
+Write-Host "========================================"
+
+Write-Host "Checking prerequisites..."
+
+function ExitWithMessage($msg) {
+    Write-Host $msg -ForegroundColor Red
+    exit 1
+}
+
+# Node.js check
+try {
+    $nodeVersion = node --version
+    Write-Host "Node.js installed: $nodeVersion"
+} catch {
+    ExitWithMessage "Node.js not found. Please install Node.js and try again."
+}
+
+# Docker check
+try {
+    $dockerVersion = docker --version
+    Write-Host "Docker installed: $dockerVersion"
+} catch {
+    ExitWithMessage "Docker not found. Please install Docker and try again."
+}
+
+# Docker running
+try {
+    $dockerInfo = docker info 2>$null
+    Write-Host "Docker is running."
+} catch {
+    ExitWithMessage "Docker is not running. Please start Docker and try again."
+}
+
+# Ensure .env exists
+if (-not (Test-Path -Path ".env")) {
+    Write-Host ".env file not found. Creating from .env.example..."
+    if (Test-Path -Path ".env.example") {
+        Copy-Item -Path ".env.example" -Destination ".env"
+        Write-Host ".env created." -ForegroundColor Green
+    } else {
+        Write-Host "Warning: .env.example not found; a .env file was not created." -ForegroundColor Yellow
+    }
+} else {
+    Write-Host ".env already exists." -ForegroundColor Green
+}
+
+# Install dependencies
+Write-Host "Installing dependencies..."
+try {
+    npm install --silent
+    Write-Host "Dependencies installed." -ForegroundColor Green
+} catch {
+    ExitWithMessage "Failed to run npm install." 
+}
+
+# Start Docker services
+Write-Host "Starting Docker services..."
+try {
+    docker-compose up -d
+    Write-Host "Docker services started (detached)." -ForegroundColor Green
+} catch {
+    ExitWithMessage "Failed to start Docker services with docker-compose up -d."
+}
+
+# Wait for services to become healthy
+Write-Host "Waiting for critical containers to become healthy..."
+$services = @("openpanel-postgres", "openpanel-redis", "openpanel-traefik")
+foreach ($svc in $services) {
+    $retry = 0
+    $maxRetries = 60
+    $healthy = $false
+    while (-not $healthy -and $retry -lt $maxRetries) {
+        try {
+            $health = docker inspect --format='{{.State.Health.Status}}' $svc 2>$null
+        } catch {
+            $health = $null
+        }
+        if ($health -eq 'healthy') {
+            Write-Host "$svc is healthy." -ForegroundColor Green
+            $healthy = $true
+            break
+        }
+        Start-Sleep -Seconds 2
+        $retry++
+        Write-Host "Waiting $svc... ($retry/$maxRetries)" -ForegroundColor Yellow
+    }
+    if (-not $healthy) {
+        ExitWithMessage "Container $svc did not become healthy in time."
+    }
+}
+
+# Run database tasks
+Write-Host "Setting up the database (Prisma)..."
+try {
+    npm run db:generate
+    npm run db:push
+    Write-Host "Database ready." -ForegroundColor Green
+} catch {
+    ExitWithMessage "Database setup failed. Check Prisma and database connectivity."
+}
+
+Write-Host "========================================"
+Write-Host "Setup complete!"
+Write-Host "========================================"
+Write-Host "Web Interface: http://localhost:3000"
+Write-Host "API Endpoint:  http://localhost:3001"
+Write-Host "Traefik:        http://localhost:8080"
+Write-Host "========================================"
+
+Write-Host "If you need to start dev servers, run: npm run dev" -ForegroundColor Cyan
 # Script de setup do OpenPanel para Windows
 
 Write-Host "========================================" -ForegroundColor Green
