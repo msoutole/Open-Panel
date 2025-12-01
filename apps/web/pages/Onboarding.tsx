@@ -288,21 +288,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-8 md:p-10">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-3xl bg-card rounded-2xl shadow-xl border border-border p-8 md:p-10">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1" />
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl">
-              <Sparkles size={32} className="text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-md">
+              <Sparkles size={32} strokeWidth={2} className="text-white" />
             </div>
             <div className="flex-1 flex justify-end">
               <LanguageSelector variant="dropdown" showLabel={false} />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{LL.onboarding.title()}</h1>
-          <p className="text-gray-600">{LL.onboarding.subtitle()}</p>
+          <h1 className="text-3xl font-bold text-textPrimary mb-2">{LL.onboarding.title()}</h1>
+          <p className="text-textSecondary">{LL.onboarding.subtitle()}</p>
         </div>
 
         {/* Progress */}
@@ -310,19 +310,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           {[1, 2, 3].map((s) => (
             <React.Fragment key={s}>
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                step >= s ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'
+                step >= s ? 'bg-primary text-white' : 'bg-slate-200 text-textSecondary'
               } font-semibold transition-all`}>
                 {step > s ? <Check size={20} /> : s}
               </div>
-              {s < 3 && <div className={`w-12 md:w-16 h-1 ${step > s ? 'bg-blue-500' : 'bg-gray-200'} transition-all`} />}
+              {s < 3 && <div className={`w-12 md:w-16 h-1 ${step > s ? 'bg-primary' : 'bg-slate-200'} transition-all`} />}
             </React.Fragment>
           ))}
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-            <AlertCircle size={20} className="text-red-600 shrink-0 mt-0.5" />
-            <span className="text-red-700 text-sm">{error}</span>
+          <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg flex items-start gap-3">
+            <AlertCircle size={20} strokeWidth={2} className="text-error shrink-0 mt-0.5" />
+            <span className="text-error text-sm">{error}</span>
           </div>
         )}
 
@@ -330,14 +330,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Palette size={24} /> {LL.onboarding.step1.title()}
+              <h2 className="text-xl font-semibold text-textPrimary mb-4 flex items-center gap-2">
+                <Palette size={24} strokeWidth={1.5} /> {LL.onboarding.step1.title()}
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => setTheme('light')}
                   className={`p-6 border-2 rounded-xl transition-all ${
-                    theme === 'light' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                    theme === 'light' ? 'border-primary bg-primary/10' : 'border-border hover:border-textSecondary'
                   }`}
                 >
                   <div className="text-4xl mb-2">{LL.onboarding.step1.lightEmoji()}</div>
@@ -346,7 +346,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 <button
                   onClick={() => setTheme('dark')}
                   className={`p-6 border-2 rounded-xl transition-all ${
-                    theme === 'dark' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                    theme === 'dark' ? 'border-primary bg-primary/10' : 'border-border hover:border-textSecondary'
                   }`}
                 >
                   <div className="text-4xl mb-2">{LL.onboarding.step1.darkEmoji()}</div>
@@ -356,7 +356,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </div>
             <button
               onClick={() => setStep(2)}
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all"
+              className="w-full py-3 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-primary/20"
             >
               {LL.common.next()}
             </button>
@@ -367,8 +367,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {step === 2 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <Key size={24} /> {LL.onboarding.step2.title()}
+              <h2 className="text-xl font-semibold text-textPrimary mb-2 flex items-center gap-2">
+                <Key size={24} strokeWidth={1.5} /> {LL.onboarding.step2.title()}
               </h2>
               <p className="text-sm text-gray-600 mb-4">
                 {LL.onboarding.step2.subtitle()}
@@ -376,13 +376,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
               <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                 {AI_PROVIDERS.map((provider) => (
-                  <div key={provider.id} className="border rounded-lg p-4 bg-gray-50">
+                  <div key={provider.id} className="border border-border rounded-lg p-4 bg-background">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <span className="text-3xl">{provider.icon}</span>
                         <div>
-                          <h3 className="font-semibold text-gray-800">{provider.name}</h3>
-                          <p className="text-sm text-gray-600">{provider.description}</p>
+                          <h3 className="font-semibold text-textPrimary">{provider.name}</h3>
+                          <p className="text-sm text-textSecondary">{provider.description}</p>
                         </div>
                       </div>
                       {selectedProviders[provider.id]?.validated && (
@@ -406,18 +406,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                           <button
                             onClick={() => validateProvider(provider.id)}
                             disabled={!selectedProviders[provider.id]?.apiKey || validating === provider.id}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/20"
                           >
-                            {validating === provider.id && <Loader2 size={16} className="animate-spin" />}
+                            {validating === provider.id && <Loader2 size={16} strokeWidth={2} className="animate-spin" />}
                             {LL.onboarding.step2.validate()}
                           </button>
                           <a
                             href={provider.helpUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-500 hover:underline flex items-center gap-1"
+                            className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
                           >
-                            {provider.helpText} <ExternalLink size={14} />
+                            {provider.helpText} <ExternalLink size={14} strokeWidth={1.5} />
                           </a>
                         </div>
                       </div>
@@ -438,7 +438,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                         <button
                           onClick={() => validateProvider(provider.id)}
                           disabled={validating === provider.id}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2 text-sm"
+                          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/20"
                         >
                           {validating === provider.id && <Loader2 size={16} className="animate-spin" />}
                           {LL.onboarding.step2.validateConnection()}
@@ -502,7 +502,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               <button
                 onClick={() => setStep(3)}
                 disabled={Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length === 0 || !defaultProvider}
-                className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary/20"
               >
                 {LL.common.next()}
               </button>
@@ -514,8 +514,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                <Lock size={24} /> {LL.onboarding.step3.title()}
+              <h2 className="text-xl font-semibold text-textPrimary mb-2 flex items-center gap-2">
+                <Lock size={24} strokeWidth={1.5} /> {LL.onboarding.step3.title()}
               </h2>
               <p className="text-sm text-gray-600 mb-4">
                 {LL.onboarding.step3.subtitle()}
@@ -551,18 +551,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
                 {/* Password Strength Indicator */}
                 {newPassword && (
-                  <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+                  <div className="mt-4 p-4 bg-background border border-border rounded-lg space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">{LL.onboarding.step3.passwordStrength()}</span>
+                      <span className="text-sm font-medium text-textPrimary">{LL.onboarding.step3.passwordStrength()}</span>
                       <div className="flex items-center gap-2">
                         {passwordStrength.icon && React.createElement(passwordStrength.icon, {
                           size: 20,
-                          className: passwordStrength.score <= 2 ? 'text-red-500' : passwordStrength.score <= 3 ? 'text-yellow-500' : 'text-green-500'
+                          className: passwordStrength.score <= 2 ? 'text-error' : passwordStrength.score <= 3 ? 'text-warning' : 'text-success'
                         })}
                         <span className={`text-sm font-semibold ${
-                          passwordStrength.score <= 2 ? 'text-red-600' :
-                          passwordStrength.score <= 3 ? 'text-yellow-600' :
-                          'text-green-600'
+                          passwordStrength.score <= 2 ? 'text-error' :
+                          passwordStrength.score <= 3 ? 'text-warning' :
+                          'text-success'
                         }`}>
                           {passwordStrength.label}
                         </span>
@@ -570,7 +570,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                       <div
                         className={`h-full transition-all duration-300 ${passwordStrength.color}`}
                         style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
@@ -579,24 +579,24 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
                     {/* Requirements Checklist */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      <div className={`flex items-center gap-2 ${newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
-                        {newPassword.length >= 8 ? <Check size={14} /> : <AlertCircle size={14} />}
+                      <div className={`flex items-center gap-2 ${newPassword.length >= 8 ? 'text-success' : 'text-textSecondary'}`}>
+                        {newPassword.length >= 8 ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
                         <span>{LL.onboarding.step3.requirements.minLength()}</span>
                       </div>
-                      <div className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
-                        {/[A-Z]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                      <div className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                        {/[A-Z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
                         <span>{LL.onboarding.step3.requirements.uppercase()}</span>
                       </div>
-                      <div className={`flex items-center gap-2 ${/[a-z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
-                        {/[a-z]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                      <div className={`flex items-center gap-2 ${/[a-z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                        {/[a-z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
                         <span>{LL.onboarding.step3.requirements.lowercase()}</span>
                       </div>
-                      <div className={`flex items-center gap-2 ${/[0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
-                        {/[0-9]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                      <div className={`flex items-center gap-2 ${/[0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                        {/[0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
                         <span>{LL.onboarding.step3.requirements.number()}</span>
                       </div>
-                      <div className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
-                        {/[^A-Za-z0-9]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
+                      <div className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                        {/[^A-Za-z0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
                         <span>{LL.onboarding.step3.requirements.special()}</span>
                       </div>
                     </div>
@@ -604,8 +604,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 )}
               </div>
 
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-800" dangerouslySetInnerHTML={{ __html: LL.onboarding.step3.warning() }} />
+              <div className="mt-4 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                <p className="text-sm text-warning" dangerouslySetInnerHTML={{ __html: LL.onboarding.step3.warning() }} />
               </div>
             </div>
 
@@ -619,16 +619,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               <button
                 onClick={handleComplete}
                 disabled={isLoading || !isFormValid}
-                className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/20"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 size={20} className="animate-spin" />
+                    <Loader2 size={20} strokeWidth={2} className="animate-spin" />
                     {LL.onboarding.completing()}
                   </>
                 ) : (
                   <>
-                    <Check size={20} />
+                    <Check size={20} strokeWidth={2} />
                     {LL.onboarding.complete()}
                   </>
                 )}
@@ -638,8 +638,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         )}
 
         {/* Footer */}
-        <div className="mt-8 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
-          <p>{LL.onboarding.footer()}</p>
+        <div className="mt-8 pt-6 border-t border-border text-center text-xs text-textSecondary">
+          <p>© 2024 Soullabs. {LL.onboarding.footer()}</p>
         </div>
       </div>
     </div>
