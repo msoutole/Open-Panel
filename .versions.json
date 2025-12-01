@@ -1,0 +1,222 @@
+{
+  "version": "0.1.0",
+  "name": "OpenPanel",
+  "description": "Modern self-hosted server control panel with AI-powered assistance",
+  "requirements": {
+    "runtime": {
+      "node": {
+        "min": "18.0.0",
+        "recommended": "20.11.0",
+        "type": "required"
+      },
+      "npm": {
+        "min": "10.0.0",
+        "recommended": "10.4.0",
+        "type": "required"
+      },
+      "python": {
+        "min": "3.7.0",
+        "recommended": "3.11.0",
+        "type": "optional",
+        "note": "Only needed for install.py script"
+      }
+    },
+    "services": {
+      "docker": {
+        "min": "20.10.0",
+        "recommended": "24.0.0",
+        "type": "required"
+      },
+      "docker-compose": {
+        "min": "2.0.0",
+        "recommended": "2.24.0",
+        "type": "required"
+      },
+      "postgresql": {
+        "version": "16.0",
+        "type": "containerized",
+        "image": "ankane/pgvector:v0.5.1"
+      },
+      "redis": {
+        "version": "7.2",
+        "type": "containerized",
+        "image": "redis:7-alpine"
+      },
+      "ollama": {
+        "version": "latest",
+        "type": "containerized-optional",
+        "image": "ollama/ollama:latest",
+        "note": "Optional for AI features"
+      },
+      "traefik": {
+        "version": "3.0",
+        "type": "containerized",
+        "image": "traefik:v3.0"
+      }
+    }
+  },
+  "dependencies": {
+    "api": {
+      "hono": "^4.10.4",
+      "prisma": "^6.19.0",
+      "@prisma/client": "^6.19.0",
+      "dockerode": "^4.0.9",
+      "bullmq": "^5.63.0",
+      "ioredis": "^5.8.2",
+      "winston": "^3.18.3"
+    },
+    "web": {
+      "react": "^19.2.0",
+      "vite": "^6.2.0",
+      "@google/genai": "^1.30.0",
+      "@xterm/xterm": "^5.5.0"
+    },
+    "shared": {
+      "zod": "^4.1.12",
+      "typescript": "^5.7.2"
+    }
+  },
+  "ports": {
+    "api": 3001,
+    "web": 3000,
+    "postgres": 5432,
+    "redis": 6379,
+    "ollama": 11434,
+    "traefik": {
+      "http": 80,
+      "https": 443,
+      "dashboard": 8080
+    }
+  },
+  "installation": {
+    "scripts": {
+      "linux_macos": "install.sh",
+      "windows": "install.ps1",
+      "cross_platform": "install.py"
+    },
+    "methods": [
+      {
+        "name": "Automated (Linux/macOS)",
+        "command": "./install.sh",
+        "description": "Full automated installation with all dependencies"
+      },
+      {
+        "name": "Automated (Windows)",
+        "command": ".\\install.ps1",
+        "description": "Full automated installation via PowerShell (requires Admin)"
+      },
+      {
+        "name": "Cross-Platform (Python)",
+        "command": "python install.py",
+        "description": "Lightweight installation script (requires Python 3.7+)"
+      },
+      {
+        "name": "Manual Setup",
+        "command": "./setup.sh",
+        "description": "Manual setup (requires Docker pre-installed)"
+      }
+    ]
+  },
+  "update": {
+    "command": {
+      "linux_macos": "./install.sh --update",
+      "windows": ".\\install.ps1 -Update",
+      "python": "python install.py --update"
+    },
+    "safe_to_update": [
+      "dependencies",
+      "docker_images",
+      "configuration"
+    ],
+    "backup_before_update": [
+      ".env",
+      "apps/web/.env.local",
+      "database (via backup command)"
+    ]
+  },
+  "compatibility": {
+    "os": {
+      "linux": {
+        "distributions": [
+          "Ubuntu 20.04+",
+          "Debian 11+",
+          "Fedora 36+",
+          "CentOS Stream 9+",
+          "Arch Linux",
+          "Alpine Linux 3.17+"
+        ],
+        "package_managers": [
+          "apt",
+          "dnf",
+          "pacman",
+          "apk"
+        ]
+      },
+      "macos": {
+        "versions": [
+          "macOS 11 (Big Sur)+",
+          "macOS 12 (Monterey)",
+          "macOS 13 (Ventura)",
+          "macOS 14 (Sonoma)"
+        ],
+        "package_manager": "homebrew"
+      },
+      "windows": {
+        "versions": [
+          "Windows 10 (1809+)",
+          "Windows 11",
+          "Windows Server 2019+",
+          "Windows Server 2022"
+        ],
+        "package_manager": "chocolatey",
+        "requirements": [
+          "PowerShell 5.1+",
+          "WSL2 (recommended)"
+        ]
+      }
+    },
+    "architectures": [
+      "x86_64 (amd64)",
+      "arm64 (Apple Silicon, ARM servers)"
+    ]
+  },
+  "troubleshooting": {
+    "common_issues": {
+      "prisma_checksum": {
+        "error": "Failed to fetch sha256 checksum",
+        "solution": "Set PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1",
+        "command": "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npm run db:generate"
+      },
+      "docker_not_running": {
+        "error": "Cannot connect to Docker daemon",
+        "solution": "Start Docker service",
+        "commands": {
+          "linux": "sudo systemctl start docker",
+          "macos": "open -a Docker",
+          "windows": "Start Docker Desktop from Start Menu"
+        }
+      },
+      "port_in_use": {
+        "error": "EADDRINUSE: address already in use",
+        "solution": "Change port in .env or kill process using port",
+        "commands": {
+          "linux_macos": "lsof -i :<port> | grep LISTEN | awk '{print $2}' | xargs kill -9",
+          "windows": "netstat -ano | findstr :<port> && taskkill /PID <PID> /F"
+        }
+      }
+    }
+  },
+  "links": {
+    "repository": "https://github.com/msoutole/openpanel",
+    "documentation": "https://github.com/msoutole/openpanel/blob/main/SETUP_GUIDE.md",
+    "issues": "https://github.com/msoutole/openpanel/issues",
+    "releases": "https://github.com/msoutole/openpanel/releases",
+    "docker_hub": "https://hub.docker.com/r/openpanel/openpanel"
+  },
+  "metadata": {
+    "last_updated": "2025-11-26",
+    "license": "MIT",
+    "author": "Matheus Souto Leal <msoutole@hotmail.com>",
+    "contributors": []
+  }
+}

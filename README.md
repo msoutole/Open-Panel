@@ -15,6 +15,47 @@
 
 ---
 
+## 🚀 Quick Start
+
+### ⚡ Automated Installation (Recommended)
+
+OpenPanel provides **100% automated installation** for all platforms:
+
+#### Linux / macOS
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+#### Windows (PowerShell as Administrator)
+```powershell
+.\install.ps1
+```
+
+#### Cross-Platform (Python 3.7+)
+```bash
+python install.py
+```
+
+**Features:**
+- ✅ Auto-installs all dependencies (Node.js, Docker, etc.)
+- ✅ Configures environment automatically
+- ✅ Sets up database and services
+- ✅ Verifies installation
+
+**Options:**
+```bash
+# Update existing installation
+./install.sh --update        # Linux/macOS
+.\install.ps1 -Update        # Windows
+python install.py --update   # Cross-platform
+
+# Development mode
+./install.sh --dev           # Skip production configs
+```
+
+📖 **Full installation guide:** See [INSTALL.md](INSTALL.md) for detailed instructions.
+
 ## Overview
 
 OpenPanel is a privacy-first, AI-powered server control panel for managing Docker containers, deployments, and infrastructure. Built as a modern monorepo with TypeScript, it offers an intuitive interface for DevOps and server management.
@@ -75,7 +116,9 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 - **Validation**: Zod schemas
 - **Monorepo**: npm workspaces
 
-## Quick Start
+## 📖 Manual Installation
+
+If you prefer manual installation or want more control:
 
 ### Prerequisites
 
