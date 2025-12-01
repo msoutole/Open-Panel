@@ -152,5 +152,5 @@ cp TEMPLATE.md <new-domain>.md
 
 **Princípio Fundamental**: Se você abrir um arquivo de domínio e ainda precisar abrir outro arquivo para entender o contexto, a documentação está incompleta.
 
-**Última Atualização**: 2025-11-26
+**Última Atualização**: 2025-01-27
 

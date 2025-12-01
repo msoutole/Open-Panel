@@ -23,18 +23,18 @@ OpenPanel provides **100% automated installation** for all platforms:
 
 #### Linux / macOS
 ```bash
-chmod +x install.sh
-./install.sh
+chmod +x scripts/install.sh
+./scripts/install.sh
 ```
 
 #### Windows (PowerShell as Administrator)
 ```powershell
-.\install.ps1
+.\scripts\install.ps1
 ```
 
 #### Cross-Platform (Python 3.7+)
 ```bash
-python install.py
+python scripts/install.py
 ```
 
 **Features:**
@@ -46,15 +46,15 @@ python install.py
 **Options:**
 ```bash
 # Update existing installation
-./install.sh --update        # Linux/macOS
-.\install.ps1 -Update        # Windows
-python install.py --update   # Cross-platform
+./scripts/install.sh --update        # Linux/macOS
+.\scripts\install.ps1 -Update        # Windows
+python scripts/install.py --update   # Cross-platform
 
 # Development mode
-./install.sh --dev           # Skip production configs
+./scripts/install.sh --dev           # Skip production configs
 ```
 
-📖 **Full installation guide:** See [INSTALL.md](INSTALL.md) for detailed instructions.
+📖 **Full installation guide:** See [docs/INSTALL.md](docs/INSTALL.md) for detailed instructions.
 
 ## Overview
 
@@ -136,7 +136,7 @@ The easiest way to get started is using our automated setup script that handles 
 ```bash
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
-bash scripts/setup.sh
+bash scripts/setup/setup.sh
 ```
 
 #### Windows (PowerShell)
@@ -144,7 +144,7 @@ bash scripts/setup.sh
 ```powershell
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
-.\scripts\setup.ps1
+.\scripts\setup\setup.ps1
 ```
 
 #### Node.js (Any Platform)
@@ -152,6 +152,8 @@ cd openpanel
 ```bash
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
+npm run setup
+# ou
 node scripts/setup.js
 ```
 
@@ -195,7 +197,7 @@ npm run status
 ### 🌐 Access the Application
 
 - **Web UI**: http://localhost:3000
-- **API**: http://localhost:8000
+- **API**: http://localhost:3001
 - **Traefik Dashboard**: http://localhost:8080 (Docker proxy)
 - **Ollama**: http://localhost:11434 (Local AI models)
 
@@ -317,35 +319,51 @@ Open-Panel/
 │   ├── utils/            # Utility scripts
 │   └── *.js              # Node.js utility scripts
 ├── docs/                 # Documentation
+│   ├── README.md        # Índice da documentação
+│   ├── INSTALL.md       # Guia de instalação
+│   ├── SETUP_GUIDE.md   # Guia de setup
+│   ├── QUICK_START.md   # Início rápido
+│   ├── API.md           # Documentação da API
+│   ├── domains/         # Documentação por domínio
+│   └── architecture/    # Arquitetura do sistema
 ├── docker-compose.yml    # Local infrastructure
-└── CLAUDE.md            # Development guidelines
+└── .env.example         # Template de variáveis de ambiente
 ```
 
 ## Environment Variables
 
-Key environment variables (see `.env.example` for full list):
+Key environment variables (see `.env.example` for complete list with descriptions):
 
+**Required:**
 - `DATABASE_URL`: PostgreSQL connection string
-- `REDIS_URL`: Redis connection string
-- `JWT_SECRET`: Secret for JWT tokens (min 32 chars)
+- `JWT_SECRET`: Secret for JWT tokens (min 32 chars, generate with: `openssl rand -hex 64`)
 - `CORS_ORIGIN`: Frontend URL for CORS
-- `DOCKER_HOST`: Docker socket path
-- `AI_PROVIDER`: AI provider (ollama, openai, anthropic, google)
+
+**Optional but recommended:**
+- `REDIS_URL`: Redis connection string (or use REDIS_HOST/PORT/PASSWORD)
+- `DOCKER_HOST`: Docker socket path (defaults based on platform)
+- `OLLAMA_HOST`: Ollama API endpoint for local AI models
+
+**See `.env.example` for all available variables with detailed descriptions.**
 
 ## Documentation
 
 ### 📚 Main Documentation
 
-- **[CLAUDE.md](./CLAUDE.md)** - Comprehensive development guide for contributors
-- **[DEPLOYMENT_PLAN.md](./docs/DEPLOYMENT_PLAN.md)** - Complete deployment and automation strategy
-- **[NEXT_STEPS.md](./docs/NEXT_STEPS.md)** - Roadmap and improvement suggestions
-- **[API.md](./docs/API.md)** - API endpoints documentation and examples
-- **[TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[docs/README.md](./docs/README.md)** - Índice completo da documentação
+- **[docs/INSTALL.md](./docs/INSTALL.md)** - Guia completo de instalação
+- **[docs/SETUP_GUIDE.md](./docs/SETUP_GUIDE.md)** - Guia detalhado de configuração
+- **[docs/QUICK_START.md](./docs/QUICK_START.md)** - Início rápido
+- **[docs/API.md](./docs/API.md)** - Documentação da API REST
+- **[docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** - Solução de problemas
+- **[docs/NEXT_STEPS.md](./docs/NEXT_STEPS.md)** - Roadmap e próximos passos
+- **[docs/PLANO_IMPLEMENTACAO.md](./docs/PLANO_IMPLEMENTACAO.md)** - Plano de implementação
+- **[docs/REVIEW_GERAL.md](./docs/REVIEW_GERAL.md)** - Review técnico completo
 
 ### 🔧 Technical Documentation
 
-- [Architecture](./docs/architecture/) - System architecture documentation (if available)
-- [Features](./docs/features/) - Feature documentation (if available)
+- **[docs/architecture/](./docs/architecture/)** - Arquitetura do sistema
+- **[docs/domains/](./docs/domains/)** - Documentação por domínio (Domain-Driven)
 
 ### 💡 Getting Help
 

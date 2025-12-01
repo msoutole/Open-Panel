@@ -4,24 +4,26 @@
 
 ### Windows (PowerShell)
 
-`powershell
-.\scripts\setup.ps1
+```powershell
+.\scripts\setup\setup.ps1
 npm run dev
-`
+```
 
 ### Linux / WSL / macOS
 
-`bash
-bash scripts/setup.sh
+```bash
+bash scripts/setup/setup.sh
 npm run dev
-`
+```
 
 ### Qualquer Plataforma (Node.js)
 
-`bash
+```bash
+npm run setup
+# ou
 node scripts/setup.js
 npm run dev
-`
+```
 
 ---
 
@@ -53,8 +55,7 @@ bash scripts/verify-setup.sh
 
 ## 📚 Documentação Completa
 
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Guia detalhado por plataforma
-- **[CORRECTIONS_SUMMARY.md](CORRECTIONS_SUMMARY.md)** - Problemas resolvidos
+- **[SETUP_GUIDE.md](./SETUP_GUIDE.md)** - Guia detalhado por plataforma
 - **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Status de testes
 - **[README.md](README.md)** - Visão geral do projeto
 
@@ -139,5 +140,5 @@ newgrp docker
 
 ---
 
-**Precisa de ajuda?** Veja [SETUP_GUIDE.md](SETUP_GUIDE.md)
+**Precisa de ajuda?** Veja [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 

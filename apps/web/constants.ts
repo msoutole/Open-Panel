@@ -177,28 +177,6 @@ export const PROJECTS: Project[] = [
         }
       }
     ]
-  },
-  {
-    id: 'proj_legacy',
-    name: 'Legacy CRM',
-    slug: 'legacy-crm',
-    description: 'Old PHP system, scheduled for decommissioning',
-    status: 'Active',
-    lastDeploy: '2023-09-10 08:00',
-    members: ['admin'],
-    envVars: [],
-    services: [
-      {
-        id: 'svc_crm_web',
-        name: 'crm-web',
-        type: 'app',
-        image: 'php:7.4-apache',
-        status: 'Stopped',
-        cpu: 0,
-        memory: '0MB',
-        port: 80
-      }
-    ]
   }
 ];
 

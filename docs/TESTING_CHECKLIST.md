@@ -161,7 +161,7 @@ bash scripts/detect-platform.sh
 # Esperado: Detected Platform: wsl2, Docker Socket: /var/run/docker.sock
 
 # 3. Setup completo
-bash scripts/setup.sh
+bash scripts/setup/setup.sh
 
 # Esperado: Setup Complete!
 
@@ -203,7 +203,7 @@ bash scripts/detect-platform.sh
 # Esperado: Detected Platform: linux, Docker Socket: /var/run/docker.sock
 
 # 5. Setup completo
-bash scripts/setup.sh
+bash scripts/setup/setup.sh
 
 # Esperado: Setup Complete!
 

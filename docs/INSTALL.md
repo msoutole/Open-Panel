@@ -10,10 +10,10 @@ The master installation script handles everything automatically:
 
 ```bash
 # Make executable
-chmod +x install.sh
+chmod +x scripts/install/install.sh
 
 # Run installation
-./install.sh
+./scripts/install/install.sh
 ```
 
 **Features:**
@@ -26,10 +26,10 @@ chmod +x install.sh
 
 **Options:**
 ```bash
-./install.sh --update     # Update existing installation
-./install.sh --dev        # Development mode (skip production configs)
-./install.sh --no-docker  # Skip Docker installation
-./install.sh --verbose    # Verbose output
+./scripts/install/install.sh --update     # Update existing installation
+./scripts/install/install.sh --dev        # Development mode (skip production configs)
+./scripts/install/install.sh --no-docker  # Skip Docker installation
+./scripts/install/install.sh --verbose    # Verbose output
 ```
 
 **Supported Distributions:**
@@ -54,7 +54,7 @@ The PowerShell installation script provides the same automated experience:
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
 # Run installation
-.\install.ps1
+.\scripts\install\install.ps1
 ```
 
 **Features:**
@@ -66,10 +66,10 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 
 **Options:**
 ```powershell
-.\install.ps1 -Update       # Update existing installation
-.\install.ps1 -Dev          # Development mode
-.\install.ps1 -NoDocker     # Skip Docker installation
-.\install.ps1 -VerboseMode  # Verbose output
+.\scripts\install\install.ps1 -Update       # Update existing installation
+.\scripts\install\install.ps1 -Dev          # Development mode
+.\scripts\install\install.ps1 -NoDocker     # Skip Docker installation
+.\scripts\install\install.ps1 -VerboseMode  # Verbose output
 ```
 
 **Requirements:**
@@ -86,10 +86,10 @@ A lightweight Python alternative that works on all platforms:
 
 ```bash
 # Requires Python 3.7+
-python install.py
+python scripts/install/install.py
 
 # Or with Python 3 specifically
-python3 install.py
+python3 scripts/install/install.py
 ```
 
 **Features:**
@@ -100,10 +100,10 @@ python3 install.py
 
 **Options:**
 ```bash
-python install.py --update     # Update installation
-python install.py --dev        # Development mode
-python install.py --no-docker  # Skip Docker
-python install.py --verbose    # Verbose output
+python scripts/install/install.py --update     # Update installation
+python scripts/install/install.py --dev        # Development mode
+python scripts/install/install.py --no-docker  # Skip Docker
+python scripts/install/install.py --verbose    # Verbose output
 ```
 
 ---
@@ -266,10 +266,10 @@ After installation, verify everything is working:
 
 ```bash
 # Linux/macOS
-./check-services.sh
+./scripts/utils/check-services.sh
 
 # Windows (PowerShell)
-.\check-services.ps1
+.\scripts\utils\check-services.ps1
 
 # Python
 python check-services.py
@@ -314,13 +314,13 @@ Expected output for health check:
 
 ```bash
 # Linux/macOS
-./install.sh --update
+./scripts/install/install.sh --update
 
 # Windows
-.\install.ps1 -Update
+.\scripts\install\install.ps1 -Update
 
 # Python
-python install.py --update
+python scripts/install/install.py --update
 ```
 
 ### Manual Update
@@ -407,7 +407,7 @@ docker compose up -d
 
 ```bash
 # Make scripts executable
-chmod +x install.sh setup.sh check-services.sh
+chmod +x scripts/install/install.sh scripts/setup/setup.sh scripts/utils/check-services.sh
 
 # Fix npm permissions
 sudo chown -R $USER:$(id -gn $USER) ~/.config
@@ -436,8 +436,8 @@ After successful installation:
    - Deploy your application
 
 4. **Read the documentation:**
-   - [Quick Start Guide](QUICKSTART.md)
-   - [Full Setup Guide](SETUP_GUIDE.md)
+   - [Quick Start Guide](./QUICK_START.md)
+   - [Full Setup Guide](./SETUP_GUIDE.md)
    - [Architecture Overview](ARCHITECTURE.md)
 
 ---
@@ -460,13 +460,13 @@ If you encounter issues:
 
 2. **Run diagnostics:**
    ```bash
-   ./check-services.sh  # Linux/macOS
-   .\check-services.ps1  # Windows
+   ./scripts/utils/check-services.sh  # Linux/macOS
+   .\scripts\utils\check-services.ps1  # Windows
    ```
 
 3. **Check documentation:**
-   - [SETUP_GUIDE.md](SETUP_GUIDE.md) - Detailed troubleshooting
-   - [QUICKSTART.md](QUICKSTART.md) - Common issues
+   - [SETUP_GUIDE.md](./SETUP_GUIDE.md) - Detailed troubleshooting
+   - [QUICK_START.md](./QUICK_START.md) - Common issues
 
 4. **Get support:**
    - GitHub Issues: https://github.com/msoutole/openpanel/issues
@@ -525,11 +525,11 @@ If you encounter issues:
 
 | Script | Platform | Command | Use Case |
 |--------|----------|---------|----------|
-| `install.sh` | Linux/macOS | `./install.sh` | **Recommended** for Unix systems |
-| `install.ps1` | Windows | `.\install.ps1` | **Recommended** for Windows |
-| `install.py` | Cross-platform | `python install.py` | Alternative for all platforms |
-| `setup.sh` | Linux/macOS | `./setup.sh` | Quick setup (Docker required) |
-| `check-services.sh` | Linux/macOS | `./check-services.sh` | Verify services status |
+| `scripts/install/install.sh` | Linux/macOS | `./scripts/install/install.sh` | **Recommended** for Unix systems |
+| `scripts/install/install.ps1` | Windows | `.\scripts\install\install.ps1` | **Recommended** for Windows |
+| `scripts/install/install.py` | Cross-platform | `python scripts/install/install.py` | Alternative for all platforms |
+| `scripts/setup/setup.sh` | Linux/macOS | `./scripts/setup/setup.sh` | Quick setup (Docker required) |
+| `scripts/utils/check-services.sh` | Linux/macOS | `./scripts/utils/check-services.sh` | Verify services status |
 
 ---
 

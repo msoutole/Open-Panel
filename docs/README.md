@@ -13,10 +13,11 @@ Documentação completa do OpenPanel - painel de controle self-hosted moderno co
 - **[Troubleshooting](./TROUBLESHOOTING.md)** - Solução de problemas
 
 ### Para Desenvolvedores
-- **[CLAUDE.md](../.claude/CLAUDE.md)** - Guia técnico completo
 - **[Domain Docs](./domains/)** - Documentação por domínio (otimizada para LLMs)
 - **[API Reference](./API.md)** - Documentação da API REST
 - **[Arquitetura](./architecture/)** - Design do sistema
+- **[Plano de Implementação](./PLANO_IMPLEMENTACAO.md)** - Fases de desenvolvimento
+- **[Review Geral](./REVIEW_GERAL.md)** - Análise técnica completa
 
 ---
 
@@ -78,9 +79,10 @@ A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um �
 | Resolver problemas | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) |
 | Consultar API | [API.md](./API.md) |
 | Entender uma feature | [Domain Docs](./domains/) |
-| Desenvolver nova feature | [CLAUDE.md](../.claude/CLAUDE.md) + [Domain Docs](./domains/) |
+| Desenvolver nova feature | [Domain Docs](./domains/) + [Plano de Implementação](./PLANO_IMPLEMENTACAO.md) |
 | Entender arquitetura | [System Architecture](./architecture/01-system-architecture.md) |
 | Ver roadmap | [NEXT_STEPS.md](./NEXT_STEPS.md) |
+| Ver análise técnica | [Review Geral](./REVIEW_GERAL.md) |
 
 ---
 
@@ -99,11 +101,11 @@ A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um �
 
 - **[Repositório GitHub](https://github.com/msoutole/openpanel)**
 - **[README Principal](../README.md)**
-- **[Guia de Desenvolvimento](../.claude/CLAUDE.md)**
-- **[Review Geral do Projeto](../REVIEW_GERAL.md)**
+- **[Review Geral do Projeto](./REVIEW_GERAL.md)**
+- **[Plano de Implementação](./PLANO_IMPLEMENTACAO.md)**
 
 ---
 
-**Última atualização**: 2025-11-27
+**Última atualização**: 2025-01-27
 **Versão**: 1.0
 

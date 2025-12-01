@@ -129,13 +129,14 @@ app.put('/', async (c) => {
   // For this demo, we'll store in database
   // You'll need to create a SystemSettings model in Prisma schema
 
-  // TODO: Implement actual storage
-  // For now, just return success
-  // In production, you'd want to:
-  // - Encrypt sensitive values
-  // - Store in database or secure config service
-  // - Update environment variables
-  // - Restart services if needed
+  // TODO: Implement persistent storage for system settings
+  // Current implementation: Returns success but doesn't persist
+  // Future implementation should:
+  // - Create SystemSettings model in Prisma schema
+  // - Encrypt sensitive values (API keys, passwords) using encryption middleware
+  // - Store in database with audit logging
+  // - Optionally update environment variables or use config service
+  // - Trigger service restarts if needed for certain settings
 
   return c.json({
     message: 'Settings updated successfully',
@@ -168,8 +169,13 @@ app.post('/ai-providers', async (c) => {
 
   const validated = aiProviderSchema.parse(body)
 
-  // TODO: Store in database
-  // For now, just return success
+  // TODO: Implement persistent storage for AI provider settings
+  // Current implementation: Returns success but doesn't persist
+  // Future implementation should:
+  // - Store in SystemSettings table (to be created in Prisma schema)
+  // - Encrypt API keys using encryption middleware
+  // - Associate with user ID for per-user configurations
+  // - Validate API keys before saving (optional)
 
   return c.json({
     message: 'AI providers configured successfully',

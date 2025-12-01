@@ -1,6 +1,6 @@
 # 📋 Próximos Passos - Open Panel
 
-**Última atualização**: 2025-11-27
+**Última atualização**: 2025-01-27
 **Status**: Planejamento ativo
 
 ---
@@ -282,5 +282,5 @@ Se você deseja contribuir com algum desses itens:
 
 ---
 
-**Atualizado em**: 2025-11-27
-**Próxima revisão**: 2025-12-15
+**Atualizado em**: 2025-01-27
+**Próxima revisão**: 2025-02-15

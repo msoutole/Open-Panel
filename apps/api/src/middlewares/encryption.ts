@@ -1,4 +1,3 @@
-import { Context, Next } from 'hono'
 import { encryptEnvVars, decryptEnvVars, maskSensitive } from '../lib/crypto'
 import { logDebug } from '../lib/logger'
 
@@ -57,13 +56,16 @@ export function decryptProjectEnvVars(encryptedData: string | null | undefined):
 
     return decrypted
   } catch (error) {
-    // If decryption fails, might be legacy unencrypted data
-    // Try to parse as JSON
+    // DEPRECATED: Legacy support for unencrypted data (migration compatibility)
+    // This fallback allows reading old data that was stored as plain JSON
+    // TODO: Remove this fallback after all data is migrated to encrypted format
+    // Try to parse as JSON (legacy format)
     try {
       const parsed = JSON.parse(encryptedData)
 
-      logDebug('Legacy unencrypted env vars detected', {
+      logDebug('Legacy unencrypted env vars detected (deprecated format)', {
         keysCount: Object.keys(parsed).length,
+        warning: 'This data should be re-encrypted',
       })
 
       return parsed

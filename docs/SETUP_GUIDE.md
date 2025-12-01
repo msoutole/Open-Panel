@@ -1,371 +1,380 @@
-# OpenPanel Setup Guide
+# 🚀 OpenPanel - Guia de Configuração e Teste Manual
 
-Instruções de setup para diferentes plataformas.
+## ✅ Status do Projeto
 
-## 📋 Requisitos
+### O que já está configurado:
+- ✅ Dependências instaladas (`npm install`)
+- ✅ Arquivo `.env` criado no root
+- ✅ Arquivo `.env.local` criado em `apps/web/`
+- ✅ Frontend **compilado com sucesso** (`npm run build:web`)
+- ✅ Estrutura do projeto validada
 
-- **Node.js**: v20.0.0 ou superior
-- **Docker**: v29.0.0 ou superior (com Docker Compose v2)
-- **npm**: v10.0.0 ou superior
+### ⚠️ O que precisa ser configurado manualmente:
 
-## 🪟 Windows (PowerShell)
+#### 1. **Docker** (Obrigatório)
+O projeto depende de serviços Docker que não estão disponíveis neste ambiente. Você precisa:
 
-### Pré-requisitos
+- Instalar Docker e Docker Compose
+- Iniciar os serviços com `docker-compose up -d`
 
-1. **Docker Desktop for Windows** (com WSL2 backend recomendado)
-   - Download: https://www.docker.com/products/docker-desktop
-   - Certifique-se de que Docker está rodando
+#### 2. **Prisma Client** (Obrigatório para API)
+Devido a restrições de rede, o Prisma Client não foi gerado automaticamente. Após iniciar o Docker, execute:
 
-2. **Node.js**
-   - Download: https://nodejs.org/ (LTS recomendado)
-
-### Setup
-
-`powershell
-
-# 1. Clone o repositório
-git clone https://github.com/msoutole/openpanel.git
-cd openpanel
-
-# 2. Execute o script de setup
-.\scripts\setup.ps1
-
-# 3. Após conclusão, acesse
-
-# Web: http://localhost:3000
-
-# API: http://localhost:3001
-`
-
-### Troubleshooting
-
-Se houver erros de permissão ao executar o PowerShell:
-
-`powershell
-
-# Execute como Administrator e digite:
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-`
-
----
-
-## 🐧 Linux / WSL2
-
-### Pré-requisitos
-
-1. **Docker**
-   ```bash
-   # Ubuntu/Debian
-   sudo apt-get update
-   sudo apt-get install docker.io docker-compose
-
-   # Adicionar seu usuário ao grupo docker
-   sudo usermod -aG docker $USER
-   ```
-
-2. **Node.js**
-   ```bash
-   # Ubuntu/Debian
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-   ```
-
-### Setup
-
-`bash
-
-# 1. Clone o repositório
-git clone https://github.com/msoutole/openpanel.git
-cd openpanel
-
-# 2. Execute o script de setup
-bash scripts/setup.sh
-
-# 3. Após conclusão, acesse
-
-# Web: http://localhost:3000
-
-# API: http://localhost:3001
-`
-
-### Permissões
-
-Se houver erro ao executar scripts:
-
-`bash
-
-# Tornar scripts executáveis
-chmod +x scripts/*.sh scripts/*.ps1
-`
-
----
-
-## 🍎 macOS
-
-### Pré-requisitos
-
-1. **Homebrew** (se não instalado)
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-
-2. **Docker Desktop for Mac**
-   ```bash
-   brew install --cask docker
-   ```
-
-3. **Node.js**
-   ```bash
-   brew install node@20
-   ```
-
-### Setup
-
-`bash
-
-# 1. Clone o repositório
-git clone https://github.com/msoutole/openpanel.git
-cd openpanel
-
-# 2. Execute o script de setup
-bash scripts/setup.sh
-
-# 3. Após conclusão, acesse
-
-# Web: http://localhost:3000
-
-# API: http://localhost:3001
-`
-
----
-
-## 🔧 Configuração Manual
-
-Se preferir não usar os scripts de setup:
-
-`bash
-
-# 1. Criar arquivo .env
-cp .env.example .env
-
-# 2. Instalar dependências
-npm install
-
-# 3. Iniciar containers Docker
-docker-compose up -d
-
-# 4. Aguardar serviços ficarem saudáveis
-
-# Postgres e Redis devem mostrar "healthy"
-docker ps
-
-# 5. Configurar banco de dados
+```bash
 npm run db:generate
 npm run db:push
-
-# 6. Iniciar desenvolvimento
-npm run dev
-`
+```
 
 ---
 
-## 🚀 Desenvolvimento
+## 📋 Instruções de Setup Completo
 
-### Iniciar em modo desenvolvimento
+### Passo 1: Verificar Pré-requisitos
 
-`bash
+Certifique-se de ter instalado:
+- **Node.js** >= 18.0.0 (recomendado 20+)
+- **npm** >= 10.0.0
+- **Docker** e **Docker Compose**
 
-# Windows
-.\scripts\setup.ps1    # Se nunca rodou setup
+```bash
+# Verificar versões
+node -v
+npm -v
+docker -v
+docker-compose -v
+```
 
-npm run dev            # Inicia API + Web em paralelo
-`
+---
 
-`bash
+### Passo 2: Iniciar Serviços Docker
 
-# Linux/macOS
-bash scripts/setup.sh  # Se nunca rodou setup
+Os seguintes serviços serão iniciados:
+- **PostgreSQL** (porta 5432) - Banco de dados principal com pgvector
+- **Redis** (porta 6379) - Cache e filas de jobs
+- **Ollama** (porta 11434) - LLM local para IA
+- **Traefik** (portas 80/443/8080) - Reverse proxy
 
-npm run dev            # Inicia API + Web em paralelo
-`
+```bash
+# Iniciar todos os serviços
+docker-compose up -d
 
-### Comandos úteis
+# Verificar se os serviços estão rodando
+docker ps
 
-`bash
+# Verificar logs se necessário
+docker logs openpanel-postgres
+docker logs openpanel-redis
+docker logs openpanel-ollama
+docker logs openpanel-traefik
+```
 
-# Desenvolvimento isolado
-npm run dev:api         # Apenas API
-npm run dev:web         # Apenas Web
+---
 
-# Build para produção
-npm run build
-npm run build:api
-npm run build:web
+### Passo 3: Aguardar PostgreSQL Ficar Pronto
 
-# Database
-npm run db:generate     # Gera Prisma Client
-npm run db:push         # Sincroniza schema
-npm run db:studio       # GUI do Prisma
+Aguarde o PostgreSQL inicializar (pode levar 30-60 segundos):
 
+```bash
+# Verificar status de saúde do PostgreSQL
+docker inspect --format='{{.State.Health.Status}}' openpanel-postgres
+
+# Deve retornar "healthy" quando estiver pronto
+```
+
+---
+
+### Passo 4: Configurar Banco de Dados
+
+Com o PostgreSQL rodando, gere o Prisma Client e sincronize o schema:
+
+```bash
+# Gerar Prisma Client
+npm run db:generate
+
+# Sincronizar schema com o banco (cria as tabelas)
+npm run db:push
+
+# Opcional: Abrir Prisma Studio para visualizar o banco
+npm run db:studio
+```
+
+---
+
+### Passo 5: Iniciar os Serviços
+
+#### Opção 1: Iniciar tudo de uma vez (API + Frontend)
+
+```bash
+npm run dev
+```
+
+#### Opção 2: Iniciar separadamente (recomendado para debugging)
+
+**Terminal 1 - API:**
+```bash
+npm run dev:api
+# API estará disponível em http://localhost:3001
+```
+
+**Terminal 2 - Frontend:**
+```bash
+npm run dev:web
+# Frontend estará disponível em http://localhost:3000
+```
+
+---
+
+### Passo 6: Verificar Serviços
+
+Após iniciar, verifique se os serviços estão respondendo:
+
+1. **Frontend:** http://localhost:3000
+2. **API Health Check:** http://localhost:3001/health
+3. **Traefik Dashboard:** http://localhost:8080 (se TRAEFIK_DASHBOARD=true)
+4. **Ollama:** http://localhost:11434/api/tags
+
+```bash
+# Testar health da API
+curl http://localhost:3001/health
+
+# Deve retornar algo como:
+# {"status":"ok","timestamp":"2025-11-26T...","version":"0.1.0"}
+```
+
+---
+
+## 🔧 Configurações Importantes
+
+### Variáveis de Ambiente
+
+#### Backend (`.env` no root):
+- ✅ `DATABASE_URL` - Configurado para `localhost:5432`
+- ✅ `REDIS_URL` - Configurado para `localhost:6379`
+- ✅ `JWT_SECRET` - Configurado (trocar em produção!)
+- ✅ `API_PORT=3001`
+- ⚠️ `CORS_ORIGIN=http://localhost:3000` - Permite frontend acessar API
+
+#### Frontend (`apps/web/.env.local`):
+- ✅ `VITE_API_URL=http://localhost:3001`
+- ✅ Feature flags habilitadas
+
+---
+
+## 🧪 Testes Manuais Sugeridos
+
+### 1. Testar Frontend (Login/Registro)
+1. Acesse http://localhost:3000
+2. Tente criar uma conta
+3. Faça login
+4. Navegue pelas páginas (Dashboard, Projects, etc)
+
+### 2. Testar API Endpoints
+
+```bash
+# Health check
+curl http://localhost:3001/health
+
+# Registro de usuário
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Test123456!",
+    "name": "Test User"
+  }'
+
+# Login
+curl -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Test123456!"
+  }'
+```
+
+### 3. Testar WebSocket (Logs de Containers)
+1. Crie um projeto no frontend
+2. Inicie um container
+3. Abra a página de logs
+4. Verifique se os logs aparecem em tempo real via WebSocket
+
+### 4. Testar Integração Docker
+1. Crie um projeto do tipo "WEB" ou "API"
+2. Configure Git URL ou Docker image
+3. Faça deploy
+4. Verifique se o container foi criado: `docker ps`
+
+---
+
+## 🐛 Troubleshooting
+
+### API não inicia - Erro Prisma Client
+
+**Problema:** `Error: @prisma/client did not initialize yet`
+
+**Solução:**
+```bash
+cd apps/api
+PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npx prisma generate
+```
+
+### PostgreSQL não fica "healthy"
+
+**Problema:** `docker inspect` mostra "unhealthy" ou "starting"
+
+**Solução:**
+```bash
+# Verificar logs
+docker logs openpanel-postgres
+
+# Reiniciar container
+docker-compose restart postgres
+
+# Se persistir, remover e recriar
+docker-compose down
+docker volume rm openpanel_postgres-data
+docker-compose up -d
+```
+
+### Redis "Connection refused"
+
+**Problema:** API não consegue conectar ao Redis
+
+**Solução:**
+```bash
+# Verificar se Redis está rodando
+docker ps | grep redis
+
+# Testar conexão
+docker exec -it openpanel-redis redis-cli -a changeme ping
+# Deve retornar "PONG"
+```
+
+### Porta já em uso
+
+**Problema:** `Error: listen EADDRINUSE: address already in use :::3000`
+
+**Solução:**
+```bash
+# Descobrir processo usando a porta
+lsof -i :3000
+# ou
+netstat -tulpn | grep 3000
+
+# Matar processo
+kill -9 <PID>
+
+# Ou mudar porta em .env
+# API_PORT=3002
+```
+
+### CORS Error no Frontend
+
+**Problema:** `Access-Control-Allow-Origin` error no browser
+
+**Solução:** Verificar `.env`:
+```bash
+CORS_ORIGIN=http://localhost:3000
+```
+
+E reiniciar a API.
+
+---
+
+## 📊 Verificar Status dos Serviços
+
+```bash
+# Verificar todos os containers
+docker-compose ps
+
+# Verificar logs da API (terminal separado)
+docker-compose logs -f
+
+# Verificar uso de recursos
+docker stats
+
+# Parar todos os serviços
+docker-compose down
+
+# Parar e remover volumes (⚠️ apaga dados!)
+docker-compose down -v
+```
+
+---
+
+## 🔐 Segurança - IMPORTANTE!
+
+Antes de colocar em produção:
+
+1. **Trocar senhas padrão:**
+   - `POSTGRES_PASSWORD=changeme` ❌
+   - `REDIS_PASSWORD=changeme` ❌
+   - `JWT_SECRET` (usar >= 32 chars aleatórios) ❌
+
+2. **Gerar JWT_SECRET seguro:**
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+3. **Configurar CORS adequadamente:**
+   - Trocar `http://localhost:3000` pelo domínio real
+
+---
+
+## 📚 Recursos Adicionais
+
+- **Documentação Prisma:** https://www.prisma.io/docs/
+- **Hono Framework:** https://hono.dev/
+- **Docker Compose:** https://docs.docker.com/compose/
+- **React + Vite:** https://vitejs.dev/
+
+---
+
+## ✅ Checklist Final
+
+Antes de considerar o setup completo, verifique:
+
+- [ ] Docker está instalado e rodando
+- [ ] `docker-compose up -d` executado com sucesso
+- [ ] PostgreSQL está "healthy" (`docker inspect openpanel-postgres`)
+- [ ] Redis está rodando (`docker ps | grep redis`)
+- [ ] Prisma Client gerado (`npm run db:generate`)
+- [ ] Schema sincronizado (`npm run db:push`)
+- [ ] API inicia sem erros (`npm run dev:api`)
+- [ ] Frontend inicia sem erros (`npm run dev:web`)
+- [ ] Health check responde: `curl http://localhost:3001/health`
+- [ ] Frontend carrega no browser: http://localhost:3000
+- [ ] Consegue fazer registro/login
+
+---
+
+## 🎉 Pronto para Desenvolvimento!
+
+Após completar o setup, você pode:
+- Criar usuários e equipes
+- Criar projetos e fazer deploys
+- Gerenciar containers Docker
+- Configurar domínios e SSL
+- Usar o assistente de IA (Ollama)
+- Agendar backups automáticos
+
+**Comandos úteis para desenvolvimento:**
+```bash
 # Type checking
 npm run type-check
 
-# Preview production build
-npm run preview
-`
+# Build production
+npm run build
 
-### Docker
-
-`bash
-
-# Ver logs de um container
-docker logs openpanel-api -f        # API (follow mode)
-docker logs openpanel-web -f        # Web
-
-# Parar todos os containers
-docker-compose down
-
-# Reconstruir containers
-docker-compose up -d --build
-
-# Status dos containers
-docker ps
-
-# Health check
-docker inspect openpanel-postgres --format='{{.State.Health.Status}}'
-`
-
----
-
-## 📍 Acessar Serviços
-
-| Serviço | URL | Credenciais |
-|---------|-----|------------|
-| **Web Interface** | http://localhost:3000 | Configurado durante setup |
-| **API** | http://localhost:3001 | Token JWT necessário |
-| **Traefik Dashboard** | http://localhost:8080 | N/A (desenvolvimento) |
-| **PostgreSQL** | localhost:5432 | openpanel / changeme |
-| **Redis** | localhost:6379 | changeme |
-
----
-
-## 🔍 Solução de Problemas
-
-### Docker não está rodando (Windows)
-
-`powershell
-
-# Iniciar Docker Desktop
-Start-Process "C:\Program Files\Docker\Docker\Docker.exe"
-`
-
-### Permissão negada ao acessar socket Docker (Linux/WSL)
-
-`bash
-
-# Adicionar usuário ao grupo docker
-sudo usermod -aG docker $USER
-
-# Aplicar novo grupo
-newgrp docker
-
-# Ou fazer logout e login novamente
-`
-
-### Porta em uso
-
-`bash
-
-# Encontrar processo usando porta 3000
-
-# Windows
-netstat -ano | findstr :3000
-
-# Linux/macOS
-lsof -i :3000
-
-# Mudar porta no .env
-API_PORT=3002
-APP_PORT=3001
-`
-
-### Container não inicia
-
-`bash
-
-# Ver logs detalhados
-docker-compose logs -f openpanel-api
-
-# Reiniciar container
-docker-compose restart openpanel-api
-
-# Limpar tudo e começar do zero
-docker-compose down -v
-docker-compose up -d
-`
-
----
-
-## 📝 Variáveis de Ambiente
-
-Arquivo `.env` principal:
-
-`env
-
-# Core
-NODE_ENV=development
-APP_URL=http://localhost:3000
-APP_PORT=3000
-API_PORT=3001
-
-# Database
-DATABASE_URL=postgresql://openpanel:changeme@localhost:5432/openpanel
-POSTGRES_USER=openpanel
-POSTGRES_PASSWORD=changeme
-POSTGRES_DB=openpanel
-
-# Redis
-REDIS_URL=redis://:changeme@localhost:6379
-
-# JWT
-JWT_SECRET=seu-secret-aqui-minimo-32-caracteres
-
-# Docker
-DOCKER_SOCK=/var/run/docker.sock  # Linux/macOS
-
-# DOCKER_SOCK=//./pipe/docker_engine  # Windows
-`
-
----
-
-## ✅ Verificação de Setup
-
-Após completar o setup, verifique:
-
-`bash
-
-# 1. Containers rodando
-docker ps
-
-# 2. API respondendo
-curl http://localhost:3001/api/health
-
-# 3. Web carregando
-curl http://localhost:3000
-
-# 4. Banco de dados conectado
+# Database studio (GUI)
 npm run db:studio
-`
+
+# Logs em tempo real
+docker-compose logs -f api
+```
 
 ---
 
-## 🆘 Suporte
-
-Para problemas:
-
-1. Verifique os logs: `docker-compose logs -f`
-2. Verifique .env está correto
-3. Certifique-se Docker está rodando
-4. Tente `docker-compose down && docker-compose up -d`
-5. Abra issue no GitHub: https://github.com/msoutole/openpanel/issue
-
+**Desenvolvido por:** Matheus Souto Leal
+**Licença:** MIT
+**Repositório:** https://github.com/msoutole/openpanel

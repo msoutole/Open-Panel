@@ -7,7 +7,12 @@
         "./*"
       ]
     },
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": [],
+    "typeRoots": [
+      "../../node_modules/@types",
+      "./node_modules/@types"
+    ]
   },
   "include": [
     ".",

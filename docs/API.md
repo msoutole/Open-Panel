@@ -2,7 +2,7 @@
 
 Complete API reference for Open Panel backend services.
 
-**Base URL:** `http://localhost:8000` (development)
+**Base URL:** `http://localhost:3001` (development)
 **API Version:** 1.0.0
 **Authentication:** Bearer JWT tokens
 
@@ -750,7 +750,7 @@ Content-Type: application/json
 Connect to WebSocket for real-time logs:
 
 `javascript
-const ws = new WebSocket('ws://localhost:8000/ws/containers/:containerId/logs');
+const ws = new WebSocket('ws://localhost:3001/ws/containers/:containerId/logs');
 
 ws.onmessage = (event) => {
   const log = JSON.parse(event.data);
@@ -776,20 +776,20 @@ ws.onmessage = (event) => {
 
 **Login:**
 `bash
-curl -X POST http://localhost:8000/api/auth/login \
+curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@admin.com.br","password":"admin123"}'
 `
 
 **Get Onboarding Status:**
 `bash
-curl -X GET http://localhost:8000/api/onboarding/status \
+curl -X GET http://localhost:3001/api/onboarding/status \
   -H "Authorization: Bearer YOUR_TOKEN"
 `
 
 **Complete Onboarding:**
 `bash
-curl -X POST http://localhost:8000/api/onboarding/complete \
+curl -X POST http://localhost:3001/api/onboarding/complete \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -814,7 +814,7 @@ curl -X POST http://localhost:8000/api/onboarding/complete \
 `typescript
 // Login
 const login = async (email: string, password: string) => {
-  const response = await fetch('http://localhost:8000/api/auth/login', {
+  const response = await fetch('http://localhost:3001/api/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -835,7 +835,7 @@ const login = async (email: string, password: string) => {
 const checkOnboarding = async () => {
   const token = localStorage.getItem('access_token');
 
-  const response = await fetch('http://localhost:8000/api/onboarding/status', {
+  const response = await fetch('http://localhost:3001/api/onboarding/status', {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -848,7 +848,7 @@ const checkOnboarding = async () => {
 const completeOnboarding = async (data: OnboardingData) => {
   const token = localStorage.getItem('access_token');
 
-  const response = await fetch('http://localhost:8000/api/onboarding/complete', {
+  const response = await fetch('http://localhost:3001/api/onboarding/complete', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
