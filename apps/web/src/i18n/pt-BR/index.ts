@@ -99,7 +99,7 @@ const pt_BR = {
       strengthStrong: 'Forte',
       strengthVeryStrong: 'Muito Forte',
       requirements: {
-        length: '8+ caracteres',
+        minLength: '8+ caracteres',
         uppercase: 'Letra maiúscula',
         lowercase: 'Letra minúscula',
         number: 'Número',

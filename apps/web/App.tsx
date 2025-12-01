@@ -38,10 +38,15 @@ const AppContent: React.FC = () => {
     const checkOnboarding = async () => {
       if (isLoggedIn && !showOnboarding) {
         try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+          // Use relative paths in development to leverage Vite proxy
+          const getApiBaseUrl = (): string => {
+            const envUrl = import.meta.env.VITE_API_URL;
+            const isDev = import.meta.env.DEV;
+            return isDev ? '' : (envUrl || '');
+          };
           const token = localStorage.getItem('openpanel_access_token');
 
-          const response = await fetch(`${API_URL}/api/onboarding/status`, {
+          const response = await fetch(`${getApiBaseUrl()}/api/onboarding/status`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

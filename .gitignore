@@ -16,6 +16,7 @@ build/
 *.tsbuildinfo
 
 # Environment variables
+# Apenas o .env da raiz deve ser editado manualmente
 .env
 .env.*
 !.env.example
@@ -24,6 +25,11 @@ build/
 .env.backups/
 .credentials/
 .openpanel.state
+
+# Arquivos .env dos subprojetos são gerados automaticamente - NÃO editar!
+apps/api/.env
+apps/web/.env.local
+apps/web/.env
 
 # IDE
 .vscode/*

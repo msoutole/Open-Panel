@@ -1,7 +1,20 @@
 import { Project, Service, EnvVar, Domain, Deployment, CreateServiceData } from '../types';
 
-// Use environment variable with fallback to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Helper to get API base URL
+// In development, use relative paths to leverage Vite proxy
+// In production, use absolute URL if VITE_API_URL is set, otherwise use relative paths
+const getApiBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  const isDev = import.meta.env.DEV;
+  
+  // In development, always use relative paths to leverage Vite proxy
+  if (isDev) {
+    return '';
+  }
+  
+  // In production, use absolute URL if provided, otherwise use relative paths
+  return envUrl || '';
+};
 
 // Helper to map container status from backend to frontend
 const mapContainerStatus = (backendStatus: string): 'Running' | 'Stopped' | 'Building' | 'Error' | 'Backing Up' => {
@@ -40,7 +53,7 @@ const refreshAccessToken = async (): Promise<boolean> => {
     const refreshToken = localStorage.getItem('openpanel_refresh_token');
     if (!refreshToken) return false;
 
-    const response = await fetch(`${API_URL}/api/auth/refresh`, {
+    const response = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -80,7 +93,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 // --- Projects ---
 
 export const getProjects = async (): Promise<Project[]> => {
-  const response = await fetch(`${API_URL}/api/projects`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ projects: Project[] }>(response);
@@ -88,7 +101,7 @@ export const getProjects = async (): Promise<Project[]> => {
 };
 
 export const getProject = async (id: string): Promise<Project> => {
-  const response = await fetch(`${API_URL}/api/projects/${id}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${id}`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ project: Project }>(response);
@@ -96,7 +109,7 @@ export const getProject = async (id: string): Promise<Project> => {
 };
 
 export const createProject = async (data: Partial<Project>): Promise<Project> => {
-  const response = await fetch(`${API_URL}/api/projects`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -106,7 +119,7 @@ export const createProject = async (data: Partial<Project>): Promise<Project> =>
 };
 
 export const updateProject = async (id: string, data: Partial<Project>): Promise<Project> => {
-  const response = await fetch(`${API_URL}/api/projects/${id}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -116,7 +129,7 @@ export const updateProject = async (id: string, data: Partial<Project>): Promise
 };
 
 export const deleteProject = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/projects/${id}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -126,7 +139,7 @@ export const deleteProject = async (id: string): Promise<void> => {
 // --- Services ---
 
 export const createService = async (projectId: string, data: CreateServiceData): Promise<Service> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/services`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/services`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -136,7 +149,7 @@ export const createService = async (projectId: string, data: CreateServiceData):
 };
 
 export const getService = async (projectId: string, serviceId: string): Promise<Service> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/services/${serviceId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/services/${serviceId}`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ service: Service }>(response);
@@ -144,7 +157,7 @@ export const getService = async (projectId: string, serviceId: string): Promise<
 };
 
 export const updateService = async (projectId: string, serviceId: string, data: Partial<Service>): Promise<Service> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/services/${serviceId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/services/${serviceId}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -154,7 +167,7 @@ export const updateService = async (projectId: string, serviceId: string, data: 
 };
 
 export const deleteService = async (projectId: string, serviceId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/services/${serviceId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/services/${serviceId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -164,7 +177,7 @@ export const deleteService = async (projectId: string, serviceId: string): Promi
 // --- Service/Container Control ---
 
 export const restartService = async (serviceId: string, timeout: number = 10): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/restart`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/restart`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ timeout }),
@@ -173,7 +186,7 @@ export const restartService = async (serviceId: string, timeout: number = 10): P
 };
 
 export const startService = async (serviceId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/start`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/start`, {
     method: 'POST',
     headers: getAuthHeaders(),
   });
@@ -181,7 +194,7 @@ export const startService = async (serviceId: string): Promise<void> => {
 };
 
 export const stopService = async (serviceId: string, timeout: number = 10): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/stop`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/stop`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ timeout }),
@@ -190,7 +203,7 @@ export const stopService = async (serviceId: string, timeout: number = 10): Prom
 };
 
 export const getServiceLogs = async (serviceId: string, tail: number = 100): Promise<string> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/logs?tail=${tail}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/logs?tail=${tail}`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ logs: string }>(response);
@@ -198,7 +211,7 @@ export const getServiceLogs = async (serviceId: string, tail: number = 100): Pro
 };
 
 export const getServiceStats = async (serviceId: string): Promise<any> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/stats`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/stats`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ stats: any }>(response);
@@ -208,7 +221,7 @@ export const getServiceStats = async (serviceId: string): Promise<any> => {
 // --- Environment Variables ---
 
 export const getProjectEnvVars = async (projectId: string): Promise<EnvVar[]> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/env-vars`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/env-vars`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ envVars: EnvVar[] }>(response);
@@ -216,7 +229,7 @@ export const getProjectEnvVars = async (projectId: string): Promise<EnvVar[]> =>
 };
 
 export const createEnvVar = async (projectId: string, data: { key: string; value: string; isSecret?: boolean }): Promise<EnvVar> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/env-vars`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/env-vars`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -226,7 +239,7 @@ export const createEnvVar = async (projectId: string, data: { key: string; value
 };
 
 export const updateEnvVar = async (projectId: string, envVarId: string, data: { key?: string; value?: string; isSecret?: boolean }): Promise<EnvVar> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/env-vars/${envVarId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/env-vars/${envVarId}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -236,7 +249,7 @@ export const updateEnvVar = async (projectId: string, envVarId: string, data: { 
 };
 
 export const deleteEnvVar = async (projectId: string, envVarId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/projects/${projectId}/env-vars/${envVarId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/projects/${projectId}/env-vars/${envVarId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -246,7 +259,7 @@ export const deleteEnvVar = async (projectId: string, envVarId: string): Promise
 // --- Containers (Services) ---
 
 export const getContainers = async (): Promise<Service[]> => {
-  const response = await fetch(`${API_URL}/api/containers`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ containers: any[] }>(response);
@@ -260,7 +273,7 @@ export const getContainers = async (): Promise<Service[]> => {
 };
 
 export const createContainer = async (data: any): Promise<Service> => {
-  const response = await fetch(`${API_URL}/api/containers`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -270,7 +283,7 @@ export const createContainer = async (data: any): Promise<Service> => {
 };
 
 export const startContainer = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${id}/start`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${id}/start`, {
     method: 'POST',
     headers: getAuthHeaders(),
   });
@@ -278,7 +291,7 @@ export const startContainer = async (id: string): Promise<void> => {
 };
 
 export const stopContainer = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${id}/stop`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${id}/stop`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ timeout: 10 })
@@ -287,7 +300,7 @@ export const stopContainer = async (id: string): Promise<void> => {
 };
 
 export const restartContainer = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${id}/restart`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${id}/restart`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ timeout: 10 })
@@ -296,7 +309,7 @@ export const restartContainer = async (id: string): Promise<void> => {
 };
 
 export const deleteContainer = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${id}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -304,7 +317,7 @@ export const deleteContainer = async (id: string): Promise<void> => {
 };
 
 export const getContainerLogs = async (id: string): Promise<string> => {
-  const response = await fetch(`${API_URL}/api/containers/${id}/logs?tail=100`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${id}/logs?tail=100`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ logs: string }>(response);
@@ -314,7 +327,7 @@ export const getContainerLogs = async (id: string): Promise<string> => {
 // --- Domains ---
 
 export const getProjectDomains = async (projectId: string): Promise<Domain[]> => {
-  const response = await fetch(`${API_URL}/api/domains/project/${projectId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/domains/project/${projectId}`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ domains: Domain[] }>(response);
@@ -322,7 +335,7 @@ export const getProjectDomains = async (projectId: string): Promise<Domain[]> =>
 };
 
 export const createDomain = async (data: { domain: string; projectId: string; https?: boolean; targetPort?: number; targetProtocol?: 'HTTP' | 'HTTPS' | 'TCP' }): Promise<Domain> => {
-  const response = await fetch(`${API_URL}/api/domains`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/domains`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -332,7 +345,7 @@ export const createDomain = async (data: { domain: string; projectId: string; ht
 };
 
 export const updateDomain = async (id: string, data: Partial<Domain>): Promise<Domain> => {
-  const response = await fetch(`${API_URL}/api/domains/${id}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/domains/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -342,7 +355,7 @@ export const updateDomain = async (id: string, data: Partial<Domain>): Promise<D
 };
 
 export const deleteDomain = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/domains/${id}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/domains/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -352,7 +365,7 @@ export const deleteDomain = async (id: string): Promise<void> => {
 // --- Redirects ---
 
 export const createRedirect = async (serviceId: string, data: { from: string; to: string; type: 301 | 302 }): Promise<any> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/redirects`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/redirects`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -361,7 +374,7 @@ export const createRedirect = async (serviceId: string, data: { from: string; to
 };
 
 export const deleteRedirect = async (serviceId: string, redirectId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/redirects/${redirectId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/redirects/${redirectId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -374,7 +387,7 @@ export const updateServiceResources = async (
   serviceId: string,
   data: { cpuLimit?: number; cpuReservation?: number; memoryLimit?: number; memoryReservation?: number }
 ): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/resources`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/resources`, {
     method: 'PUT',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -385,7 +398,7 @@ export const updateServiceResources = async (
 // --- Backups (for database services) ---
 
 export const listBackups = async (serviceId: string): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/backups`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/backups`, {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ backups: any[] }>(response);
@@ -393,7 +406,7 @@ export const listBackups = async (serviceId: string): Promise<any[]> => {
 };
 
 export const createBackup = async (serviceId: string, name?: string): Promise<any> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/backups`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/backups`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ name }),
@@ -403,7 +416,7 @@ export const createBackup = async (serviceId: string, name?: string): Promise<an
 };
 
 export const restoreBackup = async (serviceId: string, backupId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/backups/${backupId}/restore`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/backups/${backupId}/restore`, {
     method: 'POST',
     headers: getAuthHeaders(),
   });
@@ -411,7 +424,7 @@ export const restoreBackup = async (serviceId: string, backupId: string): Promis
 };
 
 export const deleteBackup = async (serviceId: string, backupId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/api/containers/${serviceId}/backups/${backupId}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/backups/${backupId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });

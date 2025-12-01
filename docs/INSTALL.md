@@ -1,110 +1,37 @@
-# 📦 OpenPanel - Installation Guide
+# 📦 OpenPanel - Guia de Instalação
 
-## 🚀 Automated Installation (Recommended)
+## 🚀 Instalação Ultra-Simplificada (Recomendado)
 
-OpenPanel provides **100% automated installation scripts** for all major operating systems. Choose the method that best fits your platform:
+### ⚡ Um Único Comando para Tudo
 
-### 🐧 Linux & macOS
-
-The master installation script handles everything automatically:
+OpenPanel agora tem uma instalação **100% automatizada** que funciona em todas as plataformas:
 
 ```bash
-# Make executable
-chmod +x scripts/install/install.sh
-
-# Run installation
-./scripts/install/install.sh
+npm start
 ```
 
-**Features:**
-- ✅ Auto-detects OS and distribution
-- ✅ Installs Node.js, Docker, and all dependencies
-- ✅ Configures environment variables
-- ✅ Starts all services
-- ✅ Sets up database
-- ✅ Verifies installation
+**Isso é tudo!** O script `start.js` faz automaticamente:
 
-**Options:**
-```bash
-./scripts/install/install.sh --update     # Update existing installation
-./scripts/install/install.sh --dev        # Development mode (skip production configs)
-./scripts/install/install.sh --no-docker  # Skip Docker installation
-./scripts/install/install.sh --verbose    # Verbose output
-```
+1. ✅ Verifica pré-requisitos (Node.js 18+, Docker)
+2. ✅ Cria arquivo `.env` com valores seguros gerados automaticamente
+3. ✅ Instala dependências npm
+4. ✅ Inicia containers Docker (PostgreSQL, Redis, Traefik)
+5. ✅ Aguarda serviços ficarem prontos
+6. ✅ Configura banco de dados (Prisma)
+7. ✅ Cria usuário administrador padrão
+8. ✅ Inicia API e Web em modo desenvolvimento
 
-**Supported Distributions:**
-- Ubuntu 20.04+
-- Debian 11+
-- Fedora 36+
-- CentOS Stream 9+
-- Arch Linux
-- Alpine Linux 3.17+
-- macOS 11+ (Big Sur and later)
+**Funciona em:**
+- ✅ Linux (todas as distribuições)
+- ✅ macOS
+- ✅ Windows (com Docker Desktop)
+- ✅ WSL2
 
----
-
-### 🪟 Windows
-
-The PowerShell installation script provides the same automated experience:
-
-```powershell
-# Run PowerShell as Administrator
-
-# Set execution policy (first time only)
-Set-ExecutionPolicy Bypass -Scope Process -Force
-
-# Run installation
-.\scripts\install\install.ps1
-```
-
-**Features:**
-- ✅ Installs Chocolatey package manager
-- ✅ Installs Node.js LTS via Chocolatey
-- ✅ Installs Docker Desktop
-- ✅ Configures environment
-- ✅ Starts all services
-
-**Options:**
-```powershell
-.\scripts\install\install.ps1 -Update       # Update existing installation
-.\scripts\install\install.ps1 -Dev          # Development mode
-.\scripts\install\install.ps1 -NoDocker     # Skip Docker installation
-.\scripts\install\install.ps1 -VerboseMode  # Verbose output
-```
-
-**Requirements:**
-- Windows 10 (1809+) or Windows 11
-- Windows Server 2019+
-- PowerShell 5.1+
-- Administrator privileges
-
----
-
-### 🐍 Cross-Platform (Python)
-
-A lightweight Python alternative that works on all platforms:
-
-```bash
-# Requires Python 3.7+
-python scripts/install/install.py
-
-# Or with Python 3 specifically
-python3 scripts/install/install.py
-```
-
-**Features:**
-- ✅ Pure Python (no shell dependencies)
-- ✅ Works on Linux, macOS, and Windows
-- ✅ Lightweight and portable
-- ✅ Easy to customize
-
-**Options:**
-```bash
-python scripts/install/install.py --update     # Update installation
-python scripts/install/install.py --dev        # Development mode
-python scripts/install/install.py --no-docker  # Skip Docker
-python scripts/install/install.py --verbose    # Verbose output
-```
+**Sem necessidade de:**
+- ❌ Scripts específicos por plataforma
+- ❌ Configuração manual de variáveis de ambiente
+- ❌ Múltiplos comandos
+- ❌ Conhecimento técnico avançado
 
 ---
 
@@ -132,172 +59,150 @@ python scripts/install/install.py --verbose    # Verbose output
 
 ---
 
-## 🎯 Installation Methods Comparison
+## 🎯 Por Que Esta Abordagem?
 
-| Method | Best For | Pros | Cons |
-|--------|----------|------|------|
-| **install.sh** | Linux/macOS users | Full automation, best integration | Bash only |
-| **install.ps1** | Windows users | Native PowerShell, Chocolatey | Requires Admin |
-| **install.py** | Cross-platform, Python devs | Portable, customizable | Requires Python |
-| **setup.sh** | Docker pre-installed | Quick, simple | Manual dependencies |
+**Antes**: Múltiplos scripts (install.sh, install.ps1, install.py, setup.js) causavam confusão
+
+**Agora**: Um único comando `npm start` que funciona em todas as plataformas
+
+**Benefícios:**
+- ✅ **Simplicidade**: Um comando, zero configuração
+- ✅ **Cross-platform**: Funciona em Linux, macOS e Windows
+- ✅ **Segurança**: Senhas geradas automaticamente
+- ✅ **Transparência**: Você vê cada passo do processo
+- ✅ **Idempotente**: Pode executar múltiplas vezes sem problemas
 
 ---
 
-## 🔧 Manual Installation
+## 📋 Pré-requisitos
 
-If you prefer manual control or automated scripts fail:
+Antes de executar `npm start`, certifique-se de ter:
 
-### Step 1: Install Prerequisites
+### Requisitos Mínimos
+
+| Componente | Versão | Notas |
+|-----------|--------|-------|
+| **Node.js** | >= 18.0.0 | LTS recomendado (20.11.0+) |
+| **npm** | >= 10.0.0 | Incluído com Node.js |
+| **Docker** | >= 20.10.0 | Docker Desktop no Windows/macOS |
+| **Docker Compose** | >= 2.0.0 | Geralmente incluído com Docker |
+| **RAM** | 4 GB | 8 GB recomendado |
+| **Espaço em Disco** | 10 GB | 20 GB recomendado |
+
+### Instalar Pré-requisitos
 
 #### Linux (Ubuntu/Debian)
 ```bash
-# Update package index
-sudo apt update
-
-# Install Node.js LTS
+# Node.js LTS
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
-# Install Docker
+# Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-
-# Add user to docker group
 sudo usermod -aG docker $USER
 ```
 
 #### macOS
 ```bash
-# Install Homebrew (if not installed)
+# Homebrew (se não tiver)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Node.js
+# Node.js
 brew install node@20
 
-# Install Docker Desktop
+# Docker Desktop
 brew install --cask docker
 ```
 
 #### Windows
-```powershell
-# Install Chocolatey
-Set-ExecutionPolicy Bypass -Scope Process -Force
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+1. Baixe e instale [Node.js LTS](https://nodejs.org/)
+2. Baixe e instale [Docker Desktop](https://www.docker.com/products/docker-desktop)
+3. Certifique-se de que o Docker Desktop está rodando
 
-# Install Node.js LTS
-choco install nodejs-lts -y
+## 🔧 Instalação Manual (Avançado)
 
-# Install Docker Desktop
-choco install docker-desktop -y
-```
+Se preferir controle manual ou o script automático falhar:
 
-### Step 2: Clone Repository
+### Passo 1: Clone o Repositório
 
 ```bash
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
 ```
 
-### Step 3: Configure Environment
+### Passo 2: Instale Dependências
 
 ```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit .env with your settings
-nano .env  # or vim, code, etc.
-
-# Create frontend environment
-cat > apps/web/.env.local <<EOF
-VITE_API_URL=http://localhost:3001
-VITE_APP_NAME=OpenPanel
-VITE_APP_VERSION=0.1.0
-VITE_ENABLE_AI_CHAT=true
-VITE_ENABLE_TERMINAL=true
-VITE_ENABLE_MONITORING=true
-EOF
-```
-
-### Step 4: Install Dependencies
-
-```bash
-# Install npm dependencies
 npm install
 ```
 
-### Step 5: Start Services
+### Passo 3: Configure Ambiente
+
+O script `npm start` cria automaticamente o `.env`. Se preferir manual:
 
 ```bash
-# Start Docker services
-docker compose up -d
+cp .env.example .env
+# Edite .env com suas configurações
+```
 
-# Wait for PostgreSQL (30-60 seconds)
-# Check with: docker inspect --format='{{.State.Health.Status}}' openpanel-postgres
+### Passo 4: Inicie Serviços Docker
 
-# Generate Prisma Client
+```bash
+docker-compose up -d
+```
+
+### Passo 5: Configure Banco de Dados
+
+```bash
 npm run db:generate
-
-# Sync database schema
 npm run db:push
 ```
 
-### Step 6: Start Application
+### Passo 6: Crie Usuário Admin
 
 ```bash
-# Start development servers
+npm run create:admin
+```
+
+### Passo 7: Inicie Aplicação
+
+```bash
 npm run dev
-
-# Or start separately:
-# Terminal 1:
-npm run dev:api
-
-# Terminal 2:
-npm run dev:web
 ```
 
 ---
 
-## ✅ Verification
+## ✅ Verificação
 
-After installation, verify everything is working:
+Após `npm start` completar, verifique se tudo está funcionando:
 
-### Automated Check
+### Verificação Automática
 
-```bash
-# Linux/macOS
-./scripts/utils/check-services.sh
+O script `npm start` já verifica automaticamente:
+- ✅ Node.js e Docker instalados
+- ✅ Containers Docker rodando
+- ✅ Banco de dados configurado
+- ✅ API respondendo
 
-# Windows (PowerShell)
-.\scripts\utils\check-services.ps1
-
-# Python
-python check-services.py
-```
-
-### Manual Verification
+### Verificação Manual
 
 ```bash
-# Check Node.js
-node -v  # Should show v18.0.0 or higher
+# Verificar Node.js
+node -v  # Deve mostrar v18.0.0 ou superior
 
-# Check npm
-npm -v   # Should show 10.0.0 or higher
-
-# Check Docker
+# Verificar Docker
 docker --version
+docker ps  # Deve mostrar containers rodando
 
-# Check Docker is running
-docker ps
-
-# Check API
+# Verificar API
 curl http://localhost:3001/health
 
-# Check Frontend (in browser)
-# Open http://localhost:3000
+# Verificar Frontend (no navegador)
+# Abra http://localhost:3000
 ```
 
-Expected output for health check:
+Resposta esperada do health check:
 ```json
 {
   "status": "ok",
@@ -305,6 +210,15 @@ Expected output for health check:
   "version": "0.1.0"
 }
 ```
+
+### 🔑 Credenciais Padrão
+
+Após a instalação, use estas credenciais:
+
+- **Email**: `admin@admin.com.br`
+- **Senha**: `admin123`
+
+> ⚠️ **IMPORTANTE**: Você será solicitado a alterar a senha no primeiro login!
 
 ---
 

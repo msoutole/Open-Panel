@@ -24,6 +24,7 @@
     "packages/*"
   ],
   "scripts": {
+    "start": "node start.js",
     "dev": "npm run dev -w apps/api & npm run dev -w apps/web",
     "dev:api": "npm run dev -w apps/api",
     "dev:web": "npm run dev -w apps/web",
@@ -31,16 +32,16 @@
     "build:api": "npm run build -w apps/api",
     "build:web": "npm run build -w apps/web",
     "db:generate": "npm run db:generate -w apps/api",
-    "create:admin": "tsx scripts/create-admin.ts",
     "db:migrate": "npm run db:migrate -w apps/api",
     "db:push": "npm run db:push -w apps/api",
     "db:studio": "npm run db:studio -w apps/api",
+    "create:admin": "tsx scripts/create-admin.ts",
     "preview": "npm run preview -w apps/web",
     "type-check": "npm run type-check -w apps/api && npm run type-check -w apps/web && npm run type-check -w packages/shared",
-    "setup": "node ./scripts/setup.js",
-    "start": "node ./scripts/start.js",
-    "start:all": "node ./scripts/start-all.js",
-    "status": "node ./scripts/status.js"
+    "check-secrets": "bash scripts/check-secrets.sh",
+    "check-secrets:win": "powershell scripts/check-secrets.ps1",
+    "rotate-credentials": "bash scripts/rotate-credentials.sh",
+    "remove-secrets-from-history": "bash scripts/remove-secrets-from-history.sh"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"

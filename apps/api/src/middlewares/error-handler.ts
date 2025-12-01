@@ -126,7 +126,7 @@ export function errorHandler(error: Error, c: Context) {
  */
 export function notFoundHandler(c: Context) {
   const error = new AppError(
-    \`Route \${c.req.method} \${c.req.path} not found\`,
+    `Route ${c.req.method} ${c.req.path} not found`,
     404,
     ErrorCode.NOT_FOUND
   )
@@ -146,7 +146,7 @@ export const throwForbidden = (message = 'Forbidden') => {
 }
 
 export const throwNotFound = (resource: string) => {
-  throw new AppError(\`\${resource} not found\`, 404, ErrorCode.NOT_FOUND)
+  throw new AppError(`${resource} not found`, 404, ErrorCode.NOT_FOUND)
 }
 
 export const throwValidationError = (message: string, details?: any) => {

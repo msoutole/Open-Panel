@@ -32,7 +32,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  // Use relative paths in development to leverage Vite proxy, absolute URLs in production if needed
+  const getApiBaseUrl = (): string => {
+    const envUrl = import.meta.env.VITE_API_URL;
+    const isDev = import.meta.env.DEV;
+    return isDev ? '' : (envUrl || '');
+  };
 
   // AI Providers usando i18n
   const AI_PROVIDERS: AIProvider[] = useMemo(() => [
@@ -101,6 +106,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     return { score, label: LL.onboarding.step3.strengthVeryStrong(), color: 'bg-green-600', icon: ShieldCheck };
   }, [newPassword, LL]);
 
+  // Validação completa para habilitar o botão
+  const isFormValid = useMemo(() => {
+    // Verificar senha
+    if (!newPassword || newPassword.length < 8) return false;
+    if (newPassword !== confirmPassword) return false;
+    if (passwordStrength.score < 4) return false;
+
+    // Verificar provedores de IA
+    const validatedProviders = Object.entries(selectedProviders).filter(([_, v]) => v.validated);
+    if (validatedProviders.length === 0) return false;
+    if (!defaultProvider) return false;
+
+    return true;
+  }, [newPassword, confirmPassword, passwordStrength.score, selectedProviders, defaultProvider]);
+
   const validateProvider = async (providerId: string) => {
     setValidating(providerId);
     setError('');
@@ -122,15 +142,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           apiUrl: providerConfig.requiresUrl ? 'http://localhost:11434' : undefined,
           validated: false
         };
-        setSelectedProviders(prev => ({
-          ...prev,
-          [providerId]: provider
-        }));
+        setSelectedProviders(prev => {
+          const updated: Record<string, { apiKey?: string; apiUrl?: string; validated: boolean }> = { ...prev };
+          if (provider) {
+            updated[providerId] = provider;
+          }
+          return updated;
+        });
       }
 
       const token = localStorage.getItem('openpanel_access_token');
 
-      const response = await fetch(`${API_URL}/api/onboarding/validate-provider`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/onboarding/validate-provider`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +191,24 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const handleComplete = async () => {
     setError('');
 
-    // Validar senha
+    // Validar senha (ordem deve corresponder à lógica do isFormValid)
+    // 1. Verificar se senha está vazia primeiro
+    if (!newPassword) {
+      const errorMsg = LL.onboarding.errors.passwordRequired();
+      setError(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+
+    // 2. Verificar comprimento mínimo
+    if (newPassword.length < 8) {
+      const errorMsg = LL.onboarding.errors.passwordTooShort();
+      setError(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+
+    // 3. Verificar se senhas coincidem
     if (newPassword !== confirmPassword) {
       const errorMsg = LL.onboarding.errors.passwordMismatch();
       setError(errorMsg);
@@ -176,22 +216,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       return;
     }
 
-    if (newPassword && newPassword.length < 8) {
-      const errorMsg = LL.onboarding.errors.passwordTooShort();
-      setError(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
-
+    // 4. Verificar força da senha (apenas se senha não estiver vazia)
     if (passwordStrength.score < 4) {
       const errorMsg = LL.onboarding.errors.passwordWeak();
-      setError(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
-
-    if (!newPassword) {
-      const errorMsg = LL.onboarding.errors.passwordRequired();
       setError(errorMsg);
       toast.error(errorMsg);
       return;
@@ -219,7 +246,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     try {
       const token = localStorage.getItem('openpanel_access_token');
 
-      const response = await fetch(`${API_URL}/api/onboarding/complete`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/onboarding/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -442,7 +469,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 ))}
               </div>
 
-              {Object.keys(selectedProviders).filter(k => selectedProviders[k].validated).length > 0 && (
+              {Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length > 0 && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {LL.onboarding.step2.defaultProvider()} *
@@ -454,7 +481,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   >
                     <option value="">{LL.onboarding.step2.selectDefault()}</option>
                     {Object.keys(selectedProviders)
-                      .filter(k => selectedProviders[k].validated)
+                      .filter(k => selectedProviders[k]?.validated)
                       .map(k => (
                         <option key={k} value={k}>
                           {AI_PROVIDERS.find(p => p.id === k)?.name}
@@ -474,7 +501,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </button>
               <button
                 onClick={() => setStep(3)}
-                disabled={Object.keys(selectedProviders).filter(k => selectedProviders[k].validated).length === 0 || !defaultProvider}
+                disabled={Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length === 0 || !defaultProvider}
                 className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {LL.common.next()}
@@ -528,7 +555,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-700">{LL.onboarding.step3.passwordStrength()}</span>
                       <div className="flex items-center gap-2">
-                        {React.createElement(passwordStrength.icon, {
+                        {passwordStrength.icon && React.createElement(passwordStrength.icon, {
                           size: 20,
                           className: passwordStrength.score <= 2 ? 'text-red-500' : passwordStrength.score <= 3 ? 'text-yellow-500' : 'text-green-500'
                         })}
@@ -554,7 +581,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                       <div className={`flex items-center gap-2 ${newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
                         {newPassword.length >= 8 ? <Check size={14} /> : <AlertCircle size={14} />}
-                        <span>{LL.onboarding.step3.requirements.length()}</span>
+                        <span>{LL.onboarding.step3.requirements.minLength()}</span>
                       </div>
                       <div className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
                         {/[A-Z]/.test(newPassword) ? <Check size={14} /> : <AlertCircle size={14} />}
@@ -591,7 +618,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </button>
               <button
                 onClick={handleComplete}
-                disabled={isLoading || !newPassword || newPassword !== confirmPassword}
+                disabled={isLoading || !isFormValid}
                 className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (

@@ -51,9 +51,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
-      // Call real API
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      // Call real API - use relative paths in development to leverage Vite proxy
+      const getApiBaseUrl = (): string => {
+        const envUrl = import.meta.env.VITE_API_URL;
+        const isDev = import.meta.env.DEV;
+        return isDev ? '' : (envUrl || '');
+      };
+      const response = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

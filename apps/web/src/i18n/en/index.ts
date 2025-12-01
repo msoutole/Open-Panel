@@ -99,7 +99,7 @@ const en = {
       strengthStrong: 'Strong',
       strengthVeryStrong: 'Very Strong',
       requirements: {
-        length: '8+ characters',
+        minLength: '8+ characters',
         uppercase: 'Uppercase letter',
         lowercase: 'Lowercase letter',
         number: 'Number',

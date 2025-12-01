@@ -17,44 +17,81 @@
 
 ## 🚀 Quick Start
 
-### ⚡ Automated Installation (Recommended)
+### ⚡ Inicialização Ultra-Simplificada
 
-OpenPanel provides **100% automated installation** for all platforms:
+**Um único comando para iniciar tudo:**
 
-#### Linux / macOS
 ```bash
-chmod +x scripts/install.sh
-./scripts/install.sh
+npm start
 ```
 
-#### Windows (PowerShell as Administrator)
-```powershell
-.\scripts\install.ps1
-```
+Isso é tudo! O script `start.js` faz automaticamente:
+- ✅ Verifica pré-requisitos (Node.js 18+, Docker)
+- ✅ Cria arquivo `.env` na raiz com valores seguros
+- ✅ Sincroniza configurações com subprojetos (API e Web)
+- ✅ Instala dependências npm
+- ✅ Inicia containers Docker (PostgreSQL, Redis, Traefik)
+- ✅ Configura banco de dados
+- ✅ Cria usuário administrador padrão
+- ✅ Inicia API e Web em modo desenvolvimento
 
-#### Cross-Platform (Python 3.7+)
+> 💡 **Configuração 100% centralizada**:  
+> - ✅ **Um único arquivo**: Edite apenas o `.env` na raiz  
+> - ⚠️ **Não edite** `apps/api/.env` ou `apps/web/.env.local` - são gerados automaticamente  
+> - 🔄 **Sincronização automática** ao executar `npm start`
+
+**Pré-requisitos:**
+- Node.js 18+ ([Download](https://nodejs.org/))
+- Docker Desktop ([Download](https://www.docker.com/products/docker-desktop))
+
+**Credenciais padrão após instalação:**
+- Email: `admin@admin.com.br`
+- Senha: `admin123`
+- ⚠️ **Altere a senha após o primeiro login!**
+
+**Acesse:**
+- 🌐 Web Interface: http://localhost:3000
+- 🔌 API: http://localhost:3001
+- 📊 Traefik Dashboard: http://localhost:8080
+
+📖 **Documentação completa:** Veja [docs/INSTALL.md](docs/INSTALL.md) para mais detalhes.
+
+## 🔒 Segurança
+
+**⚠️ IMPORTANTE - Credenciais e Segurança:**
+
+- ✅ O arquivo `.env` está no `.gitignore` e **NÃO deve ser commitado**
+- ✅ Apenas `.env.example` com placeholders deve estar no repositório
+- ⚠️ Se credenciais foram commitadas anteriormente, **rotacione todas imediatamente**
+- 📖 Veja [docs/SECURITY.md](docs/SECURITY.md) para instruções completas de segurança
+
+**Verificar credenciais expostas:**
 ```bash
-python scripts/install.py
+# Linux/macOS
+npm run check-secrets
+# ou
+bash scripts/check-secrets.sh
+
+# Windows
+npm run check-secrets:win
+# ou
+powershell scripts/check-secrets.ps1
 ```
 
-**Features:**
-- ✅ Auto-installs all dependencies (Node.js, Docker, etc.)
-- ✅ Configures environment automatically
-- ✅ Sets up database and services
-- ✅ Verifies installation
-
-**Options:**
+**Rotacionar credenciais expostas:**
 ```bash
-# Update existing installation
-./scripts/install.sh --update        # Linux/macOS
-.\scripts\install.ps1 -Update        # Windows
-python scripts/install.py --update   # Cross-platform
+# Linux/macOS
+npm run rotate-credentials
+# ou
+bash scripts/rotate-credentials.sh
 
-# Development mode
-./scripts/install.sh --dev           # Skip production configs
+# Windows
+powershell scripts/rotate-credentials.ps1
 ```
 
-📖 **Full installation guide:** See [docs/INSTALL.md](docs/INSTALL.md) for detailed instructions.
+> ⚠️ **Se credenciais foram commitadas**: Execute `npm run rotate-credentials` IMEDIATAMENTE e veja [docs/SECURITY.md](docs/SECURITY.md) para limpar o histórico do Git.
+
+---
 
 ## Overview
 
@@ -116,181 +153,109 @@ OpenPanel is a privacy-first, AI-powered server control panel for managing Docke
 - **Validation**: Zod schemas
 - **Monorepo**: npm workspaces
 
-## 📖 Manual Installation
+## 📖 Instalação Manual (Avançado)
 
-If you prefer manual installation or want more control:
+Se preferir instalação manual ou precisar de mais controle:
 
-### Prerequisites
+### Pré-requisitos
 
-- **Node.js** >= 18.0.0 (recommended 20+)
+- **Node.js** >= 18.0.0 (recomendado 20+)
 - **npm** >= 10.0.0
-- **Docker** >= 20.10.0 (for infrastructure services)
-- **Git** (for cloning the repository)
+- **Docker** >= 20.10.0
+- **Git** (para clonar o repositório)
 
-### ⚡ Automated Installation (Recommended)
+### Passo a Passo Manual
 
-The easiest way to get started is using our automated setup script that handles everything for you:
-
-#### Linux / macOS / WSL
-
-```bash
-git clone https://github.com/msoutole/openpanel.git
-cd openpanel
-bash scripts/setup/setup.sh
-```
-
-#### Windows (PowerShell)
-
-```powershell
-git clone https://github.com/msoutole/openpanel.git
-cd openpanel
-.\scripts\setup\setup.ps1
-```
-
-#### Node.js (Any Platform)
-
-```bash
-git clone https://github.com/msoutole/openpanel.git
-cd openpanel
-npm run setup
-# ou
-node scripts/setup.js
-```
-
-#### What the script does:
-✅ Installs all dependencies (Node.js, Docker, etc.)
-✅ Generates secure random passwords
-✅ Creates `.env` file with proper configuration
-✅ Starts Docker services (PostgreSQL, Redis, Ollama, Traefik)
-✅ Runs database migrations
-✅ Creates admin user automatically
-✅ Validates all services are healthy
-
-### 🔑 Default Admin Credentials
-
-After installation, login with:
-
-- **Email**: `admin@admin.com.br`
-- **Password**: `admin123`
-
-> ⚠️ **IMPORTANT**: You will be prompted to change this password on first login through the onboarding wizard.
-
-### 🎯 First Login - Onboarding Wizard
-
-After logging in for the first time, you'll go through a 3-step onboarding:
-
-1. **Theme Selection**: Choose light or dark mode
-2. **AI Provider Setup**: Configure at least one AI provider (Gemini, Claude, GitHub, or Ollama)
-3. **Password Change**: Create a strong, secure password
-
-### 🔍 Check Installation Status
-
-After installation, verify all services are running:
-
-```bash
-npm run status
-# or
-./scripts/status/check-status.sh  # Linux/macOS
-./scripts/status/check-status.ps1 # Windows
-```
-
-### 🌐 Access the Application
-
-- **Web UI**: http://localhost:3000
-- **API**: http://localhost:3001
-- **Traefik Dashboard**: http://localhost:8080 (Docker proxy)
-- **Ollama**: http://localhost:11434 (Local AI models)
-
----
-
-### 🛠️ Manual Installation (Advanced)
-
-If you prefer manual setup or need more control:
-
-1. **Clone the repository**
-
+1. **Clone o repositório**
    ```bash
    git clone https://github.com/msoutole/openpanel.git
    cd openpanel
    ```
 
-2. **Install dependencies**
-
+2. **Instale dependências**
    ```bash
    npm install
    ```
 
-3. **Configure environment**
-
+3. **Configure ambiente** (o script `npm start` faz isso automaticamente)
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration
-   # REQUIRED: Set strong JWT_SECRET (min 32 chars)
-   # REQUIRED: Configure DATABASE_URL
-   # REQUIRED: Configure REDIS_URL
+   # Edite .env com suas configurações
    ```
 
-4. **Start infrastructure**
-
+4. **Inicie serviços Docker**
    ```bash
    docker-compose up -d
    ```
 
-5. **Setup database**
-
+5. **Configure banco de dados**
    ```bash
+   npm run db:generate
    npm run db:push
    ```
 
-6. **Create admin user**
-
+6. **Crie usuário administrador**
    ```bash
    npm run create:admin
    ```
 
-7. **Start development servers**
-
+7. **Inicie aplicação**
    ```bash
    npm run dev
    ```
 
-## Development Commands
+### 🔑 Credenciais Padrão
+
+Após a instalação, faça login com:
+
+- **Email**: `admin@admin.com.br`
+- **Senha**: `admin123`
+
+> ⚠️ **IMPORTANTE**: Você será solicitado a alterar esta senha no primeiro login através do wizard de onboarding.
+
+### 🎯 Primeiro Login - Wizard de Onboarding
+
+Após fazer login pela primeira vez, você passará por um onboarding de 3 etapas:
+
+1. **Seleção de Tema**: Escolha modo claro ou escuro
+2. **Configuração de IA**: Configure pelo menos um provedor de IA (Gemini, Claude, GitHub ou Ollama)
+3. **Alteração de Senha**: Crie uma senha forte e segura
+
+### 🌐 Acessar a Aplicação
+
+- **Web UI**: http://localhost:3000
+- **API**: http://localhost:3001
+- **Traefik Dashboard**: http://localhost:8080
+- **Ollama**: http://localhost:11434 (modelos de IA locais - opcional)
+
+## 🛠️ Comandos de Desenvolvimento
 
 ```bash
-# Development
-npm run dev              # Start both API and Web
-npm run dev:api          # Start only backend
-npm run dev:web          # Start only frontend
+# Inicialização
+npm start                # Inicia tudo automaticamente (recomendado)
 
-# Database
-npm run db:generate      # Generate Prisma client
-npm run db:migrate       # Run database migrations
-npm run db:push          # Push schema to database
-npm run db:studio        # Open Prisma Studio
+# Desenvolvimento
+npm run dev              # Inicia API e Web em paralelo
+npm run dev:api          # Inicia apenas backend
+npm run dev:web          # Inicia apenas frontend
 
-# Setup and Status
-npm run setup            # Run complete setup (install deps, start services, configure DB)
-npm run start            # Start all services with admin user creation
-npm run start:all        # Setup and start all services
-npm run status           # Check status of all services
+# Build
+npm run build            # Build completo (API + Web)
+npm run build:api        # Build apenas API
+npm run build:web        # Build apenas Web
 
-# Additional Scripts
-./scripts/setup/setup.sh        # Run setup script (Linux/macOS)
-./scripts/setup/setup.ps1       # Run setup script (Windows)
-./scripts/start/start-all.sh    # Start all services (Linux/macOS)
-./scripts/start/start-all.ps1   # Start all services (Windows)
-./scripts/status/check-status.sh    # Check status (Linux/macOS)
-./scripts/status/check-status.ps1   # Check status (Windows)
+# Banco de Dados
+npm run db:generate      # Gera Prisma Client
+npm run db:migrate       # Executa migrações
+npm run db:push          # Sincroniza schema
+npm run db:studio        # Abre Prisma Studio
 
-# Utility Scripts
-./scripts/utils/show-structure.ps1  # Show organized script structure
-./scripts/utils/validate-scripts.ps1 # Validate all scripts
+# Administração
+npm run create:admin     # Cria usuário administrador
 
-# Type checking
-npm run type-check       # TypeScript validation across all packages
-
-# Testing
-npm test                 # Run all tests
+# Qualidade de Código
+npm run type-check       # Validação TypeScript
+npm test                 # Executa testes
 ```
 
 ## Project Structure

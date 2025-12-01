@@ -99,7 +99,7 @@ type RootTranslation = {
 			strengthStrong: string
 			strengthVeryStrong: string
 			requirements: {
-				length: string
+				minLength: string
 				uppercase: string
 				lowercase: string
 				number: string
@@ -253,7 +253,7 @@ export type TranslationFunctions = {
 			strengthStrong: () => LocalizedString
 			strengthVeryStrong: () => LocalizedString
 			requirements: {
-				length: () => LocalizedString
+				minLength: () => LocalizedString
 				uppercase: () => LocalizedString
 				lowercase: () => LocalizedString
 				number: () => LocalizedString
