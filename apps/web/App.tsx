@@ -120,27 +120,27 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#f8f9fa]">
-      <Sidebar 
-        currentView={currentView} 
-        onChangeView={handleViewChange} 
+    <div className="flex h-screen bg-background">
+      <Sidebar
+        currentView={currentView}
+        onChangeView={handleViewChange}
       />
-      
+
       <div className="flex-1 ml-64 flex flex-col min-w-0 relative">
         <Header title={getPageTitle(currentView)} onLogout={handleLogout} />
-        
-        <main className="flex-1 overflow-y-auto">
+
+        <main className="flex-1 overflow-y-auto bg-background">
           {(currentView === 'dashboard' || currentView === 'monitor') && (
-            <DashboardView 
-              onProjectSelect={handleProjectSelect} 
-              view={currentView as 'dashboard' | 'monitor'} 
+            <DashboardView
+              onProjectSelect={handleProjectSelect}
+              view={currentView as 'dashboard' | 'monitor'}
             />
           )}
-          
+
           {currentView === 'project_details' && selectedProject && (
-            <ProjectDetails 
-              project={selectedProject} 
-              onBack={() => handleViewChange('dashboard')} 
+            <ProjectDetails
+              project={selectedProject}
+              onBack={() => handleViewChange('dashboard')}
             />
           )}
 
@@ -152,7 +152,7 @@ const AppContent: React.FC = () => {
              <SecurityView />
           )}
         </main>
-        
+
         <GeminiChat />
       </div>
     </div>
