@@ -93,51 +93,52 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10 transform transition-all hover:scale-[1.01]">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="bg-gradient-to-tr from-blue-600 to-blue-400 p-2.5 rounded-xl text-white shadow-lg shadow-blue-200">
-            <Box size={32} strokeWidth={2.5} />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md bg-card rounded-2xl shadow-xl border border-border p-10">
+        {/* Logo e Branding */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="bg-primary p-2.5 rounded-xl text-white shadow-md">
+              <Box size={32} strokeWidth={2} />
+            </div>
+            <div className="text-left">
+              <h1 className="text-3xl font-bold text-textPrimary tracking-tight leading-none">Open Panel</h1>
+              <p className="text-xs text-textSecondary font-medium">by Soullabs</p>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Open Panel</h1>
+          <h2 className="text-center text-base font-medium text-textSecondary mt-4">Sign In to your account</h2>
         </div>
-
-        <h2 className="text-center text-lg font-medium text-slate-600 mb-8">Sign In to your account</h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm animate-in fade-in duration-200">
-              <AlertCircle size={16} className="shrink-0" />
+            <div className="p-3 bg-error/10 border border-error/20 rounded-lg flex items-center gap-2 text-error text-sm animate-in fade-in duration-200">
+              <AlertCircle size={16} strokeWidth={2} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           <div>
-            <div className="relative">
-              <input
-                type="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
-                required
-                className="w-full pl-4 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-            </div>
+            <input
+              type="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address"
+              required
+              className="w-full px-4 py-3 bg-card border border-border rounded-lg text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+            />
           </div>
 
           <div>
-            <div className="relative">
-              <input
-                type="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                className="w-full pl-4 pr-4 py-3 bg-white border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-            </div>
+            <input
+              type="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+              className="w-full px-4 py-3 bg-card border border-border rounded-lg text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+            />
           </div>
 
           <div className="flex items-center justify-between text-sm">
@@ -146,36 +147,35 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded text-primary border-slate-300 focus:ring-primary"
+                className="w-4 h-4 rounded text-primary border-border focus:ring-2 focus:ring-primary/20"
               />
-              <span className="text-slate-600">Remember Me</span>
+              <span className="text-textSecondary">Remember Me</span>
             </label>
-            <a href="#" className="text-primary hover:underline">Forgot your password?</a>
+            <a href="#" className="text-primary hover:underline font-medium">Forgot your password?</a>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary hover:bg-blue-700 text-white font-semibold py-3.5 rounded-lg shadow-lg shadow-blue-200 transition-all transform active:scale-95 duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium py-3 rounded-lg shadow-sm hover:shadow-md transition-all transform active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/20"
           >
             {isLoading ? (
               <>
-                <Loader2 size={18} className="animate-spin" />
+                <Loader2 size={18} strokeWidth={2} className="animate-spin" />
                 Signing in...
-              </
-
-              >
+              </>
             ) : (
               'Login'
             )}
           </button>
         </form>
 
-        <div className="mt-12 pt-6 border-t border-slate-100 text-center text-xs text-slate-400">
-          <p>© 2024 Open Panel. All rights reserved.</p>
+        {/* Footer */}
+        <div className="mt-8 pt-6 border-t border-border text-center text-xs text-textSecondary">
+          <p>© 2024 Soullabs. All rights reserved.</p>
           <div className="mt-2 space-x-4">
-            <a href="#" className="hover:text-slate-600">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-600">Terms of Service</a>
+            <a href="#" className="hover:text-textPrimary transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-textPrimary transition-colors">Terms of Service</a>
           </div>
         </div>
       </div>

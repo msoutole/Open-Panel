@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OpenPanel</title>
+    <title>Open Panel by Soullabs</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f8f9fa;
+        background-color: #F8FAFC;
       }
       /* Custom scrollbar for terminal */
       .terminal-scroll::-webkit-scrollbar {
@@ -41,12 +41,38 @@
         theme: {
           extend: {
             colors: {
-              primary: '#007BFF', // Brand Blue from design system
-              secondary: '#4F6D7A',
-              success: '#28A745',
-              error: '#DC3545',
-              warning: '#FFC107',
+              // Cores Primárias & Destaque
+              primary: '#4A7BA7', // Azul Dessaturado
+              primaryHover: '#3a6b97',
+              primaryActive: '#2a5b87',
+              secondary: '#6B9B6E', // Verde Dessaturado
+
+              // Cores de Status
+              success: '#22c55e',
+              successHover: '#16a34a',
+              warning: '#f97316',
+              warningHover: '#ea580c',
+              error: '#ef4444',
+              errorHover: '#dc2626',
+
+              // Cores de Texto
+              textPrimary: '#1f2937',
+              textSecondary: '#6b7280',
+
+              // Cores de Fundo & Bordas
+              background: '#F8FAFC',
+              card: '#FFFFFF',
+              border: '#e2e8f0',
+
+              // Cores antigas (manter para compatibilidade)
               dark: '#1a1d21',
+            },
+            spacing: {
+              '18': '4.5rem',
+            },
+            borderRadius: {
+              'xl': '12px',
+              '2xl': '16px',
             }
           }
         }
