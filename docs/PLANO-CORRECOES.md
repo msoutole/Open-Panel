@@ -424,7 +424,8 @@ jobs:
       - name: Run tests
         run: npm test
         env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          # Nota: Evitar incluir senha na URL de exemplo para não acionar scanners de segredos
+          DATABASE_URL: postgresql://test@localhost:5432/test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-secret-key-with-at-least-32-characters-long
 
