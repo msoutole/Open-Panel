@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, User, ChevronDown, LogOut, Settings, UserCircle, CheckCheck } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, LogOut, Settings, UserCircle, CheckCheck, Menu } from 'lucide-react';
+import { useTranslations } from '../src/i18n/i18n-react';
 
 interface HeaderProps {
   title: string;
   onLogout?: () => void;
+  onMenuToggle?: () => void;
+  isMobile?: boolean;
 }
 
 interface Notification {
@@ -14,14 +17,15 @@ interface Notification {
   read: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
+export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, isMobile = false }) => {
+  const LL = useTranslations();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   
   const [notifications, setNotifications] = useState<Notification[]>([
-    { id: '1', title: 'Deployment Failed', message: 'Project "chatwoot" failed to build.', time: '2 minutes ago', read: false },
-    { id: '2', title: 'Backup Successful', message: 'Database backup completed (124MB).', time: '1 hour ago', read: false }
+    { id: '1', title: 'Falha no Deploy', message: 'O projeto "chatwoot" falhou ao construir.', time: 'há 2 minutos', read: false },
+    { id: '2', title: 'Backup Bem-sucedido', message: 'Backup do banco de dados concluído (124MB).', time: 'há 1 hora', read: false }
   ]);
   
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -58,17 +62,35 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
       // setTimeout(() => setIsNotifOpen(false), 300);
   };
 
-  return (
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-8 sticky top-0 z-10 shadow-sm">
-      <h1 className="text-xl font-semibold text-textPrimary">{title}</h1>
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    const name = 'Admin User';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
-      <div className="flex items-center gap-6">
+  return (
+    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Mobile Menu Button */}
+        {isMobile && onMenuToggle && (
+          <button
+            onClick={onMenuToggle}
+            className="p-2 rounded-lg text-textSecondary hover:text-textPrimary hover:bg-background transition-colors duration-200 lg:hidden"
+            aria-label={LL.header.toggleMenu()}
+          >
+            <Menu size={20} strokeWidth={1.5} />
+          </button>
+        )}
+        <h1 className="text-lg sm:text-xl font-semibold text-textPrimary truncate">{title}</h1>
+      </div>
+
+      <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
         {/* Search */}
-        <div className="relative hidden md:block">
+        <div className="relative hidden lg:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" size={18} strokeWidth={1.5} />
           <input
             type="text"
-            placeholder="Search..."
+            placeholder={LL.header.searchPlaceholder()}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={handleSearch}
@@ -81,6 +103,7 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
             <button
                 ref={notifRef}
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
+                aria-label={LL.header.notifications()}
                 className={`relative text-textSecondary hover:text-textPrimary transition-colors duration-200 p-2 rounded-lg hover:bg-background ${isNotifOpen ? 'text-primary bg-background' : ''}`}
             >
                 <Bell size={20} strokeWidth={1.5} />
@@ -90,29 +113,48 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
             </button>
 
             {isNotifOpen && (
-                <div ref={notifPanelRef} className="absolute right-0 top-full mt-2 w-80 bg-card rounded-xl shadow-xl border border-border py-2 z-50">
-                    <div className="px-4 py-2 border-b border-border flex justify-between items-center">
-                        <span className="text-xs font-bold text-textSecondary uppercase tracking-wider">Notifications</span>
+                <div 
+                  ref={notifPanelRef} 
+                  className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-card rounded-xl shadow-lg border border-border py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
+                >
+                    <div className="px-4 py-3 border-b border-border flex justify-between items-center">
+                        <span className="text-xs font-bold text-textSecondary uppercase tracking-wider">{LL.header.notifications()}</span>
                         {unreadCount > 0 && (
-                            <button onClick={handleMarkAllRead} className="text-[10px] text-primary font-medium hover:underline flex items-center gap-1">
-                                <CheckCheck size={12} strokeWidth={2} /> Mark all read
+                            <button 
+                              onClick={handleMarkAllRead} 
+                              className="text-[10px] text-primary font-medium hover:underline flex items-center gap-1 transition-colors"
+                              aria-label={LL.header.markAllRead()}
+                            >
+                                <CheckCheck size={12} strokeWidth={2} /> {LL.header.markAllRead()}
                             </button>
                         )}
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="max-h-64 overflow-y-auto scroll-smooth">
                         {notifications.length === 0 ? (
-                            <div className="px-4 py-6 text-center text-textSecondary text-xs">
-                                No new notifications
+                            <div className="px-4 py-8 text-center text-textSecondary text-sm">
+                                <Bell size={24} className="mx-auto mb-2 opacity-30" />
+                                <p>{LL.header.noNotifications()}</p>
                             </div>
                         ) : (
-                            notifications.map(notif => (
-                                <div key={notif.id} className={`px-4 py-3 hover:bg-background border-b border-border cursor-pointer transition-colors ${notif.read ? 'opacity-60' : ''}`}>
-                                    <div className="flex justify-between items-start mb-0.5">
-                                        <p className="text-sm font-medium text-textPrimary">{notif.title}</p>
-                                        {!notif.read && <span className="w-1.5 h-1.5 bg-primary rounded-full mt-1.5"></span>}
+                            notifications.map((notif, index) => (
+                                <div 
+                                  key={notif.id} 
+                                  className={`px-4 py-3 hover:bg-background cursor-pointer transition-colors duration-150 ${
+                                    index < notifications.length - 1 ? 'border-b border-border' : ''
+                                  } ${notif.read ? 'opacity-70' : 'bg-primary/5'}`}
+                                >
+                                    <div className="flex justify-between items-start gap-2 mb-1">
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-medium ${notif.read ? 'text-textSecondary' : 'text-textPrimary'}`}>
+                                                {notif.title}
+                                            </p>
+                                        </div>
+                                        {!notif.read && (
+                                            <span className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></span>
+                                        )}
                                     </div>
-                                    <p className="text-xs text-textSecondary">{notif.message}</p>
-                                    <p className="text-[10px] text-textSecondary mt-1.5">{notif.time}</p>
+                                    <p className="text-xs text-textSecondary leading-relaxed mb-1">{notif.message}</p>
+                                    <p className="text-[10px] text-textSecondary font-medium">{notif.time}</p>
                                 </div>
                             ))
                         )}
@@ -122,40 +164,84 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout }) => {
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 pl-6 border-l border-border relative" ref={profileRef}>
+        <div className="flex items-center gap-2 sm:gap-3 pl-3 sm:pl-6 border-l border-border relative" ref={profileRef}>
           <div
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
             onClick={() => setIsProfileOpen(!isProfileOpen)}
+            aria-label={LL.header.userMenu()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsProfileOpen(!isProfileOpen);
+              }
+            }}
           >
             <div className="text-right hidden md:block">
                 <p className="text-sm font-medium text-textPrimary group-hover:text-primary transition-colors">umoniem</p>
                 <p className="text-xs text-textSecondary">admin@openpanel.dev</p>
             </div>
-            <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center text-textSecondary border border-border group-hover:border-primary/50 transition-colors">
-                <User size={20} strokeWidth={1.5} />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-white border-2 border-card shadow-sm group-hover:shadow-md transition-all duration-200">
+                <span className="text-xs sm:text-sm font-semibold">{getUserInitials()}</span>
             </div>
-            <ChevronDown size={16} strokeWidth={1.5} className={`text-textSecondary transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown 
+              size={16} 
+              strokeWidth={1.5} 
+              className={`text-textSecondary transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''} hidden sm:block`} 
+            />
           </div>
 
           {isProfileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-56 bg-card rounded-xl shadow-xl border border-border py-1.5 z-50">
-                  <div className="px-4 py-3 border-b border-border mb-1">
-                      <p className="text-sm font-bold text-textPrimary">Admin User</p>
-                      <p className="text-xs text-textSecondary">Administrator</p>
+              <div className="absolute right-0 top-full mt-2 w-64 sm:w-72 bg-card rounded-xl shadow-lg border border-border py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Profile Header */}
+                  <div className="px-4 py-4 border-b border-border">
+                      <div className="flex items-center gap-3 mb-2">
+                          <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-white border-2 border-card shadow-sm">
+                              <span className="text-base font-semibold">{getUserInitials()}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-textPrimary truncate">Admin User</p>
+                              <p className="text-xs text-textSecondary truncate">admin@openpanel.dev</p>
+                          </div>
+                      </div>
+                      <div className="px-2 py-1.5 bg-background rounded-lg">
+                          <p className="text-xs font-medium text-textSecondary">{LL.header.administrator()}</p>
+                      </div>
                   </div>
-                  <button className="w-full text-left px-4 py-2.5 text-sm text-textSecondary hover:bg-background hover:text-primary flex items-center gap-2 transition-colors">
-                      <UserCircle size={16} strokeWidth={1.5} /> Profile Settings
-                  </button>
-                  <button className="w-full text-left px-4 py-2.5 text-sm text-textSecondary hover:bg-background hover:text-primary flex items-center gap-2 transition-colors">
-                      <Settings size={16} strokeWidth={1.5} /> Preferences
-                  </button>
+                  
+                  {/* Menu Items */}
+                  <div className="py-1.5">
+                      <button 
+                        className="w-full text-left px-4 py-2.5 text-sm text-textSecondary hover:bg-background hover:text-primary flex items-center gap-3 transition-colors duration-150"
+                        aria-label={LL.header.profileSettings()}
+                      >
+                          <UserCircle size={18} strokeWidth={1.5} /> 
+                          <span>{LL.header.profileSettings()}</span>
+                      </button>
+                      <button 
+                        className="w-full text-left px-4 py-2.5 text-sm text-textSecondary hover:bg-background hover:text-primary flex items-center gap-3 transition-colors duration-150"
+                        aria-label={LL.header.preferences()}
+                      >
+                          <Settings size={18} strokeWidth={1.5} /> 
+                          <span>{LL.header.preferences()}</span>
+                      </button>
+                  </div>
+                  
+                  {/* Separator */}
                   <div className="h-px bg-border my-1"></div>
-                  <button
-                    onClick={onLogout}
-                    className="w-full text-left px-4 py-2.5 text-sm text-error hover:bg-error/10 flex items-center gap-2 transition-colors"
-                  >
-                      <LogOut size={16} strokeWidth={1.5} /> Sign Out
-                  </button>
+                  
+                  {/* Logout */}
+                  <div className="px-1.5 py-1">
+                      <button
+                        onClick={onLogout}
+                        className="w-full text-left px-4 py-2.5 text-sm text-error hover:bg-error/10 flex items-center gap-3 transition-colors duration-150 rounded-lg"
+                        aria-label={LL.header.signOut()}
+                      >
+                        <LogOut size={18} strokeWidth={1.5} /> 
+                        <span>{LL.header.signOut()}</span>
+                      </button>
+                  </div>
               </div>
           )}
         </div>

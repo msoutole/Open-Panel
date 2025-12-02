@@ -41,10 +41,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => [...prev, newToast]);
 
     // Auto remove after duration
-    if (newToast.duration > 0) {
+    const duration = newToast.duration || 5000;
+    if (duration > 0) {
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, newToast.duration);
+      }, duration);
     }
   }, []);
 
@@ -87,17 +88,17 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
   };
 
   const colors = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    success: 'bg-success/10 border-success/20 text-success',
+    error: 'bg-error/10 border-error/20 text-error',
+    warning: 'bg-warning/10 border-warning/20 text-warning',
+    info: 'bg-primary/10 border-primary/20 text-primary',
   };
 
   const iconColors = {
-    success: 'text-green-600',
-    error: 'text-red-600',
-    warning: 'text-yellow-600',
-    info: 'text-blue-600',
+    success: 'text-success',
+    error: 'text-error',
+    warning: 'text-warning',
+    info: 'text-primary',
   };
 
   const Icon = icons[toast.type];
@@ -113,7 +114,7 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
       </div>
       <button
         onClick={() => onRemove(toast.id)}
-        className="shrink-0 text-slate-400 hover:text-slate-600 transition-colors"
+        className="shrink-0 text-textSecondary hover:text-textPrimary transition-colors"
       >
         <X size={16} />
       </button>

@@ -18,6 +18,7 @@ const pt_BR = {
     password: 'Senha',
     name: 'Nome',
     logout: 'Sair',
+    irreversible: 'Esta ação não pode ser desfeita.',
   },
 
   // Authentication
@@ -30,6 +31,7 @@ const pt_BR = {
     invalidCredentials: 'Email ou senha inválidos',
     loginSuccess: 'Login realizado com sucesso!',
     logoutSuccess: 'Você saiu da sua conta',
+    rememberMe: 'Lembrar-me',
   },
 
   // Onboarding
@@ -130,15 +132,6 @@ const pt_BR = {
     success: 'Configuração concluída com sucesso! 🎉',
   },
 
-  // Dashboard
-  dashboard: {
-    title: 'Dashboard',
-    welcome: 'Bem-vindo, {name:string}!',
-    projects: 'Projetos',
-    containers: 'Containers',
-    deployments: 'Deployments',
-  },
-
   // Projects
   projects: {
     title: 'Projetos',
@@ -151,6 +144,17 @@ const pt_BR = {
       deploying: 'Implantando',
       stopped: 'Parado',
     },
+    deleteProjectTitle: 'Excluir Projeto',
+    deleteProjectMessage: 'Tem certeza que deseja excluir este projeto? Todos os serviços e dados associados serão removidos permanentemente.',
+    deleteSuccess: 'Projeto excluído com sucesso!',
+    deleteSuccessMessage: 'O projeto "{name:string}" foi excluído com sucesso.',
+    deleteError: 'Falha ao excluir projeto.',
+    editProjectTitle: 'Editar Projeto',
+    editProjectSuccess: 'Projeto atualizado com sucesso!',
+    editProjectSuccessMessage: 'O projeto "{name:string}" foi atualizado com sucesso.',
+    editProjectError: 'Falha ao atualizar projeto.',
+    createSuccess: 'Projeto criado com sucesso!',
+    createSuccessMessage: 'O projeto "{name:string}" foi criado com sucesso.',
   },
 
   // Settings
@@ -181,6 +185,69 @@ const pt_BR = {
     email: 'Email inválido',
     minLength: '{field:string} deve ter pelo menos {min:number} caracteres',
     maxLength: '{field:string} deve ter no máximo {max:number} caracteres',
+  },
+
+  // Header
+  header: {
+    search: 'Buscar...',
+    searchPlaceholder: 'Buscar...',
+    notifications: 'Notificações',
+    markAllRead: 'Marcar todas como lidas',
+    noNotifications: 'Nenhuma notificação nova',
+    toggleMenu: 'Alternar menu',
+    userMenu: 'Menu do usuário',
+    profileSettings: 'Configurações do Perfil',
+    preferences: 'Preferências',
+    signOut: 'Sair',
+    administrator: 'Administrador',
+  },
+
+  // Sidebar
+  sidebar: {
+    infrastructure: 'Infraestrutura',
+    cluster: 'Cluster',
+    monitoring: 'Monitoramento',
+    identity: 'Identity (IAM)',
+    security: 'Segurança & Logs',
+    backups: 'Backups',
+    settings: 'Configurações',
+    expandSidebar: 'Expandir barra lateral',
+    collapseSidebar: 'Recolher barra lateral',
+    menu: 'Menu',
+  },
+
+  // Dashboard
+  dashboard: {
+    activeProjects: 'Projetos Ativos',
+    manageApplications: 'Gerencie suas aplicações e serviços implantados.',
+    createProject: 'Criar Projeto',
+    searchProjects: 'Buscar projetos...',
+    gridView: 'Visualização em Grade',
+    listView: 'Visualização em Lista',
+    noProjectsFound: 'Nenhum projeto encontrado',
+    noProjectsMatching: 'Nenhum projeto encontrado correspondendo a "{search:string}".',
+    createFirstProject: 'Nenhum projeto encontrado. Crie seu primeiro projeto para começar.',
+    addMonitoringCard: 'Adicionar Card de Monitoramento',
+    hostCpuLoad: 'CARGA CPU DO HOST',
+    hostRam: 'RAM DO HOST',
+    storage: 'ARMAZENAMENTO',
+    ingressTraffic: 'TRÁFEGO DE ENTRADA',
+    used: 'Usado',
+    free: 'Livre',
+    avg: 'média',
+    noDataAvailable: 'Nenhum dado disponível',
+  },
+
+  // App Titles
+  appTitles: {
+    dashboard: 'Dashboard',
+    systemMonitor: 'Monitor do Sistema',
+    systemSettings: 'Configurações do Sistema',
+    identityManagement: 'Gerenciamento de Identidade',
+    backupRecovery: 'Backup & Recuperação',
+    projects: 'Projetos',
+    securityLogs: 'Segurança & Logs',
+    panel: 'Painel',
   },
 } satisfies BaseTranslation
 

@@ -29,6 +29,7 @@ type RootTranslation = {
 		password: string
 		name: string
 		logout: string
+		irreversible: string
 	}
 	auth: {
 		login: string
@@ -39,6 +40,7 @@ type RootTranslation = {
 		invalidCredentials: string
 		loginSuccess: string
 		logoutSuccess: string
+		rememberMe: string
 	}
 	onboarding: {
 		title: string
@@ -127,6 +129,24 @@ type RootTranslation = {
 		projects: string
 		containers: string
 		deployments: string
+		activeProjects: string
+		manageApplications: string
+		createProject: string
+		searchProjects: string
+		gridView: string
+		listView: string
+		noProjectsFound: string
+		noProjectsMatching: RequiredParams<'search'>
+		createFirstProject: string
+		addMonitoringCard: string
+		hostCpuLoad: string
+		hostRam: string
+		storage: string
+		ingressTraffic: string
+		used: string
+		free: string
+		avg: string
+		noDataAvailable: string
 	}
 	projects: {
 		title: string
@@ -139,6 +159,17 @@ type RootTranslation = {
 			deploying: string
 			stopped: string
 		}
+		deleteProjectTitle: string
+		deleteProjectMessage: string
+		deleteSuccess: string
+		deleteSuccessMessage: RequiredParams<'name'>
+		deleteError: string
+		editProjectTitle: string
+		editProjectSuccess: string
+		editProjectSuccessMessage: RequiredParams<'name'>
+		editProjectError: string
+		createSuccess: string
+		createSuccessMessage: RequiredParams<'name'>
 	}
 	settings: {
 		title: string
@@ -164,6 +195,41 @@ type RootTranslation = {
 		minLength: RequiredParams<'field' | 'min'>
 		maxLength: RequiredParams<'field' | 'max'>
 	}
+	header: {
+		search: string
+		searchPlaceholder: string
+		notifications: string
+		markAllRead: string
+		noNotifications: string
+		toggleMenu: string
+		userMenu: string
+		profileSettings: string
+		preferences: string
+		signOut: string
+		administrator: string
+	}
+	sidebar: {
+		infrastructure: string
+		cluster: string
+		monitoring: string
+		identity: string
+		security: string
+		backups: string
+		settings: string
+		expandSidebar: string
+		collapseSidebar: string
+		menu: string
+	}
+	appTitles: {
+		dashboard: string
+		systemMonitor: string
+		systemSettings: string
+		identityManagement: string
+		backupRecovery: string
+		projects: string
+		securityLogs: string
+		panel: string
+	}
 }
 
 export type TranslationFunctions = {
@@ -183,6 +249,7 @@ export type TranslationFunctions = {
 		password: () => LocalizedString
 		name: () => LocalizedString
 		logout: () => LocalizedString
+		irreversible: () => LocalizedString
 	}
 	auth: {
 		login: () => LocalizedString
@@ -193,6 +260,7 @@ export type TranslationFunctions = {
 		invalidCredentials: () => LocalizedString
 		loginSuccess: () => LocalizedString
 		logoutSuccess: () => LocalizedString
+		rememberMe: () => LocalizedString
 	}
 	onboarding: {
 		title: () => LocalizedString
@@ -281,6 +349,24 @@ export type TranslationFunctions = {
 		projects: () => LocalizedString
 		containers: () => LocalizedString
 		deployments: () => LocalizedString
+		activeProjects: () => LocalizedString
+		manageApplications: () => LocalizedString
+		createProject: () => LocalizedString
+		searchProjects: () => LocalizedString
+		gridView: () => LocalizedString
+		listView: () => LocalizedString
+		noProjectsFound: () => LocalizedString
+		noProjectsMatching: (arg: { search: string }) => LocalizedString
+		createFirstProject: () => LocalizedString
+		addMonitoringCard: () => LocalizedString
+		hostCpuLoad: () => LocalizedString
+		hostRam: () => LocalizedString
+		storage: () => LocalizedString
+		ingressTraffic: () => LocalizedString
+		used: () => LocalizedString
+		free: () => LocalizedString
+		avg: () => LocalizedString
+		noDataAvailable: () => LocalizedString
 	}
 	projects: {
 		title: () => LocalizedString
@@ -293,6 +379,17 @@ export type TranslationFunctions = {
 			deploying: () => LocalizedString
 			stopped: () => LocalizedString
 		}
+		deleteProjectTitle: () => LocalizedString
+		deleteProjectMessage: () => LocalizedString
+		deleteSuccess: () => LocalizedString
+		deleteSuccessMessage: (arg: { name: string }) => LocalizedString
+		deleteError: () => LocalizedString
+		editProjectTitle: () => LocalizedString
+		editProjectSuccess: () => LocalizedString
+		editProjectSuccessMessage: (arg: { name: string }) => LocalizedString
+		editProjectError: () => LocalizedString
+		createSuccess: () => LocalizedString
+		createSuccessMessage: (arg: { name: string }) => LocalizedString
 	}
 	settings: {
 		title: () => LocalizedString
@@ -317,6 +414,61 @@ export type TranslationFunctions = {
 		email: () => LocalizedString
 		minLength: (arg: { field: string; min: number }) => LocalizedString
 		maxLength: (arg: { field: string; max: number }) => LocalizedString
+	}
+	header: {
+		search: () => LocalizedString
+		searchPlaceholder: () => LocalizedString
+		notifications: () => LocalizedString
+		markAllRead: () => LocalizedString
+		noNotifications: () => LocalizedString
+		toggleMenu: () => LocalizedString
+		userMenu: () => LocalizedString
+		profileSettings: () => LocalizedString
+		preferences: () => LocalizedString
+		signOut: () => LocalizedString
+		administrator: () => LocalizedString
+	}
+	sidebar: {
+		infrastructure: () => LocalizedString
+		cluster: () => LocalizedString
+		monitoring: () => LocalizedString
+		identity: () => LocalizedString
+		security: () => LocalizedString
+		backups: () => LocalizedString
+		settings: () => LocalizedString
+		expandSidebar: () => LocalizedString
+		collapseSidebar: () => LocalizedString
+		menu: () => LocalizedString
+	}
+	dashboard: {
+		activeProjects: () => LocalizedString
+		manageApplications: () => LocalizedString
+		createProject: () => LocalizedString
+		searchProjects: () => LocalizedString
+		gridView: () => LocalizedString
+		listView: () => LocalizedString
+		noProjectsFound: () => LocalizedString
+		noProjectsMatching: (arg: { search: string }) => LocalizedString
+		createFirstProject: () => LocalizedString
+		addMonitoringCard: () => LocalizedString
+		hostCpuLoad: () => LocalizedString
+		hostRam: () => LocalizedString
+		storage: () => LocalizedString
+		ingressTraffic: () => LocalizedString
+		used: () => LocalizedString
+		free: () => LocalizedString
+		avg: () => LocalizedString
+		noDataAvailable: () => LocalizedString
+	}
+	appTitles: {
+		dashboard: () => LocalizedString
+		systemMonitor: () => LocalizedString
+		systemSettings: () => LocalizedString
+		identityManagement: () => LocalizedString
+		backupRecovery: () => LocalizedString
+		projects: () => LocalizedString
+		securityLogs: () => LocalizedString
+		panel: () => LocalizedString
 	}
 }
 

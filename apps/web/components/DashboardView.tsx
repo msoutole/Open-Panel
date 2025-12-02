@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { CreateProjectModal } from './CreateProjectModal';
+import { EditProjectModal } from './EditProjectModal';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { Project, MetricPoint } from '../types';
-import { getProjects, getDashboardStats, getSystemMetrics, SystemMetrics } from '../services/api';
+import { getProjects, getDashboardStats, getSystemMetrics, SystemMetrics, updateProject, deleteProject } from '../services/api';
 import { useMetrics } from '../hooks/useMetrics';
 import { useToast } from '../hooks/useToast';
 import { debounce } from '../utils/debounce';
 import { SkeletonWidget } from './SkeletonLoader';
+import { useTranslations } from '../src/i18n/i18n-react';
 import { AreaChart, Area, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Layers, Activity, Search, Plus, X, TrendingUp, TrendingDown, MoreHorizontal, LayoutGrid, List as ListIcon, ChevronRight, Clock, Users, Loader2 } from 'lucide-react';
+import { Layers, Activity, Search, Plus, X, TrendingUp, TrendingDown, MoreHorizontal, LayoutGrid, List as ListIcon, ChevronRight, Clock, Users, Loader2, Edit2, Trash2 } from 'lucide-react';
 
 interface DashboardViewProps {
   onProjectSelect: (project: Project) => void;
@@ -65,29 +68,61 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtext, children, cl
 interface ProjectCardProps {
   project: Project;
   onClick: () => void;
+  onEdit?: (project: Project) => void;
+  onDelete?: (project: Project) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onEdit, onDelete }) => {
   const services = project.services || [];
   const activeServices = services.filter(s => s.status === 'Running').length;
   const totalServices = services.length;
   const isHealthy = activeServices === totalServices && totalServices > 0;
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(project);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(project);
+  };
+
   return (
     <div className="bg-card p-6 rounded-xl border border-border shadow-sm hover:border-primary/30 hover:shadow-md transition-all duration-200 group cursor-pointer relative overflow-hidden h-full flex flex-col" onClick={onClick}>
       <div className="flex items-start justify-between mb-4 relative z-10">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-colors shadow-sm border border-border ${isHealthy ? 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white' : 'bg-warning/10 text-warning group-hover:bg-warning group-hover:text-white'
             }`}>
             <Layers size={26} strokeWidth={1.5} />
           </div>
-          <div>
-            <h3 className="font-bold text-lg text-textPrimary group-hover:text-primary transition-colors duration-200">{project.name}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-lg text-textPrimary group-hover:text-primary transition-colors duration-200 truncate">{project.name}</h3>
             <p className="text-sm text-textSecondary line-clamp-1">{project.description}</p>
           </div>
         </div>
-        <div className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold border tracking-wide ${isHealthy ? 'bg-success/10 text-success border-success/20' : 'bg-warning/10 text-warning border-warning/20'}`}>
-          {project.status}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {onEdit && (
+            <button
+              onClick={handleEditClick}
+              className="p-1.5 rounded-lg text-textSecondary hover:text-primary hover:bg-background transition-all duration-200 opacity-0 group-hover:opacity-100"
+              title="Editar projeto"
+            >
+              <Edit2 size={16} strokeWidth={1.5} />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={handleDeleteClick}
+              className="p-1.5 rounded-lg text-textSecondary hover:text-error hover:bg-error/10 transition-all duration-200 opacity-0 group-hover:opacity-100"
+              title="Excluir projeto"
+            >
+              <Trash2 size={16} strokeWidth={1.5} />
+            </button>
+          )}
+          <div className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold border tracking-wide ${isHealthy ? 'bg-success/10 text-success border-success/20' : 'bg-warning/10 text-warning border-warning/20'}`}>
+            {project.status}
+          </div>
         </div>
       </div>
 
@@ -112,7 +147,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   );
 };
 
-const ProjectListItem: React.FC<ProjectCardProps> = ({ project, onClick }) => {
+const ProjectListItem: React.FC<ProjectCardProps> = ({ project, onClick, onEdit, onDelete }) => {
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(project);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(project);
+  };
   const services = project.services || [];
   const activeServices = services.filter(s => s.status === 'Running').length;
   const totalServices = services.length;
@@ -160,7 +204,29 @@ const ProjectListItem: React.FC<ProjectCardProps> = ({ project, onClick }) => {
         </div>
       </div>
 
-      <div className="pl-4 border-l border-border">
+      <div className="flex items-center gap-2 pl-4 border-l border-border">
+        {(onEdit || onDelete) && (
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {onEdit && (
+              <button
+                onClick={handleEditClick}
+                className="p-1.5 rounded-lg text-textSecondary hover:text-primary hover:bg-background transition-all duration-200"
+                title="Editar projeto"
+              >
+                <Edit2 size={16} strokeWidth={1.5} />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={handleDeleteClick}
+                className="p-1.5 rounded-lg text-textSecondary hover:text-error hover:bg-error/10 transition-all duration-200"
+                title="Excluir projeto"
+              >
+                <Trash2 size={16} strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
+        )}
         <ChevronRight className="text-textSecondary group-hover:text-primary transition-colors duration-200" size={20} strokeWidth={1.5} />
       </div>
     </div>
@@ -181,12 +247,17 @@ interface DashboardWidget {
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, view = 'dashboard' }) => {
+  const LL = useTranslations();
   const isMonitor = view === 'monitor';
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [projectSearch, setProjectSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
   const { showToast } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Use state for projects to allow adding new ones
   const [projects, setProjects] = useState<Project[]>([]);
@@ -280,9 +351,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
       { 
         id: 'cpu', 
         type: 'cpu' as const, 
-        title: 'Host CPU Load', 
+        title: LL.dashboard.hostCpuLoad(), 
         value: cpuValue, 
-        subtext: 'avg', 
+        subtext: LL.dashboard.avg(), 
         data: metricsHistory.slice(-7), 
         trend: systemMetrics.cpu.usage > 50 ? 'up' as const : 'down' as const, 
         color: 'bg-primary' 
@@ -290,7 +361,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
       { 
         id: 'mem', 
         type: 'memory' as const, 
-        title: 'Host RAM', 
+        title: LL.dashboard.hostRam(), 
         value: memUsed, 
         subtext: `/ ${memTotal}`, 
         color: 'bg-primary' 
@@ -298,15 +369,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
       { 
         id: 'disk', 
         type: 'storage' as const, 
-        title: 'Storage', 
+        title: LL.dashboard.storage(), 
         value: diskUsage, 
-        subtext: 'Used', 
+        subtext: LL.dashboard.used(), 
         color: 'bg-secondary' 
       },
       { 
         id: 'net', 
         type: 'network' as const, 
-        title: 'Ingress Traffic', 
+        title: LL.dashboard.ingressTraffic(), 
         value: networkRx, 
         subtext: '/ sec', 
         data: networkData.length > 0 ? networkData : metricsHistory.slice(-7), 
@@ -344,10 +415,56 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
     setProjects(prev => [newProject, ...prev]);
     showToast({
       type: 'success',
-      title: 'Projeto criado',
-      message: `O projeto "${newProject.name}" foi criado com sucesso`,
+      title: LL.projects.createSuccess(),
+      message: LL.projects.createSuccessMessage({ name: newProject.name }),
     });
-  }, [showToast]);
+  }, [showToast, LL]);
+
+  const handleEditProject = useCallback((project: Project) => {
+    setSelectedProject(project);
+    setIsEditModalOpen(true);
+  }, []);
+
+  const handleProjectUpdated = useCallback((updatedProject: Project) => {
+    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+    showToast({
+      type: 'success',
+      title: LL.projects.editProjectSuccess(),
+      message: LL.projects.editProjectSuccessMessage({ name: updatedProject.name }),
+    });
+    setIsEditModalOpen(false);
+    setSelectedProject(null);
+  }, [showToast, LL]);
+
+  const handleDeleteProject = useCallback((project: Project) => {
+    setSelectedProject(project);
+    setIsDeleteModalOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!selectedProject) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteProject(selectedProject.id);
+      setProjects(prev => prev.filter(p => p.id !== selectedProject.id));
+      showToast({
+        type: 'success',
+        title: LL.projects.deleteSuccess(),
+        message: LL.projects.deleteSuccessMessage({ name: selectedProject.name }),
+      });
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+    } catch (error: any) {
+      showToast({
+        type: 'error',
+        title: LL.common.error(),
+        message: error.message || LL.projects.deleteError(),
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [selectedProject, showToast, LL]);
 
   const addWidget = useCallback(() => {
     const newWidget: DashboardWidget = {
@@ -399,7 +516,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
               </AreaChart>
             ) : (
               <div className="flex items-center justify-center h-full text-textSecondary text-xs">
-                No data available
+                {LL.dashboard.noDataAvailable()}
               </div>
             )}
           </ResponsiveContainer>
@@ -409,8 +526,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
         return (
           <div className="flex flex-col justify-end h-full gap-2 pb-2">
             <div className="flex justify-between text-xs text-textSecondary font-medium">
-              <span>Used: {formatPercent(memUsage)}</span>
-              <span>Free: {formatPercent(100 - memUsage)}</span>
+              <span>{LL.dashboard.used()}: {formatPercent(memUsage)}</span>
+              <span>{LL.dashboard.free()}: {formatPercent(100 - memUsage)}</span>
             </div>
             <div className="w-full h-5 bg-background rounded-full overflow-hidden flex border border-border">
               <div className="bg-primary h-full rounded-l-full relative group transition-all duration-200 flex items-center justify-center" style={{ width: `${memUsage}%` }}>
@@ -420,11 +537,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
             <div className="flex gap-4 mt-1">
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-sm bg-primary"></div>
-                <span className="text-[10px] text-textSecondary font-medium uppercase tracking-wide">Used</span>
+                <span className="text-[10px] text-textSecondary font-medium uppercase tracking-wide">{LL.dashboard.used()}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-sm bg-border"></div>
-                <span className="text-[10px] text-textSecondary font-medium uppercase tracking-wide">Free</span>
+                <span className="text-[10px] text-textSecondary font-medium uppercase tracking-wide">{LL.dashboard.free()}</span>
               </div>
             </div>
           </div>
@@ -443,8 +560,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Used', value: systemPercent },
-                      { name: 'Free', value: freePercent }
+                      { name: LL.dashboard.used(), value: systemPercent },
+                      { name: LL.dashboard.free(), value: freePercent }
                     ]}
                     innerRadius={28}
                     outerRadius={40}
@@ -460,7 +577,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none flex-col">
                 <span className="text-xs font-bold text-textPrimary">{formatPercent(diskUsage)}</span>
-                <span className="text-[8px] font-medium text-textSecondary uppercase">Used</span>
+                <span className="text-[8px] font-medium text-textSecondary uppercase">{LL.dashboard.used()}</span>
               </div>
             </div>
             <div className="flex-1 space-y-3 pl-4">
@@ -468,7 +585,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
                 <div className="flex justify-between text-xs items-center">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-secondary"></div>
-                    <span className="text-textSecondary font-medium">Used</span>
+                    <span className="text-textSecondary font-medium">{LL.dashboard.used()}</span>
                   </div>
                   <span className="font-bold text-textPrimary">{formatPercent(systemPercent)}</span>
                 </div>
@@ -477,7 +594,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
                 <div className="flex justify-between text-xs items-center">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-border"></div>
-                    <span className="text-textSecondary font-medium">Free</span>
+                    <span className="text-textSecondary font-medium">{LL.dashboard.free()}</span>
                   </div>
                   <span className="font-bold text-textPrimary">{formatPercent(freePercent)}</span>
                 </div>
@@ -536,22 +653,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-textPrimary tracking-tight">Active Projects</h2>
-              <p className="text-sm text-textSecondary mt-1">Manage your deployed applications and services.</p>
+              <h2 className="text-2xl font-bold text-textPrimary tracking-tight">{LL.dashboard.activeProjects()}</h2>
+              <p className="text-sm text-textSecondary mt-1">{LL.dashboard.manageApplications()}</p>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-1 mr-2 order-2 sm:order-1">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-1.5 rounded transition-all duration-200 ${viewMode === 'grid' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
-                  title="Grid View"
+                  title={LL.dashboard.gridView()}
                 >
                   <LayoutGrid size={18} strokeWidth={1.5} />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-1.5 rounded transition-all duration-200 ${viewMode === 'list' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
-                  title="List View"
+                  title={LL.dashboard.listView()}
                 >
                   <ListIcon size={18} strokeWidth={1.5} />
                 </button>
@@ -566,7 +683,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
                     setProjectSearch(e.target.value);
                     debouncedSearch(e.target.value);
                   }}
-                  placeholder="Search projects..."
+                  placeholder={LL.dashboard.searchProjects()}
                   className="pl-10 pr-4 py-2.5 bg-white border border-border rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 w-full sm:w-64 transition-all duration-200 shadow-sm text-textPrimary placeholder-textSecondary"
                 />
               </div>
@@ -574,7 +691,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
                 onClick={handleCreateProject}
                 className="order-3 flex items-center justify-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
               >
-                <Plus size={18} strokeWidth={1.5} /> <span className="whitespace-nowrap">Create Project</span>
+                <Plus size={18} strokeWidth={1.5} /> <span className="whitespace-nowrap">{LL.dashboard.createProject()}</span>
               </button>
             </div>
           </div>
@@ -590,11 +707,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
                   key={project.id}
                   project={project}
                   onClick={() => onProjectSelect(project)}
+                  onEdit={handleEditProject}
+                  onDelete={handleDeleteProject}
                 />
               ))}
               {filteredProjects.length === 0 && (
                 <div className="col-span-full py-12 text-center text-textSecondary bg-background rounded-xl border border-dashed border-border">
-                  {projectSearch ? `No projects found matching "${projectSearch}".` : 'No projects found. Create your first project to get started.'}
+                  {projectSearch ? LL.dashboard.noProjectsMatching({ search: projectSearch }) : LL.dashboard.createFirstProject()}
                 </div>
               )}
             </div>
@@ -605,11 +724,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
                   key={project.id}
                   project={project}
                   onClick={() => onProjectSelect(project)}
+                  onEdit={handleEditProject}
+                  onDelete={handleDeleteProject}
                 />
               ))}
               {filteredProjects.length === 0 && (
                 <div className="py-12 text-center text-textSecondary bg-background rounded-xl border border-dashed border-border">
-                  {projectSearch ? `No projects found matching "${projectSearch}".` : 'No projects found. Create your first project to get started.'}
+                  {projectSearch ? LL.dashboard.noProjectsMatching({ search: projectSearch }) : LL.dashboard.createFirstProject()}
                 </div>
               )}
             </div>
@@ -621,6 +742,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreated={handleProjectCreated}
+      />
+
+      <EditProjectModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedProject(null);
+        }}
+        onUpdated={handleProjectUpdated}
+        project={selectedProject}
+      />
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedProject(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title={LL.projects.deleteProjectTitle()}
+        message={LL.projects.deleteProjectMessage()}
+        itemName={selectedProject?.name}
+        loading={isDeleting}
       />
     </div>
   );

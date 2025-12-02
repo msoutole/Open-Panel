@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Sparkles, Key, Palette, Lock, Check, AlertCircle, Loader2, ExternalLink, ShieldCheck, ShieldAlert, Shield } from 'lucide-react';
+import { Settings, Key, Lock, Check, AlertCircle, Loader2, ExternalLink, ShieldCheck, ShieldAlert, Shield, Sun, Moon, Palette, Sparkles, Box, Github, Server } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useTranslations } from '../src/i18n/i18n-react';
 import { LanguageSelector } from '../components/LanguageSelector';
@@ -12,7 +12,7 @@ interface AIProvider {
   id: string;
   name: string;
   description: string;
-  icon: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
   requiresApiKey: boolean;
   optionalApiKey?: boolean;
   requiresUrl?: boolean;
@@ -45,7 +45,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       id: 'gemini',
       name: LL.onboarding.step2.providers.gemini.name(),
       description: LL.onboarding.step2.providers.gemini.description(),
-      icon: '🔷',
+      icon: Sparkles,
       requiresApiKey: true,
       helpUrl: 'https://makersuite.google.com/app/apikey',
       helpText: LL.onboarding.step2.providers.gemini.helpText()
@@ -54,7 +54,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       id: 'claude',
       name: LL.onboarding.step2.providers.claude.name(),
       description: LL.onboarding.step2.providers.claude.description(),
-      icon: '🤖',
+      icon: Box,
       requiresApiKey: true,
       helpUrl: 'https://console.anthropic.com/settings/keys',
       helpText: LL.onboarding.step2.providers.claude.helpText()
@@ -63,7 +63,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       id: 'github',
       name: LL.onboarding.step2.providers.github.name(),
       description: LL.onboarding.step2.providers.github.description(),
-      icon: '🐙',
+      icon: Github,
       requiresApiKey: true,
       helpUrl: 'https://github.com/settings/tokens',
       helpText: LL.onboarding.step2.providers.github.helpText()
@@ -72,7 +72,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       id: 'ollama',
       name: LL.onboarding.step2.providers.ollama.name(),
       description: LL.onboarding.step2.providers.ollama.description(),
-      icon: '🦙',
+      icon: Server,
       requiresApiKey: false,
       optionalApiKey: true,
       requiresUrl: true,
@@ -83,7 +83,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   // Calcular força da senha
   const passwordStrength = useMemo(() => {
-    if (!newPassword) return { score: 0, label: '', color: '' };
+    if (!newPassword) return { score: 0, label: '', color: '', icon: Shield };
 
     let score = 0;
     const checks = {
@@ -100,10 +100,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     score += checks.number ? 1 : 0;
     score += checks.special ? 1 : 0;
 
-    if (score <= 2) return { score, label: LL.onboarding.step3.strengthWeak(), color: 'bg-red-500', icon: ShieldAlert };
-    if (score <= 3) return { score, label: LL.onboarding.step3.strengthMedium(), color: 'bg-yellow-500', icon: Shield };
-    if (score <= 4) return { score, label: LL.onboarding.step3.strengthStrong(), color: 'bg-green-500', icon: ShieldCheck };
-    return { score, label: LL.onboarding.step3.strengthVeryStrong(), color: 'bg-green-600', icon: ShieldCheck };
+    if (score <= 2) return { score, label: LL.onboarding.step3.strengthWeak(), color: 'bg-error', icon: ShieldAlert };
+    if (score <= 3) return { score, label: LL.onboarding.step3.strengthMedium(), color: 'bg-warning', icon: Shield };
+    if (score <= 4) return { score, label: LL.onboarding.step3.strengthStrong(), color: 'bg-success', icon: ShieldCheck };
+    return { score, label: LL.onboarding.step3.strengthVeryStrong(), color: 'bg-success', icon: ShieldCheck };
   }, [newPassword, LL]);
 
   // Validação completa para habilitar o botão
@@ -289,360 +289,375 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     <>
       <Toaster position="top-right" />
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-3xl bg-card rounded-2xl shadow-xl border border-border p-8 md:p-10">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1" />
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-md">
-              <Sparkles size={32} strokeWidth={2} className="text-white" />
-            </div>
-            <div className="flex-1 flex justify-end">
-              <LanguageSelector variant="dropdown" showLabel={false} />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold text-textPrimary mb-2">{LL.onboarding.title()}</h1>
-          <p className="text-textSecondary">{LL.onboarding.subtitle()}</p>
-        </div>
-
-        {/* Progress */}
-        <div className="flex items-center justify-center mb-8">
-          {[1, 2, 3].map((s) => (
-            <React.Fragment key={s}>
-              <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                step >= s ? 'bg-primary text-white' : 'bg-border text-textSecondary'
-              } font-semibold transition-all duration-200`}>
-                {step > s ? <Check size={20} strokeWidth={2} /> : s}
+        <div className="w-full max-w-3xl bg-card rounded-xl shadow-lg border border-border p-6 md:p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex-1" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-lg">
+                <Settings size={24} strokeWidth={2} className="text-white" />
               </div>
-              {s < 3 && <div className={`w-12 md:w-16 h-1 ${step > s ? 'bg-primary' : 'bg-border'} transition-all duration-200`} />}
-            </React.Fragment>
-          ))}
-        </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg flex items-start gap-3">
-            <AlertCircle size={20} strokeWidth={2} className="text-error shrink-0 mt-0.5" />
-            <span className="text-error text-sm">{error}</span>
-          </div>
-        )}
-
-        {/* Step 1: Tema */}
-        {step === 1 && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-textPrimary mb-4 flex items-center gap-2">
-                <Palette size={24} strokeWidth={1.5} /> {LL.onboarding.step1.title()}
-              </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setTheme('light')}
-                  className={`p-6 border-2 rounded-xl transition-all ${
-                    theme === 'light' ? 'border-primary bg-primary/10' : 'border-border hover:border-textSecondary'
-                  }`}
-                >
-                  <div className="text-4xl mb-2">{LL.onboarding.step1.lightEmoji()}</div>
-                  <div className="font-semibold">{LL.onboarding.step1.light()}</div>
-                </button>
-                <button
-                  onClick={() => setTheme('dark')}
-                  className={`p-6 border-2 rounded-xl transition-all ${
-                    theme === 'dark' ? 'border-primary bg-primary/10' : 'border-border hover:border-textSecondary'
-                  }`}
-                >
-                  <div className="text-4xl mb-2">{LL.onboarding.step1.darkEmoji()}</div>
-                  <div className="font-semibold">{LL.onboarding.step1.dark()}</div>
-                </button>
+              <div className="flex-1 flex justify-end">
+                <LanguageSelector variant="dropdown" showLabel={false} />
               </div>
             </div>
-            <button
-              onClick={() => setStep(2)}
-              className="w-full py-3 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-primary/20"
-            >
-              {LL.common.next()}
-            </button>
+            <h1 className="text-2xl font-bold text-textPrimary mb-2">{LL.onboarding.title()}</h1>
+            <p className="text-sm text-textSecondary">{LL.onboarding.subtitle()}</p>
           </div>
-        )}
 
-        {/* Step 2: Provedores de IA */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-textPrimary mb-2 flex items-center gap-2">
-                <Key size={24} strokeWidth={1.5} /> {LL.onboarding.step2.title()}
-              </h2>
-              <p className="text-sm text-textSecondary mb-4">
-                {LL.onboarding.step2.subtitle()}
-              </p>
-
-              <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                {AI_PROVIDERS.map((provider) => (
-                  <div key={provider.id} className="border border-border rounded-lg p-4 bg-background">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">{provider.icon}</span>
-                        <div>
-                          <h3 className="font-semibold text-textPrimary">{provider.name}</h3>
-                          <p className="text-sm text-textSecondary">{provider.description}</p>
-                        </div>
-                      </div>
-                      {selectedProviders[provider.id]?.validated && (
-                        <Check size={24} className="text-success" strokeWidth={2} />
-                      )}
-                    </div>
-
-                    {provider.requiresApiKey && (
-                      <div className="mt-3 space-y-2">
-                        <input
-                          type="password"
-                          placeholder={LL.onboarding.step2.apiKeyPlaceholder()}
-                          value={selectedProviders[provider.id]?.apiKey || ''}
-                          onChange={(e) => setSelectedProviders(prev => ({
-                            ...prev,
-                            [provider.id]: { ...prev[provider.id], apiKey: e.target.value, validated: false },
-                          }))}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                          <button
-                            onClick={() => validateProvider(provider.id)}
-                            disabled={!selectedProviders[provider.id]?.apiKey || validating === provider.id}
-                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/20"
-                          >
-                            {validating === provider.id && <Loader2 size={16} strokeWidth={2} className="animate-spin" />}
-                            {LL.onboarding.step2.validate()}
-                          </button>
-                          <a
-                            href={provider.helpUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
-                          >
-                            {provider.helpText} <ExternalLink size={14} strokeWidth={1.5} />
-                          </a>
-                        </div>
-                      </div>
-                    )}
-
-                    {provider.requiresUrl && (
-                      <div className="mt-3 space-y-2">
-                        <input
-                          type="url"
-                          placeholder={LL.onboarding.step2.urlPlaceholder()}
-                          value={selectedProviders[provider.id]?.apiUrl || 'http://localhost:11434'}
-                          onChange={(e) => setSelectedProviders(prev => ({
-                            ...prev,
-                            [provider.id]: { ...prev[provider.id], apiUrl: e.target.value, validated: false },
-                          }))}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <button
-                          onClick={() => validateProvider(provider.id)}
-                          disabled={validating === provider.id}
-                          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/20"
-                        >
-                          {validating === provider.id && <Loader2 size={16} className="animate-spin" />}
-                          {LL.onboarding.step2.validateConnection()}
-                        </button>
-                        <p className="text-xs text-gray-500 bg-yellow-50 p-2 rounded border border-yellow-200" dangerouslySetInnerHTML={{ __html: LL.onboarding.step2.ollamaNote() }} />
-                      </div>
-                    )}
-
-                    {provider.optionalApiKey && (
-                      <div className="mt-3 space-y-2 pt-3 border-t border-gray-200">
-                        <label className="block text-sm font-medium text-gray-700">
-                          {LL.onboarding.step2.apiKeyPlaceholder()} (opcional para cloud)
-                        </label>
-                        <input
-                          type="password"
-                          placeholder={LL.onboarding.step2.apiKeyPlaceholder()}
-                          value={selectedProviders[provider.id]?.apiKey || ''}
-                          onChange={(e) => setSelectedProviders(prev => ({
-                            ...prev,
-                            [provider.id]: { ...prev[provider.id], apiKey: e.target.value, validated: false },
-                          }))}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <p className="text-xs text-gray-600">Deixe em branco para usar Ollama localmente, ou adicione a API key se usar um serviço em nuvem</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length > 0 && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {LL.onboarding.step2.defaultProvider()} *
-                  </label>
-                  <select
-                    value={defaultProvider}
-                    onChange={(e) => setDefaultProvider(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">{LL.onboarding.step2.selectDefault()}</option>
-                    {Object.keys(selectedProviders)
-                      .filter(k => selectedProviders[k]?.validated)
-                      .map(k => (
-                        <option key={k} value={k}>
-                          {AI_PROVIDERS.find(p => p.id === k)?.name}
-                        </option>
-                      ))}
-                  </select>
+          {/* Progress */}
+          <div className="flex items-center justify-center mb-8">
+            {[1, 2, 3].map((s) => (
+              <React.Fragment key={s}>
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                  step >= s ? 'bg-primary text-white' : 'bg-background border-2 border-border text-textSecondary'
+                } font-semibold text-sm transition-all duration-200`}>
+                  {step > s ? <Check size={16} strokeWidth={2} /> : s}
                 </div>
-              )}
-            </div>
+                {s < 3 && <div className={`w-12 md:w-16 h-0.5 ${step > s ? 'bg-primary' : 'bg-border'} transition-all duration-200`} />}
+              </React.Fragment>
+            ))}
+          </div>
 
-            <div className="flex gap-4">
+          {error && (
+            <div className="mb-6 p-4 bg-error/10 border border-error/20 rounded-lg flex items-start gap-3">
+              <AlertCircle size={20} strokeWidth={1.5} className="text-error shrink-0 mt-0.5" />
+              <span className="text-sm text-error">{error}</span>
+            </div>
+          )}
+
+          {/* Step 1: Tema */}
+          {step === 1 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-textPrimary mb-4 flex items-center gap-2">
+                  <Palette size={20} strokeWidth={1.5} /> {LL.onboarding.step1.title()}
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setTheme('light')}
+                    className={`p-6 border-2 rounded-lg transition-all text-left ${
+                      theme === 'light' ? 'border-primary bg-primary/5' : 'border-border hover:border-textSecondary hover:bg-background'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        theme === 'light' ? 'bg-primary text-white' : 'bg-background text-textSecondary'
+                      }`}>
+                        <Sun size={20} strokeWidth={1.5} />
+                      </div>
+                      <div className="font-semibold text-textPrimary">{LL.onboarding.step1.light()}</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setTheme('dark')}
+                    className={`p-6 border-2 rounded-lg transition-all text-left ${
+                      theme === 'dark' ? 'border-primary bg-primary/5' : 'border-border hover:border-textSecondary hover:bg-background'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        theme === 'dark' ? 'bg-primary text-white' : 'bg-background text-textSecondary'
+                      }`}>
+                        <Moon size={20} strokeWidth={1.5} />
+                      </div>
+                      <div className="font-semibold text-textPrimary">{LL.onboarding.step1.dark()}</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
               <button
-                onClick={() => setStep(1)}
-                className="flex-1 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all"
-              >
-                {LL.common.back()}
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                disabled={Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length === 0 || !defaultProvider}
-                className="flex-1 py-3 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary/20"
+                onClick={() => setStep(2)}
+                className="w-full py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
               >
                 {LL.common.next()}
               </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Step 3: Alterar Senha */}
-        {step === 3 && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-textPrimary mb-2 flex items-center gap-2">
-                <Lock size={24} strokeWidth={1.5} /> {LL.onboarding.step3.title()}
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                {LL.onboarding.step3.subtitle()}
-              </p>
+          {/* Step 2: Provedores de IA */}
+          {step === 2 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-textPrimary mb-2 flex items-center gap-2">
+                  <Key size={20} strokeWidth={1.5} /> {LL.onboarding.step2.title()}
+                </h2>
+                <p className="text-sm text-textSecondary mb-4">
+                  {LL.onboarding.step2.subtitle()}
+                </p>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {LL.onboarding.step3.newPassword()} *
-                  </label>
-                  <input
-                    type="password"
-                    placeholder={LL.onboarding.step3.newPasswordPlaceholder()}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
+                <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                  {AI_PROVIDERS.map((provider) => (
+                    <div key={provider.id} className="border border-border rounded-lg p-4 bg-background">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-background flex items-center justify-center text-textSecondary">
+                            <provider.icon size={20} strokeWidth={1.5} />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-sm text-textPrimary">{provider.name}</h3>
+                            <p className="text-xs text-textSecondary">{provider.description}</p>
+                          </div>
+                        </div>
+                        {selectedProviders[provider.id]?.validated && (
+                          <Check size={20} className="text-success" strokeWidth={2} />
+                        )}
+                      </div>
+
+                      {provider.requiresApiKey && (
+                        <div className="mt-3 space-y-2">
+                          <input
+                            type="password"
+                            placeholder={LL.onboarding.step2.apiKeyPlaceholder()}
+                            value={selectedProviders[provider.id]?.apiKey || ''}
+                            onChange={(e) => setSelectedProviders(prev => ({
+                              ...prev,
+                              [provider.id]: { ...prev[provider.id], apiKey: e.target.value, validated: false },
+                            }))}
+                            className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                          />
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            <button
+                              onClick={() => validateProvider(provider.id)}
+                              disabled={!selectedProviders[provider.id]?.apiKey || validating === provider.id}
+                              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
+                            >
+                              {validating === provider.id && <Loader2 size={16} strokeWidth={2} className="animate-spin" />}
+                              {LL.onboarding.step2.validate()}
+                            </button>
+                            <a
+                              href={provider.helpUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
+                            >
+                              {provider.helpText} <ExternalLink size={14} strokeWidth={1.5} />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {provider.requiresUrl && (
+                        <div className="mt-3 space-y-2">
+                          <input
+                            type="url"
+                            placeholder={LL.onboarding.step2.urlPlaceholder()}
+                            value={selectedProviders[provider.id]?.apiUrl || 'http://localhost:11434'}
+                            onChange={(e) => setSelectedProviders(prev => ({
+                              ...prev,
+                              [provider.id]: { ...prev[provider.id], apiUrl: e.target.value, validated: false },
+                            }))}
+                            className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                          />
+                          <button
+                            onClick={() => validateProvider(provider.id)}
+                            disabled={validating === provider.id}
+                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
+                          >
+                            {validating === provider.id && <Loader2 size={16} className="animate-spin" />}
+                            {LL.onboarding.step2.validateConnection()}
+                          </button>
+                          <p className="text-xs text-textSecondary bg-background p-2 rounded border border-border" dangerouslySetInnerHTML={{ __html: LL.onboarding.step2.ollamaNote() }} />
+                        </div>
+                      )}
+
+                      {provider.optionalApiKey && (
+                        <div className="mt-3 space-y-2 pt-3 border-t border-border">
+                          <label className="block text-sm font-medium text-textPrimary mb-1">
+                            {LL.onboarding.step2.apiKeyPlaceholder()} (opcional)
+                          </label>
+                          <input
+                            type="password"
+                            placeholder={LL.onboarding.step2.apiKeyPlaceholder()}
+                            value={selectedProviders[provider.id]?.apiKey || ''}
+                            onChange={(e) => setSelectedProviders(prev => ({
+                              ...prev,
+                              [provider.id]: { ...prev[provider.id], apiKey: e.target.value, validated: false },
+                            }))}
+                            className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                          />
+                          <p className="text-xs text-textSecondary">Deixe em branco para usar localmente, ou adicione a API key se usar um serviço em nuvem</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {LL.onboarding.step3.confirmPassword()} *
-                  </label>
-                  <input
-                    type="password"
-                    placeholder={LL.onboarding.step3.confirmPasswordPlaceholder()}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
 
-                {/* Password Strength Indicator */}
-                {newPassword && (
-                  <div className="mt-4 p-4 bg-background border border-border rounded-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-textPrimary">{LL.onboarding.step3.passwordStrength()}</span>
-                      <div className="flex items-center gap-2">
-                        {passwordStrength.icon && React.createElement(passwordStrength.icon, {
-                          size: 20,
-                          className: passwordStrength.score <= 2 ? 'text-error' : passwordStrength.score <= 3 ? 'text-warning' : 'text-success'
-                        })}
-                        <span className={`text-sm font-semibold ${
-                          passwordStrength.score <= 2 ? 'text-error' :
-                          passwordStrength.score <= 3 ? 'text-warning' :
-                          'text-success'
-                        }`}>
-                          {passwordStrength.label}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-300 ${passwordStrength.color}`}
-                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                      />
-                    </div>
-
-                    {/* Requirements Checklist */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      <div className={`flex items-center gap-2 ${newPassword.length >= 8 ? 'text-success' : 'text-textSecondary'}`}>
-                        {newPassword.length >= 8 ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
-                        <span>{LL.onboarding.step3.requirements.minLength()}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                        {/[A-Z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
-                        <span>{LL.onboarding.step3.requirements.uppercase()}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 ${/[a-z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                        {/[a-z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
-                        <span>{LL.onboarding.step3.requirements.lowercase()}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 ${/[0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                        {/[0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
-                        <span>{LL.onboarding.step3.requirements.number()}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                        {/[^A-Za-z0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={2} />}
-                        <span>{LL.onboarding.step3.requirements.special()}</span>
-                      </div>
-                    </div>
+                {Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length > 0 && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-textPrimary mb-2">
+                      {LL.onboarding.step2.defaultProvider()} *
+                    </label>
+                    <select
+                      value={defaultProvider}
+                      onChange={(e) => setDefaultProvider(e.target.value)}
+                      className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                    >
+                      <option value="">{LL.onboarding.step2.selectDefault()}</option>
+                      {Object.keys(selectedProviders)
+                        .filter(k => selectedProviders[k]?.validated)
+                        .map(k => (
+                          <option key={k} value={k}>
+                            {AI_PROVIDERS.find(p => p.id === k)?.name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                 )}
               </div>
 
-              <div className="mt-4 p-4 bg-warning/10 border border-warning/20 rounded-lg">
-                <p className="text-sm text-warning" dangerouslySetInnerHTML={{ __html: LL.onboarding.step3.warning() }} />
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex-1 py-2.5 border-2 border-border text-textSecondary font-medium rounded-lg hover:bg-background transition-all"
+                >
+                  {LL.common.back()}
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length === 0 || !defaultProvider}
+                  className="flex-1 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary/10"
+                >
+                  {LL.common.next()}
+                </button>
               </div>
             </div>
+          )}
 
-            <div className="flex gap-4">
-              <button
-                onClick={() => setStep(2)}
-                className="flex-1 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all"
-              >
-                {LL.common.back()}
-              </button>
-              <button
-                onClick={handleComplete}
-                disabled={isLoading || !isFormValid}
-                className="flex-1 py-3 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/20"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 size={20} strokeWidth={2} className="animate-spin" />
-                    {LL.onboarding.completing()}
-                  </>
-                ) : (
-                  <>
-                    <Check size={20} strokeWidth={2} />
-                    {LL.onboarding.complete()}
-                  </>
-                )}
-              </button>
+          {/* Step 3: Alterar Senha */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-textPrimary mb-2 flex items-center gap-2">
+                  <Lock size={20} strokeWidth={1.5} /> {LL.onboarding.step3.title()}
+                </h2>
+                <p className="text-sm text-textSecondary mb-4">
+                  {LL.onboarding.step3.subtitle()}
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-textPrimary mb-1.5">
+                      {LL.onboarding.step3.newPassword()} *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder={LL.onboarding.step3.newPasswordPlaceholder()}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-textPrimary mb-1.5">
+                      {LL.onboarding.step3.confirmPassword()} *
+                    </label>
+                    <input
+                      type="password"
+                      placeholder={LL.onboarding.step3.confirmPasswordPlaceholder()}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                      required
+                    />
+                  </div>
+
+                  {/* Password Strength Indicator */}
+                  {newPassword && (
+                    <div className="mt-4 p-4 bg-background border border-border rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-textPrimary">{LL.onboarding.step3.passwordStrength()}</span>
+                        <div className="flex items-center gap-2">
+                          {passwordStrength.icon && React.createElement(passwordStrength.icon, {
+                            size: 18,
+                            strokeWidth: 1.5,
+                            className: passwordStrength.score <= 2 ? 'text-error' : passwordStrength.score <= 3 ? 'text-warning' : 'text-success'
+                          })}
+                          <span className={`text-sm font-semibold ${
+                            passwordStrength.score <= 2 ? 'text-error' :
+                            passwordStrength.score <= 3 ? 'text-warning' :
+                            'text-success'
+                          }`}>
+                            {passwordStrength.label}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="w-full bg-background rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                          style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                        />
+                      </div>
+
+                      {/* Requirements Checklist */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div className={`flex items-center gap-2 ${newPassword.length >= 8 ? 'text-success' : 'text-textSecondary'}`}>
+                          {newPassword.length >= 8 ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          <span>{LL.onboarding.step3.requirements.minLength()}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                          {/[A-Z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          <span>{LL.onboarding.step3.requirements.uppercase()}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${/[a-z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                          {/[a-z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          <span>{LL.onboarding.step3.requirements.lowercase()}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${/[0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                          {/[0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          <span>{LL.onboarding.step3.requirements.number()}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
+                          {/[^A-Za-z0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          <span>{LL.onboarding.step3.requirements.special()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                  <p className="text-sm text-warning" dangerouslySetInnerHTML={{ __html: LL.onboarding.step3.warning() }} />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setStep(2)}
+                  className="flex-1 py-2.5 border-2 border-border text-textSecondary font-medium rounded-lg hover:bg-background transition-all"
+                >
+                  {LL.common.back()}
+                </button>
+                <button
+                  onClick={handleComplete}
+                  disabled={isLoading || !isFormValid}
+                  className="flex-1 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/10"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={18} strokeWidth={2} className="animate-spin" />
+                      {LL.onboarding.completing()}
+                    </>
+                  ) : (
+                    <>
+                      <Check size={18} strokeWidth={2} />
+                      {LL.onboarding.complete()}
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Footer */}
-        <div className="mt-8 pt-6 border-t border-border text-center text-xs text-textSecondary">
-          <p>© 2024 Soullabs. {LL.onboarding.footer()}</p>
+          {/* Footer */}
+          <div className="mt-8 pt-6 border-t border-border text-center text-xs text-textSecondary">
+            <p>© 2024 Soullabs. {LL.onboarding.footer()}</p>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

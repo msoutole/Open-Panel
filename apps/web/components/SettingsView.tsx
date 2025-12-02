@@ -105,7 +105,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
         try {
             await deleteUser(userId);
             // Refresh users list
-            const data = await getUsers(true); // Force refresh
+            const data = await getUsers();
             setUsers(data);
             showToast({
                 type: 'success',
@@ -197,7 +197,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                 <section className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
                     <div className="px-6 py-4 border-b border-border bg-background flex items-center gap-3">
                         <div className="p-2 bg-primary/10 text-primary rounded-lg">
-                            <User size={18} strokeWidth={1.5} />
+                            <UserIcon size={18} strokeWidth={1.5} />
                         </div>
                         <div>
                             <h3 className="font-semibold text-textPrimary">Users & Roles</h3>
@@ -214,7 +214,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                     onChange={(e) => setUserSearch(e.target.value)}
                                     className="pl-9 pr-4 py-2 border border-border rounded-lg text-sm w-64 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary bg-white text-textPrimary placeholder-textSecondary transition-all duration-200"
                                 />
-                                <User size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" />
+                                <UserIcon size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" />
                             </div>
                             <button
                                 onClick={handleInviteUser}
@@ -304,7 +304,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
 
             {/* Backups Section - Only shown when view is 'backups' */}
             {view === 'backups' && (
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-300">
+                <section className="bg-card rounded-xl shadow-sm border border-border overflow-hidden animate-in fade-in duration-300">
                     <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
                         <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
                             <HardDrive size={18} />

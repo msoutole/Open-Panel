@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Box, AlertCircle, Loader2 } from 'lucide-react';
+import { useTranslations } from '../src/i18n/i18n-react';
 
 interface LoginProps {
   onLogin: () => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const LL = useTranslations();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -39,12 +41,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     // Validações
     if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+      setError(LL.validation.email());
       return;
     }
 
     if (!validatePassword(password)) {
-      setError('Password must be at least 6 characters');
+      setError(LL.validation.minLength({ field: LL.common.password(), min: 6 }));
       return;
     }
 
@@ -86,7 +88,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       onLogin();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
+      setError(err instanceof Error ? err.message : LL.auth.invalidCredentials());
     } finally {
       setIsLoading(false);
     }
@@ -94,19 +96,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md bg-card rounded-2xl shadow-xl border border-border p-10">
+      <div className="w-full max-w-md bg-card rounded-xl shadow-lg border border-border p-8">
         {/* Logo e Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-primary p-2.5 rounded-xl text-white shadow-md">
-              <Box size={32} strokeWidth={2} />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-primary p-2 rounded-lg text-white">
+              <Box size={24} strokeWidth={2} />
             </div>
             <div className="text-left">
-              <h1 className="text-3xl font-bold text-textPrimary tracking-tight leading-none">Open Panel</h1>
+              <h1 className="text-2xl font-bold text-textPrimary tracking-tight leading-none">Open Panel</h1>
               <p className="text-xs text-textSecondary font-medium">by Soullabs</p>
             </div>
           </div>
-          <h2 className="text-center text-base font-medium text-textSecondary mt-4">Sign In to your account</h2>
+          <h2 className="text-center text-base font-semibold text-textPrimary mb-1">{LL.auth.loginTitle()}</h2>
+          <p className="text-center text-sm text-textSecondary">{LL.auth.loginSubtitle()}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -118,26 +121,32 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           )}
 
           <div>
+            <label className="block text-sm font-medium text-textPrimary mb-1.5">
+              {LL.common.email()}
+            </label>
             <input
               type="email"
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email Address"
+              placeholder={LL.auth.emailPlaceholder()}
               required
-              className="w-full px-4 py-3 bg-card border border-border rounded-lg text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+              className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
             />
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-textPrimary mb-1.5">
+              {LL.common.password()}
+            </label>
             <input
               type="password"
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
+              placeholder={LL.auth.passwordPlaceholder()}
               required
-              className="w-full px-4 py-3 bg-card border border-border rounded-lg text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
+              className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
             />
           </div>
 
@@ -149,34 +158,29 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 rounded text-primary border-border focus:ring-2 focus:ring-primary/20"
               />
-              <span className="text-textSecondary">Remember Me</span>
+              <span className="text-textSecondary text-sm">{LL.auth.rememberMe()}</span>
             </label>
-            <a href="#" className="text-primary hover:underline font-medium">Forgot your password?</a>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium py-3 rounded-lg shadow-sm hover:shadow-md transition-all transform active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/20"
+            className="w-full bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/10"
           >
             {isLoading ? (
               <>
                 <Loader2 size={18} strokeWidth={2} className="animate-spin" />
-                Signing in...
+                {LL.common.loading()}
               </>
             ) : (
-              'Login'
+              LL.auth.login()
             )}
           </button>
         </form>
 
         {/* Footer */}
         <div className="mt-8 pt-6 border-t border-border text-center text-xs text-textSecondary">
-          <p>© 2024 Soullabs. All rights reserved.</p>
-          <div className="mt-2 space-x-4">
-            <a href="#" className="hover:text-textPrimary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-textPrimary transition-colors">Terms of Service</a>
-          </div>
+          <p>© 2024 Soullabs. Todos os direitos reservados.</p>
         </div>
       </div>
     </div>

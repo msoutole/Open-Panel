@@ -10,6 +10,8 @@ import { Onboarding } from './pages/Onboarding';
 import { GeminiChat } from './components/GeminiChat';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './hooks/useToast';
+import { useSidebar } from './hooks/useSidebar';
+import { useTranslations } from './src/i18n/i18n-react';
 import { ViewState, Project } from './types';
 import { I18nProvider } from './src/i18n/i18n-react';
 
@@ -27,6 +29,21 @@ const AppContent: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Sidebar state management
+  const { isCollapsed, toggleSidebar } = useSidebar();
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Sync session state changes to localStorage
   useEffect(() => {
@@ -58,7 +75,8 @@ const AppContent: React.FC = () => {
 
           if (response.ok) {
             const data = await response.json();
-            setShowOnboarding(!data.onboardingCompleted);
+            // Show onboarding if not completed OR if user must change password
+            setShowOnboarding(!data.onboardingCompleted || data.mustChangePassword === true);
           }
         } catch (error) {
           console.error('Erro ao verificar status de onboarding:', error);
@@ -94,6 +112,9 @@ const AppContent: React.FC = () => {
     setCurrentView('project_details');
   };
 
+  // Hooks must be called before any early returns
+  const LL = useTranslations();
+
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   }
@@ -101,37 +122,48 @@ const AppContent: React.FC = () => {
   if (showOnboarding) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
-
+  
   const getPageTitle = (view: ViewState) => {
     switch (view) {
       case 'dashboard':
-        return 'Dashboard';
+        return LL.appTitles.dashboard();
       case 'monitor':
-        return 'System Monitor';
+        return LL.appTitles.systemMonitor();
       case 'settings':
-        return 'System Settings';
+        return LL.appTitles.systemSettings();
       case 'users':
-        return 'Identity Management';
+        return LL.appTitles.identityManagement();
       case 'backups':
-        return 'Backup & Recovery';
+        return LL.appTitles.backupRecovery();
       case 'project_details':
-        return 'Projects';
+        return LL.appTitles.projects();
       case 'security':
-        return 'Security & Logs';
+        return LL.appTitles.securityLogs();
       default:
-        return 'Panel';
+        return LL.appTitles.panel();
     }
   };
+
+  const sidebarWidth = isCollapsed ? 'ml-16' : 'ml-64';
+  const contentMargin = isMobile ? 'ml-0' : sidebarWidth;
 
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
         currentView={currentView}
         onChangeView={handleViewChange}
+        isCollapsed={isCollapsed}
+        onToggle={toggleSidebar}
+        isMobile={isMobile}
       />
 
-      <div className="flex-1 ml-64 flex flex-col min-w-0 relative">
-        <Header title={getPageTitle(currentView)} onLogout={handleLogout} />
+      <div className={`flex-1 ${contentMargin} flex flex-col min-w-0 relative transition-all duration-300 ease-in-out`}>
+        <Header 
+          title={getPageTitle(currentView)} 
+          onLogout={handleLogout}
+          onMenuToggle={toggleSidebar}
+          isMobile={isMobile}
+        />
 
         <main className="flex-1 overflow-y-auto bg-background">
           {(currentView === 'dashboard' || currentView === 'monitor') && (
