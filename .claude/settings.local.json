@@ -27,7 +27,11 @@
       "Bash(echo:*)",
       "Bash(docker stop:*)",
       "Bash(curl:*)",
-      "Bash(npm run build:web:*)"
+      "Bash(npm run build:web:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm view:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run db:generate:*)"
     ],
     "deny": [],
     "ask": []
