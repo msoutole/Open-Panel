@@ -12,6 +12,8 @@ import { prettyJSON } from 'hono/pretty-json'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from './types'
 import { ContainerWebSocketGateway } from './websocket/container-gateway'
+import { LogsWebSocketGateway } from './websocket/logs-gateway'
+import { MetricsWebSocketGateway } from './websocket/metrics-gateway'
 
 // Import routes
 import auth from './routes/auth'
@@ -28,6 +30,9 @@ import databases from './routes/databases'
 import health from './routes/health'
 import backups from './routes/backups'
 import onboarding from './routes/onboarding'
+import metrics from './routes/metrics'
+import audit from './routes/audit'
+import stats from './routes/stats'
 
 // Import middlewares
 import { authMiddleware } from './middlewares/auth'
@@ -138,6 +143,9 @@ app.route('/api/databases', databases)
 app.route('/api/health', health)
 app.route('/api/backups', backups)
 app.route('/api/onboarding', onboarding)
+app.route('/api/metrics', metrics)
+app.route('/api/audit', audit)
+app.route('/api/stats', stats)
 
 app.get('/api/protected', (c) => {
   const user = c.get('user')
@@ -242,14 +250,18 @@ const server = createServer(async (req, res) => {
 
 // Initialize WebSocket gateways
 const containerWsGateway = new ContainerWebSocketGateway(server)
+const logsWsGateway = new LogsWebSocketGateway(server)
+const metricsWsGateway = new MetricsWebSocketGateway(server)
 
-// Export gateway for use in other modules
-export { containerWsGateway }
+// Export gateways for use in other modules
+export { containerWsGateway, logsWsGateway, metricsWsGateway }
 
 // Start server
 server.listen(port, () => {
   logInfo(`Server running at http://localhost:${port}`, { port })
   logInfo(`Container WebSocket gateway: ws://localhost:${port}/ws/containers`)
+  logInfo(`Logs WebSocket gateway: ws://localhost:${port}/ws/logs`)
+  logInfo(`Metrics WebSocket gateway: ws://localhost:${port}/ws/metrics`)
   logInfo(`Environment: ${env.NODE_ENV}`, { environment: env.NODE_ENV })
 
   // Initialize backup service
@@ -266,6 +278,8 @@ server.listen(port, () => {
 process.on('SIGINT', () => {
   logInfo('Shutting down gracefully...')
   containerWsGateway.close()
+  logsWsGateway.close()
+  metricsWsGateway.close()
   server.close(() => {
     logInfo('Server closed')
     process.exit(0)

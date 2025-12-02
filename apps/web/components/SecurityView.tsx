@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { AUDIT_LOGS, INITIAL_LOGS } from '../constants';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { getAuditLogs, getAuditLogStats, AuditLog, AuditLogStats } from '../services/api';
+import { useLogs } from '../hooks/useLogs';
+import { useToast } from '../hooks/useToast';
 import { Shield, Activity, FileText, AlertTriangle, CheckCircle, XCircle, Sparkles, Loader2 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -7,6 +9,58 @@ export const SecurityView: React.FC = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [auditStats, setAuditStats] = useState<AuditLogStats | null>(null);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const { showToast } = useToast();
+
+  // Use WebSocket for real-time Docker events
+  const { logs: dockerLogs, isConnected: logsConnected } = useLogs({
+    autoConnect: true,
+    maxLogs: 100,
+  });
+
+  // Fetch audit logs
+  useEffect(() => {
+    const fetchAuditLogs = async () => {
+      try {
+        setIsLoadingLogs(true);
+        const response = await getAuditLogs({ page, limit: 20 });
+        setAuditLogs(response.logs);
+        setTotalPages(response.pagination.totalPages);
+      } catch (error) {
+        console.error('Failed to load audit logs', error);
+        showToast({
+          type: 'error',
+          title: 'Erro ao carregar logs',
+          message: error instanceof Error ? error.message : 'Não foi possível carregar os logs de auditoria',
+        });
+      } finally {
+        setIsLoadingLogs(false);
+      }
+    };
+
+    fetchAuditLogs();
+  }, [page, showToast]);
+
+  // Fetch audit stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const stats = await getAuditLogStats();
+        setAuditStats(stats);
+      } catch (error) {
+        console.error('Failed to load audit stats', error);
+      }
+    };
+
+    fetchStats();
+    // Refresh stats every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Sanitização de campos CSV para prevenir injection
   const sanitizeCSVField = (field: string | number): string => {
@@ -21,39 +75,64 @@ export const SecurityView: React.FC = () => {
     return str.replace(/"/g, '""');
   };
 
-  const handleExportCSV = () => {
-    // Convert audit logs to CSV format
-    const headers = ['Timestamp', 'Action', 'User Email', 'User ID', 'Target Resource', 'IP Address', 'Status'];
-    const csvRows = [headers.join(',')];
+  const handleExportCSV = useCallback(async () => {
+    try {
+      showToast({
+        type: 'info',
+        title: 'Exportando logs',
+        message: 'Preparando arquivo CSV...',
+        duration: 2000,
+      });
 
-    AUDIT_LOGS.forEach(log => {
-      const row = [
-        log.timestamp,
-        log.action,
-        log.userEmail,
-        log.userId,
-        log.targetResource,
-        log.ipAddress,
-        log.status
-      ];
-      csvRows.push(row.map(field => `"${sanitizeCSVField(field)}"`).join(','));
-    });
+      // Fetch all audit logs for export (with higher limit)
+      const response = await getAuditLogs({ page: 1, limit: 1000 });
+      const allLogs = response.logs;
 
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `openpanel-audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Convert audit logs to CSV format
+      const headers = ['Timestamp', 'Action', 'User Email', 'User ID', 'Target Resource', 'IP Address', 'Status'];
+      const csvRows = [headers.join(',')];
 
-    // Feedback de sucesso
-    setExportSuccess(true);
-    setTimeout(() => setExportSuccess(false), 3000);
-  };
+      allLogs.forEach(log => {
+        const row = [
+          log.timestamp,
+          log.action,
+          log.userEmail,
+          log.userId,
+          log.resourceId || '',
+          log.ipAddress || '',
+          log.status
+        ];
+        csvRows.push(row.map(field => `"${sanitizeCSVField(field)}"`).join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `openpanel-audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Feedback de sucesso
+      setExportSuccess(true);
+      showToast({
+        type: 'success',
+        title: 'Exportação concluída',
+        message: `Arquivo CSV com ${allLogs.length} logs foi baixado`,
+      });
+      setTimeout(() => setExportSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to export audit logs', error);
+      showToast({
+        type: 'error',
+        title: 'Erro na exportação',
+        message: error instanceof Error ? error.message : 'Não foi possível exportar os logs',
+      });
+    }
+  }, [showToast]);
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
@@ -69,15 +148,15 @@ export const SecurityView: React.FC = () => {
         
         // Prepare detailed context data for the AI
         const contextData = {
-            audit_logs: AUDIT_LOGS.map(log => ({
+            audit_logs: auditLogs.slice(0, 50).map(log => ({
                 time: log.timestamp,
                 action: log.action,
                 user: log.userEmail,
                 ip: log.ipAddress,
                 status: log.status,
-                resource: log.targetResource
+                resource: log.resourceId || log.resourceType
             })),
-            docker_events: INITIAL_LOGS.map(log => ({
+            docker_events: dockerLogs.slice(0, 50).map(log => ({
                 time: log.timestamp,
                 level: log.level,
                 msg: log.message
@@ -116,86 +195,96 @@ export const SecurityView: React.FC = () => {
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex justify-between items-start">
         <div>
-            <h2 className="text-2xl font-bold text-slate-800">Security & Auditing</h2>
-            <p className="text-slate-500 text-sm">Monitor system access, audit trails, and real-time docker events.</p>
+            <h2 className="text-2xl font-bold text-textPrimary">Security & Auditing</h2>
+            <p className="text-textSecondary text-sm">Monitor system access, audit trails, and real-time docker events.</p>
         </div>
         <button 
             onClick={handleAnalyze} 
             disabled={analyzing}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-xl font-medium shadow-lg shadow-purple-200 hover:shadow-xl hover:scale-105 transition-all disabled:opacity-70 disabled:scale-100"
+            className="flex items-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
         >
-            {analyzing ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+            {analyzing ? <Loader2 size={18} strokeWidth={1.5} className="animate-spin" /> : <Sparkles size={18} strokeWidth={1.5} />}
             {analyzing ? 'Analyzing...' : 'AI Threat Analysis'}
         </button>
       </div>
 
       {/* AI Analysis Result */}
       {analysis && (
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 p-6 rounded-xl animate-in fade-in slide-in-from-top-4">
-              <div className="flex items-center gap-2 mb-3 text-purple-700 font-bold">
-                  <Sparkles size={18} />
+          <div className="bg-primary/5 border border-primary/20 p-6 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 text-primary font-bold">
+                  <Sparkles size={18} strokeWidth={1.5} />
                   <h3>AI Security Assessment</h3>
               </div>
-              <div className="prose prose-sm text-slate-700 max-w-none">
-                  <pre className="whitespace-pre-wrap font-sans bg-transparent border-0 p-0 text-slate-700 text-sm leading-relaxed">{analysis}</pre>
+              <div className="prose prose-sm text-textPrimary max-w-none">
+                  <pre className="whitespace-pre-wrap font-sans bg-transparent border-0 p-0 text-textPrimary text-sm leading-relaxed">{analysis}</pre>
               </div>
           </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Security Overview Cards */}
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-100 text-green-600 rounded-lg">
-                    <Shield size={20} />
+                <div className="p-2 bg-success/10 text-success rounded-lg">
+                    <Shield size={20} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-semibold text-slate-700">Security Status</h3>
+                <h3 className="font-semibold text-textPrimary">Security Status</h3>
              </div>
-             <p className="text-2xl font-bold text-slate-800">Healthy</p>
-             <p className="text-xs text-slate-500 mt-1">Firewall active, MFA enforced for admins.</p>
+             <p className="text-2xl font-bold text-textPrimary">
+               {auditStats ? (auditStats.failed > 0 ? 'Warning' : 'Healthy') : 'Loading...'}
+             </p>
+             <p className="text-xs text-textSecondary mt-1">
+               {auditStats ? `${auditStats.failed} failed actions in last 24h` : 'Loading status...'}
+             </p>
           </div>
           
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                    <Activity size={20} />
+                <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                    <Activity size={20} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-semibold text-slate-700">Events (24h)</h3>
+                <h3 className="font-semibold text-textPrimary">Events (24h)</h3>
              </div>
-             <p className="text-2xl font-bold text-slate-800">1,204</p>
-             <p className="text-xs text-slate-500 mt-1">Docker events processed.</p>
+             <p className="text-2xl font-bold text-textPrimary">
+               {auditStats ? auditStats.recent24h.toLocaleString() : '...'}
+             </p>
+             <p className="text-xs text-textSecondary mt-1">Audit events processed.</p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
-                    <AlertTriangle size={20} />
+                <div className="p-2 bg-warning/10 text-warning rounded-lg">
+                    <AlertTriangle size={20} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-semibold text-slate-700">Failed Logins</h3>
+                <h3 className="font-semibold text-textPrimary">Failed Actions</h3>
              </div>
-             <p className="text-2xl font-bold text-slate-800">3</p>
-             <p className="text-xs text-slate-500 mt-1">Detected from 2 distinct IPs.</p>
+             <p className="text-2xl font-bold text-textPrimary">
+               {auditStats ? auditStats.failed : '...'}
+             </p>
+             <p className="text-xs text-textSecondary mt-1">
+               {auditStats ? `Out of ${auditStats.total} total events` : 'Loading...'}
+             </p>
           </div>
       </div>
 
       {/* Audit Log Table */}
-      <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+      <section className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+        <div className="px-6 py-4 border-b border-border bg-background flex items-center justify-between">
            <div className="flex items-center gap-2">
-                <FileText className="text-slate-500" size={18} />
-                <h3 className="font-semibold text-slate-700">Audit Log (Immutable)</h3>
+                <FileText className="text-textSecondary" size={18} strokeWidth={1.5} />
+                <h3 className="font-semibold text-textPrimary">Audit Log (Immutable)</h3>
            </div>
            <button
             onClick={handleExportCSV}
-            className={`text-xs border px-3 py-1.5 rounded font-medium transition-all flex items-center gap-1.5 ${
+            className={`text-xs border px-3 py-1.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 ${
               exportSuccess
-                ? 'bg-green-50 border-green-200 text-green-700'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                ? 'bg-success/10 border-success/20 text-success'
+                : 'bg-white border-border text-textSecondary hover:bg-background'
             }`}
           >
             {exportSuccess ? (
               <>
-                <CheckCircle size={12} />
+                <CheckCircle size={12} strokeWidth={2} />
                 Exported!
               </>
             ) : (
@@ -204,6 +293,29 @@ export const SecurityView: React.FC = () => {
           </button>
         </div>
         <div className="overflow-x-auto">
+            {totalPages > 1 && (
+                <div className="px-6 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <span className="text-xs text-slate-500">
+                        Page {page} of {totalPages}
+                    </span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="px-3 py-1 text-xs border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages}
+                            className="px-3 py-1 text-xs border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
             <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50/50 text-xs uppercase text-slate-500 font-medium border-b border-slate-100">
                     <tr>
@@ -216,22 +328,41 @@ export const SecurityView: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                    {AUDIT_LOGS.map(log => (
-                        <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-6 py-4 font-mono text-slate-500 text-xs">{log.timestamp}</td>
-                            <td className="px-6 py-4 font-medium text-slate-700">{log.action}</td>
-                            <td className="px-6 py-4">
-                                <div className="text-slate-800">{log.userEmail}</div>
-                                <div className="text-xs text-slate-400">ID: {log.userId}</div>
-                            </td>
-                            <td className="px-6 py-4 font-mono text-xs text-slate-600 bg-slate-50 rounded w-fit px-2 py-1">{log.targetResource}</td>
-                            <td className="px-6 py-4 text-slate-500">{log.ipAddress}</td>
-                            <td className="px-6 py-4 text-right">
-                                {log.status === 'Success' && <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded"><CheckCircle size={12}/> Success</span>}
-                                {log.status === 'Failure' && <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded"><XCircle size={12}/> Failure</span>}
+                    {isLoadingLogs ? (
+                        <tr>
+                            <td colSpan={6} className="px-6 py-12 text-center">
+                                <Loader2 size={24} className="animate-spin text-slate-400 mx-auto mb-2" />
+                                <p className="text-sm text-slate-500">Loading audit logs...</p>
                             </td>
                         </tr>
-                    ))}
+                    ) : auditLogs.length === 0 ? (
+                        <tr>
+                            <td colSpan={6} className="px-6 py-12 text-center">
+                                <p className="text-sm text-slate-500">No audit logs found.</p>
+                            </td>
+                        </tr>
+                    ) : (
+                        auditLogs.map(log => (
+                            <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 font-mono text-slate-500 text-xs">
+                                    {new Date(log.timestamp).toLocaleString('pt-BR')}
+                                </td>
+                                <td className="px-6 py-4 font-medium text-slate-700">{log.action}</td>
+                                <td className="px-6 py-4">
+                                    <div className="text-slate-800">{log.userEmail}</div>
+                                    <div className="text-xs text-slate-400">ID: {log.userId}</div>
+                                </td>
+                                <td className="px-6 py-4 font-mono text-xs text-slate-600 bg-slate-50 rounded w-fit px-2 py-1">
+                                    {log.resourceId || log.resourceType || 'N/A'}
+                                </td>
+                                <td className="px-6 py-4 text-slate-500">{log.ipAddress || 'N/A'}</td>
+                                <td className="px-6 py-4 text-right">
+                                    {log.status === 'Success' && <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded"><CheckCircle size={12}/> Success</span>}
+                                    {log.status === 'Failure' && <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded"><XCircle size={12}/> Failure</span>}
+                                </td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
         </div>
@@ -241,27 +372,34 @@ export const SecurityView: React.FC = () => {
       <section className="bg-slate-900 rounded-xl shadow-lg overflow-hidden border border-slate-800">
         <div className="px-4 py-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
             <h3 className="text-sm font-mono font-medium text-slate-200 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <div className={`w-2 h-2 rounded-full ${logsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                 Live Docker Events Stream
             </h3>
-            <span className="text-xs text-slate-500">Connected to /var/run/docker.sock</span>
+            <span className="text-xs text-slate-500">
+                {logsConnected ? 'Connected' : 'Disconnected'}
+            </span>
         </div>
         <div className="p-4 h-64 overflow-y-auto font-mono text-xs space-y-2 terminal-scroll">
-            {INITIAL_LOGS.map((log) => (
-                <div key={log.id} className="flex gap-3">
-                    <span className="text-slate-500 shrink-0">[{log.timestamp}]</span>
-                    <span className={`${
-                        log.level === 'ERROR' ? 'text-red-400' : 
-                        log.level === 'WARN' ? 'text-yellow-400' : 
-                        log.level === 'DEBUG' ? 'text-blue-400' : 'text-slate-300'
-                    } font-bold w-12 shrink-0`}>{log.level}</span>
-                    <span className="text-slate-300">{log.message}</span>
+            {dockerLogs.length === 0 ? (
+                <div className="flex gap-3 animate-pulse opacity-50">
+                    <span className="text-slate-500 shrink-0">[{new Date().toLocaleTimeString('pt-BR')}]</span>
+                    <span className="text-slate-300">Aguardando eventos...</span>
                 </div>
-            ))}
-            <div className="flex gap-3 animate-pulse opacity-50">
-                 <span className="text-slate-500 shrink-0">[14:32:20]</span>
-                 <span className="text-slate-300">Listening for events...</span>
-            </div>
+            ) : (
+                dockerLogs.slice(0, 100).map((log) => (
+                    <div key={log.id} className="flex gap-3 hover:bg-slate-800/50 transition-colors rounded px-1 py-0.5">
+                        <span className="text-slate-500 shrink-0">
+                            [{new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
+                        </span>
+                        <span className={`${
+                            log.level === 'ERROR' ? 'text-red-400' : 
+                            log.level === 'WARN' ? 'text-yellow-400' : 
+                            log.level === 'DEBUG' ? 'text-blue-400' : 'text-slate-300'
+                        } font-bold w-12 shrink-0`}>{log.level}</span>
+                        <span className="text-slate-300 break-words flex-1">{log.message}</span>
+                    </div>
+                ))
+            )}
         </div>
       </section>
     </div>

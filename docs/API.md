@@ -15,6 +15,10 @@ Complete API reference for Open Panel backend services.
 - [Users](#users)
 - [Projects](#projects)
 - [Teams](#teams)
+- [Metrics](#metrics)
+- [Audit Logs](#audit-logs)
+- [Statistics](#statistics)
+- [WebSockets](#websockets)
 - [Error Handling](#error-handling)
 
 ---
@@ -649,6 +653,383 @@ Content-Type: application/json
 `
 
 ---
+
+## Metrics
+
+### GET /api/metrics/system
+
+Get system-wide metrics (CPU, Memory, Disk, Network).
+
+**Response (200 OK):**
+```json
+{
+  "metrics": {
+    "cpu": {
+      "usage": 25.5,
+      "cores": 8,
+      "loadAverage": [1.2, 1.5, 1.8]
+    },
+    "memory": {
+      "total": 34359738368,
+      "used": 17179869184,
+      "free": 17179869184,
+      "usage": 50.0
+    },
+    "disk": {
+      "total": 107374182400,
+      "used": 53687091200,
+      "free": 53687091200,
+      "usage": 50.0
+    },
+    "network": {
+      "rx": 1073741824,
+      "tx": 2147483648,
+      "rxRate": 1024000,
+      "txRate": 2048000
+    },
+    "timestamp": "2024-01-01T12:00:00.000Z"
+  }
+}
+```
+
+### GET /api/metrics/containers
+
+Get metrics for all containers.
+
+**Response (200 OK):**
+```json
+{
+  "metrics": [
+    {
+      "id": "container_id",
+      "dockerId": "docker_container_id",
+      "name": "container_name",
+      "cpu": {
+        "usage": 15.5,
+        "cores": 2
+      },
+      "memory": {
+        "used": 536870912,
+        "limit": 2147483648,
+        "usage": 25.0
+      },
+      "network": {
+        "rx": 1073741824,
+        "tx": 2147483648,
+        "rxRate": 0,
+        "txRate": 0
+      },
+      "blockIO": {
+        "read": 536870912,
+        "write": 1073741824
+      },
+      "timestamp": "2024-01-01T12:00:00.000Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### GET /api/metrics/containers/:id
+
+Get metrics for a specific container.
+
+**Response (200 OK):**
+```json
+{
+  "metrics": {
+    "id": "container_id",
+    "dockerId": "docker_container_id",
+    "name": "container_name",
+    "cpu": {
+      "usage": 15.5,
+      "cores": 2
+    },
+    "memory": {
+      "used": 536870912,
+      "limit": 2147483648,
+      "usage": 25.0
+    },
+    "network": {
+      "rx": 1073741824,
+      "tx": 2147483648,
+      "rxRate": 0,
+      "txRate": 0
+    },
+    "blockIO": {
+      "read": 536870912,
+      "write": 1073741824
+    },
+    "timestamp": "2024-01-01T12:00:00.000Z"
+  }
+}
+```
+
+## Audit Logs
+
+### GET /api/audit
+
+List audit logs with pagination and filters.
+
+**Query Parameters:**
+- `userId` (optional): Filter by user ID
+- `action` (optional): Filter by action type
+- `resourceType` (optional): Filter by resource type
+- `resourceId` (optional): Filter by resource ID
+- `status` (optional): Filter by status (SUCCESS, FAILURE)
+- `startDate` (optional): ISO 8601 datetime
+- `endDate` (optional): ISO 8601 datetime
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20)
+
+**Response (200 OK):**
+```json
+{
+  "logs": [
+    {
+      "id": "log_id",
+      "action": "SERVICE_STOP",
+      "userId": "user_id",
+      "userEmail": "user@example.com",
+      "userName": "User Name",
+      "resourceType": "container",
+      "resourceId": "container_id",
+      "ipAddress": "192.168.1.1",
+      "userAgent": "Mozilla/5.0...",
+      "metadata": {},
+      "timestamp": "2024-01-01T12:00:00.000Z",
+      "status": "Success"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "totalPages": 5
+  }
+}
+```
+
+### GET /api/audit/:id
+
+Get details of a specific audit log.
+
+**Response (200 OK):**
+```json
+{
+  "log": {
+    "id": "log_id",
+    "action": "SERVICE_STOP",
+    "userId": "user_id",
+    "userEmail": "user@example.com",
+    "userName": "User Name",
+    "resourceType": "container",
+    "resourceId": "container_id",
+    "ipAddress": "192.168.1.1",
+    "userAgent": "Mozilla/5.0...",
+    "metadata": {},
+    "timestamp": "2024-01-01T12:00:00.000Z",
+    "status": "Success"
+  }
+}
+```
+
+### GET /api/audit/stats
+
+Get statistics about audit logs.
+
+**Response (200 OK):**
+```json
+{
+  "stats": {
+    "total": 1000,
+    "recent24h": 150,
+    "failed": 5,
+    "successful": 995,
+    "byAction": [
+      {
+        "action": "SERVICE_STOP",
+        "count": 50
+      }
+    ],
+    "byResourceType": [
+      {
+        "resourceType": "container",
+        "count": 200
+      }
+    ]
+  }
+}
+```
+
+## Statistics
+
+### GET /api/stats/dashboard
+
+Get aggregated statistics for dashboard.
+
+**Response (200 OK):**
+```json
+{
+  "stats": {
+    "system": {
+      "cpu": {
+        "usage": 25.5,
+        "cores": 8
+      },
+      "memory": {
+        "usage": 50.0,
+        "total": 34359738368,
+        "used": 17179869184
+      },
+      "disk": {
+        "usage": 50.0,
+        "total": 107374182400,
+        "used": 53687091200
+      },
+      "network": {
+        "rx": 1073741824,
+        "tx": 2147483648,
+        "rxRate": 1024000,
+        "txRate": 2048000
+      }
+    },
+    "projects": {
+      "total": 10,
+      "active": 8,
+      "paused": 2
+    },
+    "containers": {
+      "total": 25,
+      "running": 20,
+      "stopped": 5
+    },
+    "users": {
+      "total": 5
+    },
+    "activity": {
+      "deployments24h": 10,
+      "auditLogs24h": 150
+    },
+    "timestamp": "2024-01-01T12:00:00.000Z"
+  }
+}
+```
+
+### GET /api/stats/projects
+
+Get statistics about projects.
+
+**Response (200 OK):**
+```json
+{
+  "stats": {
+    "total": 10,
+    "byStatus": [
+      {
+        "status": "ACTIVE",
+        "count": 8
+      }
+    ],
+    "byType": [
+      {
+        "type": "app",
+        "count": 5
+      }
+    ]
+  }
+}
+```
+
+### GET /api/stats/containers
+
+Get statistics about containers.
+
+**Response (200 OK):**
+```json
+{
+  "stats": {
+    "total": 25,
+    "running": 20,
+    "stopped": 5,
+    "byStatus": [
+      {
+        "status": "RUNNING",
+        "count": 20
+      }
+    ],
+    "averages": {
+      "cpu": 15.5,
+      "memory": 536870912
+    }
+  }
+}
+```
+
+## WebSockets
+
+### ws://localhost:3001/ws/containers
+
+WebSocket gateway for container logs and metrics.
+
+**Authentication:**
+Send a message with type `auth` and your JWT token:
+```json
+{
+  "type": "auth",
+  "token": "your_jwt_token"
+}
+```
+
+**Subscribe to Container Logs:**
+```json
+{
+  "type": "subscribe_logs",
+  "containerId": "container_id"
+}
+```
+
+**Subscribe to Container Stats:**
+```json
+{
+  "type": "subscribe_stats",
+  "containerId": "container_id",
+  "interval": 2000
+}
+```
+
+**Message Types:**
+- `log`: Real-time log entry
+- `stats`: Real-time container statistics
+- `docker_event`: Docker events
+
+### ws://localhost:3001/ws/logs
+
+WebSocket gateway for system-wide Docker events.
+
+**Authentication:**
+Same as containers gateway.
+
+**Message Types:**
+- `docker_event`: Real-time Docker events
+
+### ws://localhost:3001/ws/metrics
+
+WebSocket gateway for system metrics.
+
+**Authentication:**
+Same as containers gateway.
+
+**Subscribe:**
+```json
+{
+  "type": "subscribe",
+  "interval": 2000
+}
+```
+
+**Message Types:**
+- `metrics`: Real-time system metrics
 
 ## Error Handling
 

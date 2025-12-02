@@ -25,8 +25,8 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     return (
       <div className="flex items-center gap-2">
         {showLabel && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Globe size={16} />
+          <div className="flex items-center gap-2 text-sm text-textSecondary">
+            <Globe size={16} strokeWidth={1.5} />
             <span>Idioma:</span>
           </div>
         )}
@@ -35,10 +35,10 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             <button
               key={lang.code}
               onClick={() => setLocale(lang.code)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 locale === lang.code
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-background text-textSecondary hover:bg-white border border-border'
               }`}
             >
               <span className="mr-1">{lang.flag}</span>
@@ -55,7 +55,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
       <select
         value={locale}
         onChange={(e) => setLocale(e.target.value as Locales)}
-        className="appearance-none px-4 py-2 pr-8 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+        className="appearance-none px-4 py-2 pr-8 border border-border rounded-lg bg-white text-sm font-medium text-textPrimary hover:border-primary/30 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary cursor-pointer transition-all duration-200"
       >
         {languages.map((lang) => (
           <option key={lang.code} value={lang.code}>
@@ -64,7 +64,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         ))}
       </select>
       <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-        <Globe size={16} className="text-gray-500" />
+        <Globe size={16} className="text-textSecondary" strokeWidth={1.5} />
       </div>
     </div>
   );

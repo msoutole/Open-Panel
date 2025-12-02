@@ -131,32 +131,32 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+                <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-background">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800">Create New Service</h2>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <h2 className="text-2xl font-bold text-textPrimary">Create New Service</h2>
+                        <p className="text-sm text-textSecondary mt-1">
                             Step {step} of 3 - {step === 1 ? 'Choose Type' : step === 2 ? 'Configure' : 'Review & Create'}
                         </p>
                     </div>
                     <button
                         onClick={handleClose}
-                        className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="text-textSecondary hover:text-textPrimary p-2 hover:bg-background rounded-lg transition-colors duration-200"
                         disabled={isSubmitting}
                     >
-                        <X size={20} />
+                        <X size={20} strokeWidth={1.5} />
                     </button>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="px-6 py-3 bg-slate-50 border-b border-slate-200">
+                <div className="px-6 py-3 bg-background border-b border-border">
                     <div className="flex items-center gap-2">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="flex-1 flex items-center gap-2">
                                 <div
-                                    className={`h-1.5 rounded-full flex-1 transition-all duration-300 ${s <= step ? 'bg-blue-500' : 'bg-slate-200'
+                                    className={`h-1.5 rounded-full flex-1 transition-all duration-200 ${s <= step ? 'bg-primary' : 'bg-border'
                                         }`}
                                 />
                             </div>
@@ -171,37 +171,37 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                         <div className="space-y-4">
                             <div
                                 onClick={() => handleStepOne('app')}
-                                className="border-2 border-slate-200 rounded-xl p-6 hover:border-blue-500 hover:bg-blue-50/30 cursor-pointer transition-all group"
+                                className="border-2 border-border rounded-xl p-6 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all duration-200 group"
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
-                                        <Box className="text-blue-600 group-hover:text-white transition-colors" size={28} />
+                                    <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-200">
+                                        <Box className="text-primary group-hover:text-white transition-colors duration-200" size={28} strokeWidth={1.5} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Application</h3>
-                                        <p className="text-sm text-slate-500 mt-1">
+                                        <h3 className="text-lg font-bold text-textPrimary group-hover:text-primary transition-colors duration-200">Application</h3>
+                                        <p className="text-sm text-textSecondary mt-1">
                                             Deploy web apps, APIs, or microservices from Docker images or Git repositories
                                         </p>
                                     </div>
-                                    <ChevronRight className="text-slate-300 group-hover:text-blue-500 transition-colors" size={24} />
+                                    <ChevronRight className="text-textSecondary group-hover:text-primary transition-colors duration-200" size={24} strokeWidth={1.5} />
                                 </div>
                             </div>
 
                             <div
                                 onClick={() => handleStepOne('database')}
-                                className="border-2 border-slate-200 rounded-xl p-6 hover:border-amber-500 hover:bg-amber-50/30 cursor-pointer transition-all group"
+                                className="border-2 border-border rounded-xl p-6 hover:border-warning hover:bg-warning/5 cursor-pointer transition-all duration-200 group"
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center group-hover:bg-amber-500 transition-colors">
-                                        <Database className="text-amber-600 group-hover:text-white transition-colors" size={28} />
+                                    <div className="w-14 h-14 rounded-xl bg-warning/10 flex items-center justify-center group-hover:bg-warning transition-colors duration-200">
+                                        <Database className="text-warning group-hover:text-white transition-colors duration-200" size={28} strokeWidth={1.5} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-slate-800 group-hover:text-amber-600 transition-colors">Database</h3>
-                                        <p className="text-sm text-slate-500 mt-1">
+                                        <h3 className="text-lg font-bold text-textPrimary group-hover:text-warning transition-colors duration-200">Database</h3>
+                                        <p className="text-sm text-textSecondary mt-1">
                                             PostgreSQL, MySQL, MongoDB, or Redis with automatic configuration
                                         </p>
                                     </div>
-                                    <ChevronRight className="text-slate-300 group-hover:text-amber-500 transition-colors" size={24} />
+                                    <ChevronRight className="text-textSecondary group-hover:text-warning transition-colors duration-200" size={24} strokeWidth={1.5} />
                                 </div>
                             </div>
                         </div>
@@ -212,50 +212,50 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                         <div className="space-y-4">
                             <button
                                 onClick={() => setStep(1)}
-                                className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4"
+                                className="flex items-center gap-2 text-sm text-textSecondary hover:text-textPrimary mb-4 transition-colors duration-200"
                             >
-                                <ChevronLeft size={16} /> Back
+                                <ChevronLeft size={16} strokeWidth={1.5} /> Back
                             </button>
 
-                            <h3 className="text-lg font-bold text-slate-800 mb-4">Choose Application Source</h3>
+                            <h3 className="text-lg font-bold text-textPrimary mb-4">Choose Application Source</h3>
 
                             <div
                                 onClick={() => setAppSource('docker')}
-                                className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${appSource === 'docker'
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
+                                className={`border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 ${appSource === 'docker'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/30 hover:bg-primary/5'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${appSource === 'docker' ? 'bg-blue-500' : 'bg-slate-100'
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${appSource === 'docker' ? 'bg-primary' : 'bg-background'
                                         }`}>
-                                        <ImageIcon className={appSource === 'docker' ? 'text-white' : 'text-slate-600'} size={20} />
+                                        <ImageIcon className={appSource === 'docker' ? 'text-white' : 'text-textSecondary'} size={20} strokeWidth={1.5} />
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="font-bold text-slate-800">Docker Image</h4>
-                                        <p className="text-xs text-slate-500">Use a pre-built Docker image from DockerHub or a registry</p>
+                                        <h4 className="font-bold text-textPrimary">Docker Image</h4>
+                                        <p className="text-xs text-textSecondary">Use a pre-built Docker image from DockerHub or a registry</p>
                                     </div>
-                                    {appSource === 'docker' && <CheckCircle2 className="text-blue-500" size={20} />}
+                                    {appSource === 'docker' && <CheckCircle2 className="text-primary" size={20} strokeWidth={2} />}
                                 </div>
                             </div>
 
                             <div
                                 onClick={() => setAppSource('git')}
-                                className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${appSource === 'git'
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/30'
+                                className={`border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 ${appSource === 'git'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border hover:border-primary/30 hover:bg-primary/5'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${appSource === 'git' ? 'bg-blue-500' : 'bg-slate-100'
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${appSource === 'git' ? 'bg-primary' : 'bg-background'
                                         }`}>
-                                        <GitBranch className={appSource === 'git' ? 'text-white' : 'text-slate-600'} size={20} />
+                                        <GitBranch className={appSource === 'git' ? 'text-white' : 'text-textSecondary'} size={20} strokeWidth={1.5} />
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="font-bold text-slate-800">Git Repository</h4>
-                                        <p className="text-xs text-slate-500">Build and deploy from your GitHub, GitLab, or Bitbucket repo</p>
+                                        <h4 className="font-bold text-textPrimary">Git Repository</h4>
+                                        <p className="text-xs text-textSecondary">Build and deploy from your GitHub, GitLab, or Bitbucket repo</p>
                                     </div>
-                                    {appSource === 'git' && <CheckCircle2 className="text-blue-500" size={20} />}
+                                    {appSource === 'git' && <CheckCircle2 className="text-primary" size={20} strokeWidth={2} />}
                                 </div>
                             </div>
                         </div>
@@ -265,30 +265,30 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                         <div className="space-y-4">
                             <button
                                 onClick={() => setStep(1)}
-                                className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4"
+                                className="flex items-center gap-2 text-sm text-textSecondary hover:text-textPrimary mb-4 transition-colors duration-200"
                             >
-                                <ChevronLeft size={16} /> Back
+                                <ChevronLeft size={16} strokeWidth={1.5} /> Back
                             </button>
 
-                            <h3 className="text-lg font-bold text-slate-800 mb-4">Select Database Type</h3>
+                            <h3 className="text-lg font-bold text-textPrimary mb-4">Select Database Type</h3>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {(['postgres', 'mysql', 'mongodb', 'redis'] as DatabaseType[]).map((db) => (
                                     <div
                                         key={db}
                                         onClick={() => setDbType(db)}
-                                        className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${dbType === db
-                                            ? 'border-amber-500 bg-amber-50'
-                                            : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50/30'
+                                        className={`border-2 rounded-xl p-5 cursor-pointer transition-all duration-200 ${dbType === db
+                                            ? 'border-warning bg-warning/5'
+                                            : 'border-border hover:border-warning/30 hover:bg-warning/5'
                                             }`}
                                     >
                                         <div className="flex flex-col items-center text-center gap-2">
-                                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${dbType === db ? 'bg-amber-500' : 'bg-slate-100'
+                                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${dbType === db ? 'bg-warning' : 'bg-background'
                                                 }`}>
-                                                <Database className={dbType === db ? 'text-white' : 'text-slate-600'} size={24} />
+                                                <Database className={dbType === db ? 'text-white' : 'text-textSecondary'} size={24} strokeWidth={1.5} />
                                             </div>
-                                            <h4 className="font-bold text-slate-800 capitalize">{db}</h4>
-                                            {dbType === db && <CheckCircle2 className="text-amber-500" size={18} />}
+                                            <h4 className="font-bold text-textPrimary capitalize">{db}</h4>
+                                            {dbType === db && <CheckCircle2 className="text-warning" size={18} strokeWidth={2} />}
                                         </div>
                                     </div>
                                 ))}
@@ -301,28 +301,28 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                         <div className="space-y-5">
                             <button
                                 onClick={() => setStep(2)}
-                                className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4"
+                                className="flex items-center gap-2 text-sm text-textSecondary hover:text-textPrimary mb-4 transition-colors duration-200"
                             >
-                                <ChevronLeft size={16} /> Back
+                                <ChevronLeft size={16} strokeWidth={1.5} /> Back
                             </button>
 
                             {error && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-3">
-                                    <AlertCircle size={20} className="shrink-0 mt-0.5" />
+                                <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-lg flex items-start gap-3">
+                                    <AlertCircle size={20} strokeWidth={2} className="shrink-0 mt-0.5" />
                                     <span className="text-sm">{error}</span>
                                 </div>
                             )}
 
                             {success && (
-                                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-3">
-                                    <CheckCircle2 size={20} />
+                                <div className="bg-success/10 border border-success/20 text-success px-4 py-3 rounded-lg flex items-center gap-3">
+                                    <CheckCircle2 size={20} strokeWidth={2} />
                                     <span className="text-sm font-medium">Service created successfully!</span>
                                 </div>
                             )}
 
                             {/* Service Name */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Service Name *</label>
+                                <label className="block text-sm font-medium text-textPrimary mb-2">Service Name *</label>
                                 <input
                                     type="text"
                                     value={formData.name}
@@ -331,17 +331,17 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                         setError(null);
                                     }}
                                     placeholder="my-service"
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                     disabled={isSubmitting || success}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">Lowercase letters, numbers, and hyphens only</p>
+                                <p className="text-xs text-textSecondary mt-1">Lowercase letters, numbers, and hyphens only</p>
                             </div>
 
                             {/* Application - Docker */}
                             {category === 'app' && appSource === 'docker' && (
                                 <>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Docker Image *</label>
+                                        <label className="block text-sm font-medium text-textPrimary mb-2">Docker Image *</label>
                                         <input
                                             type="text"
                                             value={formData.source?.image || ''}
@@ -350,31 +350,31 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                                 source: { ...prev.source!, image: e.target.value }
                                             }))}
                                             placeholder="nginx:latest"
-                                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                             disabled={isSubmitting || success}
                                         />
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Internal Port</label>
+                                            <label className="block text-sm font-medium text-textPrimary mb-2">Internal Port</label>
                                             <input
                                                 type="number"
                                                 value={formData.port || ''}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, port: parseInt(e.target.value) || undefined }))}
                                                 placeholder="3000"
-                                                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                                 disabled={isSubmitting || success}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Exposed Port (Optional)</label>
+                                            <label className="block text-sm font-medium text-textPrimary mb-2">Exposed Port (Optional)</label>
                                             <input
                                                 type="number"
                                                 value={formData.exposedPort || ''}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, exposedPort: parseInt(e.target.value) || undefined }))}
                                                 placeholder="8080"
-                                                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                                 disabled={isSubmitting || success}
                                             />
                                         </div>
@@ -386,7 +386,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                             {category === 'app' && appSource === 'git' && (
                                 <>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Repository URL *</label>
+                                        <label className="block text-sm font-medium text-textPrimary mb-2">Repository URL *</label>
                                         <input
                                             type="text"
                                             value={formData.source?.repository || ''}
@@ -395,13 +395,13 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                                 source: { ...prev.source!, repository: e.target.value }
                                             }))}
                                             placeholder="https://github.com/username/repo.git"
-                                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                             disabled={isSubmitting || success}
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Branch</label>
+                                        <label className="block text-sm font-medium text-textPrimary mb-2">Branch</label>
                                         <input
                                             type="text"
                                             value={formData.source?.branch || 'main'}
@@ -410,19 +410,19 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                                 source: { ...prev.source!, branch: e.target.value }
                                             }))}
                                             placeholder="main"
-                                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                             disabled={isSubmitting || success}
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Internal Port *</label>
+                                        <label className="block text-sm font-medium text-textPrimary mb-2">Internal Port *</label>
                                         <input
                                             type="number"
                                             value={formData.port || ''}
                                             onChange={(e) => setFormData(prev => ({ ...prev, port: parseInt(e.target.value) || undefined }))}
                                             placeholder="3000"
-                                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                             disabled={isSubmitting || success}
                                         />
                                     </div>
@@ -431,27 +431,27 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
 
                             {/* Database Configuration */}
                             {category === 'database' && dbType && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
-                                    <h4 className="font-semibold text-slate-700 text-sm">Database Configuration</h4>
+                                <div className="bg-background border border-border rounded-lg p-4 space-y-3">
+                                    <h4 className="font-semibold text-textPrimary text-sm">Database Configuration</h4>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <span className="text-slate-500">Type:</span>
-                                            <span className="ml-2 font-medium capitalize">{dbType}</span>
+                                            <span className="text-textSecondary">Type:</span>
+                                            <span className="ml-2 font-medium capitalize text-textPrimary">{dbType}</span>
                                         </div>
                                         <div>
-                                            <span className="text-slate-500">Version:</span>
-                                            <span className="ml-2 font-medium">{formData.database?.version}</span>
+                                            <span className="text-textSecondary">Version:</span>
+                                            <span className="ml-2 font-medium text-textPrimary">{formData.database?.version}</span>
                                         </div>
                                         <div>
-                                            <span className="text-slate-500">Username:</span>
-                                            <span className="ml-2 font-medium font-mono text-xs">{formData.database?.username}</span>
+                                            <span className="text-textSecondary">Username:</span>
+                                            <span className="ml-2 font-medium font-mono text-xs text-textPrimary">{formData.database?.username}</span>
                                         </div>
                                         <div>
-                                            <span className="text-slate-500">Database:</span>
-                                            <span className="ml-2 font-medium font-mono text-xs">{formData.database?.database}</span>
+                                            <span className="text-textSecondary">Database:</span>
+                                            <span className="ml-2 font-medium font-mono text-xs text-textPrimary">{formData.database?.database}</span>
                                         </div>
                                     </div>
-                                    <p className="text-xs text-slate-500 mt-2">Password will be generated automatically and shown after creation</p>
+                                    <p className="text-xs text-textSecondary mt-2">Password will be generated automatically and shown after creation</p>
                                 </div>
                             )}
                         </div>
@@ -459,10 +459,10 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-border bg-background flex items-center justify-between">
                     <button
                         onClick={handleClose}
-                        className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium transition-colors"
+                        className="px-4 py-2 text-textSecondary hover:text-textPrimary font-medium transition-colors duration-200"
                         disabled={isSubmitting}
                     >
                         Cancel
@@ -476,9 +476,9 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                     (category === 'app' && !appSource) ||
                                     (category === 'database' && !dbType)
                                 }
-                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                                className="px-6 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                Next <ChevronRight className="inline ml-1" size={16} />
+                                Next <ChevronRight className="inline ml-1" size={16} strokeWidth={1.5} />
                             </button>
                         )}
 
@@ -492,9 +492,9 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                     (category === 'app' && appSource === 'docker' && !formData.source?.image) ||
                                     (category === 'app' && appSource === 'git' && !formData.source?.repository)
                                 }
-                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                                className="px-6 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                {isSubmitting && <Loader2 className="animate-spin" size={16} />}
+                                {isSubmitting && <Loader2 className="animate-spin" size={16} strokeWidth={1.5} />}
                                 {success ? 'Created!' : isSubmitting ? 'Creating...' : 'Create Service'}
                             </button>
                         )}

@@ -8,8 +8,12 @@ import { SecurityView } from './components/SecurityView';
 import { Login } from './pages/Login';
 import { Onboarding } from './pages/Onboarding';
 import { GeminiChat } from './components/GeminiChat';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './hooks/useToast';
 import { ViewState, Project } from './types';
 import { I18nProvider } from './src/i18n/i18n-react';
+
+console.log('App.tsx loaded');
 
 const AppContent: React.FC = () => {
   // Initialize state from localStorage to persist session across refreshes
@@ -161,9 +165,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <I18nProvider>
-      <AppContent />
-    </I18nProvider>
+    <ErrorBoundary>
+      <I18nProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </I18nProvider>
+    </ErrorBoundary>
   );
 };
 

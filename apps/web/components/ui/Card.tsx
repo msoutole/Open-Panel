@@ -15,8 +15,8 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const baseStyles = 'bg-card rounded-xl border border-border shadow-sm';
   const hoverStyles = hover
-    ? 'hover:shadow-xl hover:border-primary/30 hover:-translate-y-1 transition-all cursor-pointer'
-    : 'transition-shadow';
+    ? 'hover:shadow-xl hover:border-primary/30 hover:-translate-y-1 transition-all duration-200 cursor-pointer'
+    : 'transition-shadow duration-200';
 
   return (
     <div

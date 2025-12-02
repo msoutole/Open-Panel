@@ -1,4 +1,3 @@
-
 export type ServiceType = 'app' | 'db' | 'redis' | 'worker' | 'sidecar';
 export type ServiceStatus = 'Running' | 'Stopped' | 'Building' | 'Error' | 'Backing Up';
 
@@ -143,14 +142,19 @@ export interface AuditLog {
   status: 'Success' | 'Failure' | 'Warning';
 }
 
-export interface User {
+// User interface - exported for use across the application
+export type User = {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user';
-  twoFactorEnabled: boolean;
-  lastLogin: string;
-}
+  role?: 'admin' | 'user';
+  avatar?: string;
+  status?: string;
+  twoFactorEnabled?: boolean;
+  createdAt?: string;
+  lastLogin?: string;
+  lastLoginAt?: string;
+};
 
 export interface DockerBuilder {
   id: string;
@@ -227,4 +231,3 @@ export interface CreateServiceData {
     memoryReservation?: number;
   };
 }
-

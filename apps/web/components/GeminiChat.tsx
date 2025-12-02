@@ -6,7 +6,7 @@ import {
     Image as ImageIcon, Terminal, Settings, ChevronDown,
     ShieldAlert, Command, CheckCircle, BookOpen, Box, Server, Network
 } from 'lucide-react';
-import { PROJECTS, CPU_DATA } from '../constants';
+import { getSystemMetrics, getAllContainersMetrics, restartService, getContainers, ContainerMetrics } from '../services/api';
 import { AgentConfig, MCPTool, AgentResponseStyle, LLMProvider } from '../types';
 
 interface Message {
@@ -107,63 +107,99 @@ const MCP_TOOLS_DEFINITIONS: MCPTool[] = [
     }
 ];
 
-// -- Mock Tool Implementations --
+// -- Real Tool Implementations --
 const toolFunctions: Record<string, Function> = {
-    get_system_metrics: () => {
-        const lastCpu = CPU_DATA[CPU_DATA.length - 1] || { value: 0 };
-        return {
-            cpu_usage: `${lastCpu.value}%`,
-            memory_usage: '42% (13.4GB / 32GB)',
-            disk_usage: '65% (NVMe)',
-            network_ingress: '840 MB/s',
-            status: 'Healthy',
-            timestamp: new Date().toISOString()
-        };
+    get_system_metrics: async () => {
+        try {
+            const metrics = await getSystemMetrics();
+            return {
+                cpu_usage: `${metrics.cpu.usage.toFixed(2)}%`,
+                cpu_cores: metrics.cpu.cores,
+                memory_usage: `${metrics.memory.usage.toFixed(2)}% (${formatBytes(metrics.memory.used)} / ${formatBytes(metrics.memory.total)})`,
+                disk_usage: `${metrics.disk.usage.toFixed(2)}% (${formatBytes(metrics.disk.used)} / ${formatBytes(metrics.disk.total)})`,
+                network_ingress: `${formatBytes(metrics.network.rxRate)}/s`,
+                network_egress: `${formatBytes(metrics.network.txRate)}/s`,
+                status: 'Healthy',
+                timestamp: metrics.timestamp
+            };
+        } catch (error) {
+            return {
+                error: error instanceof Error ? error.message : 'Failed to get system metrics',
+                status: 'failed'
+            };
+        }
     },
-    list_services: () => {
-        return PROJECTS.flatMap(p => p.services.map(s => ({
-            project: p.name,
-            service: s.name,
-            id: s.id,
-            status: s.status,
-            type: s.type,
-            image: s.image
-        })));
+    list_services: async () => {
+        try {
+            const containers = await getContainers();
+            return containers.map(container => ({
+                id: container.id,
+                name: container.name,
+                status: container.status,
+                image: container.image,
+                project: container.projectId || 'N/A',
+                createdAt: container.createdAt
+            }));
+        } catch (error) {
+            return {
+                error: error instanceof Error ? error.message : 'Failed to list services',
+                status: 'failed'
+            };
+        }
     },
-    restart_service: (args: { serviceId: string }) => {
-        const service = PROJECTS.flatMap(p => p.services).find(s => s.id === args.serviceId);
-        if (!service) return { error: "Service not found", status: "failed" };
-        return { status: "success", message: `Service ${service.name} (${args.serviceId}) restart sequence initiated via Supervisor.`, jobId: `job_${Math.random().toString(36).substr(2, 6)}` };
+    restart_service: async (args: { serviceId: string }) => {
+        try {
+            await restartService(args.serviceId);
+            return {
+                status: "success",
+                message: `Service ${args.serviceId} restart sequence initiated.`,
+                serviceId: args.serviceId
+            };
+        } catch (error) {
+            return {
+                error: error instanceof Error ? error.message : 'Failed to restart service',
+                status: "failed",
+                serviceId: args.serviceId
+            };
+        }
     },
     execute_shell_command: (args: { command: string }) => {
+        // Shell command execution is not available via API for security reasons
         return {
-            stdout: `[root@nexus-prime ~]# ${args.command}\nExecuted successfully.\n`,
-            stderr: "",
-            exitCode: 0,
-            executionTime: "12ms"
+            error: "Shell command execution is not available via API for security reasons. Please use the terminal interface.",
+            status: "failed"
         };
     },
     delete_resource: (args: { resourceId: string, resourceType: string }) => {
+        // Resource deletion should be done through specific API endpoints
         return {
-            status: "success",
-            message: `Resource ${args.resourceType}:${args.resourceId} has been marked for deletion. Garbage collection will run in 5 minutes.`
+            error: `Resource deletion for ${args.resourceType} should be done through the appropriate API endpoint. Please specify the exact resource type.`,
+            status: "failed"
         };
     },
     read_file: (args: { path: string }) => {
+        // File reading is not available via API for security reasons
         return {
-            path: args.path,
-            content: "# Generated by Nexus Prime\nUSER=admin\nPORT=8080\nENV=production\n# END CONFIG",
-            permissions: "-rw-r--r--"
+            error: "File reading is not available via API for security reasons.",
+            status: "failed"
         };
     },
     search_web: (args: { query: string }) => {
+        // Web search is not implemented
         return {
-            results: [
-                { title: `Documentation for ${args.query}`, url: "https://docs.openpanel.dev", snippet: "Official documentation..." },
-                { title: "StackOverflow Discussion", url: "https://stackoverflow.com/...", snippet: "Solved: How to configure..." }
-            ]
+            error: "Web search functionality is not implemented.",
+            status: "failed"
         };
     }
+};
+
+// Helper function to format bytes
+const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 // ----------------------------------------------------------------------
@@ -376,21 +412,45 @@ export const GeminiChat: React.FC = () => {
 
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: currentText + `\n\n⚡ Nexus is accessing tool: **${name}**...` } : m));
 
-        await new Promise(r => setTimeout(r, 1000)); // Simulate latency
+        try {
+            const fn = toolFunctions[name];
+            if (!fn) {
+                throw new Error("Tool execution failed: Unknown tool");
+            }
 
-        const fn = toolFunctions[name];
-        const result = fn ? fn(args) : { error: "Tool execution failed: Unknown tool" };
+            // Execute tool (may be async)
+            const result = await Promise.resolve(fn(args));
 
-        const resultText = `\n\`\`\`json\n${JSON.stringify(result, null, 2)}\n\`\`\``;
+            const resultText = `\n\`\`\`json\n${JSON.stringify(result, null, 2)}\n\`\`\``;
 
-        let summary = "";
-        if (name === 'execute_shell_command' && result.exitCode === 0) summary = "\n\n✅ **Success!** The command ran without errors.";
-        if (name === 'restart_service') summary = "\n\n🔄 **Restarting...** The service is rebooting. It might be unavailable for a few seconds.";
+            let summary = "";
+            if (result.status === 'success' || (!result.error && !result.status)) {
+                if (name === 'restart_service') {
+                    summary = "\n\n🔄 **Restarting...** The service is rebooting. It might be unavailable for a few seconds.";
+                } else if (name === 'get_system_metrics') {
+                    summary = "\n\n✅ **Metrics retrieved successfully.**";
+                } else if (name === 'list_services') {
+                    summary = `\n\n✅ **Found ${Array.isArray(result) ? result.length : 0} services.**`;
+                } else {
+                    summary = "\n\n✅ **Success!**";
+                }
+            } else {
+                summary = `\n\n❌ **Error:** ${result.error || 'Tool execution failed'}`;
+            }
 
-        setMessages(prev => prev.map(m => m.id === msgId ? {
-            ...m,
-            text: currentText + `\n\n⚡ **Tool Executed:** ${name}\n` + resultText + summary + "\n"
-        } : m));
+            setMessages(prev => prev.map(m => m.id === msgId ? {
+                ...m,
+                text: currentText + `\n\n⚡ **Tool Executed:** ${name}\n` + resultText + summary + "\n"
+            } : m));
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+            setMessages(prev => prev.map(m => m.id === msgId ? {
+                ...m,
+                text: currentText + `\n\n❌ **Tool Execution Failed:** ${name}\n\`\`\`json\n${JSON.stringify({ error: errorMsg }, null, 2)}\n\`\`\`\n`
+            } : m));
+        } finally {
+            setCurrentTool(null);
+        }
     };
 
     const initiateToolExecution = async (msgId: string, name: string, args: any, currentText: string) => {

@@ -1,4 +1,6 @@
-import { Project, Service, EnvVar, Domain, Deployment, CreateServiceData } from '../types';
+import { Project, Service, EnvVar, Domain, Deployment, CreateServiceData, User } from '../types';
+import { cache } from '../utils/cache';
+import { retry } from '../utils/retry';
 
 // Helper to get API base URL
 // In development, use relative paths to leverage Vite proxy
@@ -92,12 +94,34 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 
 // --- Projects ---
 
-export const getProjects = async (): Promise<Project[]> => {
-  const response = await fetch(`${getApiBaseUrl()}/api/projects`, {
-    headers: getAuthHeaders(),
+export const getProjects = async (forceRefresh = false): Promise<Project[]> => {
+  const cacheKey = 'projects';
+  
+  // Check cache first
+  if (!forceRefresh) {
+    const cached = cache.get<Project[]>(cacheKey);
+    if (cached) return cached;
+  }
+
+  return retry(async () => {
+    const response = await fetch(`${getApiBaseUrl()}/api/projects`, {
+      headers: getAuthHeaders(),
+    });
+    const data = await handleResponse<{ projects: Project[] }>(response);
+    
+    // Normalizar projetos para garantir que sempre tenham services como array
+    const projects = data.projects.map(project => ({
+      ...project,
+      services: project.services || [],
+      members: project.members || [],
+      envVars: project.envVars || [],
+    }));
+    
+    // Cache for 30 seconds
+    cache.set(cacheKey, projects, 30000);
+    
+    return projects;
   });
-  const data = await handleResponse<{ projects: Project[] }>(response);
-  return data.projects;
 };
 
 export const getProject = async (id: string): Promise<Project> => {
@@ -105,7 +129,13 @@ export const getProject = async (id: string): Promise<Project> => {
     headers: getAuthHeaders(),
   });
   const data = await handleResponse<{ project: Project }>(response);
-  return data.project;
+  // Normalizar projeto para garantir que sempre tenha services como array
+  return {
+    ...data.project,
+    services: data.project.services || [],
+    members: data.project.members || [],
+    envVars: data.project.envVars || [],
+  };
 };
 
 export const createProject = async (data: Partial<Project>): Promise<Project> => {
@@ -115,7 +145,13 @@ export const createProject = async (data: Partial<Project>): Promise<Project> =>
     body: JSON.stringify(data),
   });
   const result = await handleResponse<{ project: Project }>(response);
-  return result.project;
+  // Normalizar projeto para garantir que sempre tenha services como array
+  return {
+    ...result.project,
+    services: result.project.services || [],
+    members: result.project.members || [],
+    envVars: result.project.envVars || [],
+  };
 };
 
 export const updateProject = async (id: string, data: Partial<Project>): Promise<Project> => {
@@ -125,7 +161,13 @@ export const updateProject = async (id: string, data: Partial<Project>): Promise
     body: JSON.stringify(data),
   });
   const result = await handleResponse<{ project: Project }>(response);
-  return result.project;
+  // Normalizar projeto para garantir que sempre tenha services como array
+  return {
+    ...result.project,
+    services: result.project.services || [],
+    members: result.project.members || [],
+    envVars: result.project.envVars || [],
+  };
 };
 
 export const deleteProject = async (id: string): Promise<void> => {
@@ -425,6 +467,313 @@ export const restoreBackup = async (serviceId: string, backupId: string): Promis
 
 export const deleteBackup = async (serviceId: string, backupId: string): Promise<void> => {
   const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/backups/${backupId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  await handleResponse(response);
+};
+
+// --- Metrics ---
+
+export interface SystemMetrics {
+  cpu: {
+    usage: number;
+    cores: number;
+    loadAverage: number[];
+  };
+  memory: {
+    total: number;
+    used: number;
+    free: number;
+    usage: number;
+  };
+  disk: {
+    total: number;
+    used: number;
+    free: number;
+    usage: number;
+  };
+  network: {
+    rx: number;
+    tx: number;
+    rxRate: number;
+    txRate: number;
+  };
+  timestamp: string;
+}
+
+export interface ContainerMetrics {
+  id: string;
+  dockerId: string;
+  name: string;
+  cpu: {
+    usage: number;
+    cores: number;
+  };
+  memory: {
+    used: number;
+    limit: number;
+    usage: number;
+  };
+  network: {
+    rx: number;
+    tx: number;
+    rxRate: number;
+    txRate: number;
+  };
+  blockIO: {
+    read: number;
+    write: number;
+  };
+  timestamp: string;
+}
+
+export const getSystemMetrics = async (forceRefresh = false): Promise<SystemMetrics> => {
+  const cacheKey = 'system_metrics';
+  
+  // Check cache first (very short TTL for metrics)
+  if (!forceRefresh) {
+    const cached = cache.get<SystemMetrics>(cacheKey);
+    if (cached) return cached;
+  }
+
+  const response = await fetch(`${getApiBaseUrl()}/api/metrics/system`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ metrics: SystemMetrics }>(response);
+  
+  // Cache for 5 seconds only (metrics change frequently)
+  cache.set(cacheKey, data.metrics, 5000);
+  
+  return data.metrics;
+};
+
+export const getContainerMetrics = async (containerId: string): Promise<ContainerMetrics> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/metrics/containers/${containerId}`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ metrics: ContainerMetrics }>(response);
+  return data.metrics;
+};
+
+export const getAllContainersMetrics = async (): Promise<ContainerMetrics[]> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/metrics/containers`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ metrics: ContainerMetrics[] }>(response);
+  return data.metrics;
+};
+
+// --- Audit Logs ---
+
+export interface AuditLog {
+  id: string;
+  action: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  resourceType: string;
+  resourceId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  metadata?: any;
+  timestamp: string;
+  status: 'Success' | 'Failure';
+}
+
+export interface AuditLogFilters {
+  userId?: string;
+  action?: string;
+  resourceType?: string;
+  resourceId?: string;
+  status?: 'SUCCESS' | 'FAILURE';
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface AuditLogsResponse {
+  logs: AuditLog[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export const getAuditLogs = async (filters?: AuditLogFilters): Promise<AuditLogsResponse> => {
+  const params = new URLSearchParams();
+  if (filters?.userId) params.append('userId', filters.userId);
+  if (filters?.action) params.append('action', filters.action);
+  if (filters?.resourceType) params.append('resourceType', filters.resourceType);
+  if (filters?.resourceId) params.append('resourceId', filters.resourceId);
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.startDate) params.append('startDate', filters.startDate);
+  if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.page) params.append('page', filters.page.toString());
+  if (filters?.limit) params.append('limit', filters.limit.toString());
+
+  const response = await fetch(`${getApiBaseUrl()}/api/audit?${params.toString()}`, {
+    headers: getAuthHeaders(),
+  });
+  return await handleResponse<AuditLogsResponse>(response);
+};
+
+export const getAuditLog = async (id: string): Promise<AuditLog> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/audit/${id}`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ log: AuditLog }>(response);
+  return data.log;
+};
+
+export interface AuditLogStats {
+  total: number;
+  recent24h: number;
+  failed: number;
+  successful: number;
+  byAction: Array<{ action: string; count: number }>;
+  byResourceType: Array<{ resourceType: string; count: number }>;
+}
+
+export const getAuditLogStats = async (): Promise<AuditLogStats> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/audit/stats`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ stats: AuditLogStats }>(response);
+  return data.stats;
+};
+
+// --- Statistics ---
+
+export interface DashboardStats {
+  system: {
+    cpu: {
+      usage: number;
+      cores: number;
+    };
+    memory: {
+      usage: number;
+      total: number;
+      used: number;
+    };
+    disk: {
+      usage: number;
+      total: number;
+      used: number;
+    };
+    network: {
+      rx: number;
+      tx: number;
+      rxRate: number;
+      txRate: number;
+    };
+  };
+  projects: {
+    total: number;
+    active: number;
+    paused: number;
+  };
+  containers: {
+    total: number;
+    running: number;
+    stopped: number;
+  };
+  users: {
+    total: number;
+  };
+  activity: {
+    deployments24h: number;
+    auditLogs24h: number;
+  };
+  timestamp: string;
+}
+
+export const getDashboardStats = async (forceRefresh = false): Promise<DashboardStats> => {
+  const cacheKey = 'dashboard_stats';
+  
+  // Check cache first
+  if (!forceRefresh) {
+    const cached = cache.get<DashboardStats>(cacheKey);
+    if (cached) return cached;
+  }
+
+  const response = await fetch(`${getApiBaseUrl()}/api/stats/dashboard`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ stats: DashboardStats }>(response);
+  
+  // Cache for 10 seconds
+  cache.set(cacheKey, data.stats, 10000);
+  
+  return data.stats;
+};
+
+export interface ProjectStats {
+  total: number;
+  byStatus: Array<{ status: string; count: number }>;
+  byType: Array<{ type: string; count: number }>;
+}
+
+export const getProjectStats = async (): Promise<ProjectStats> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/stats/projects`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ stats: ProjectStats }>(response);
+  return data.stats;
+};
+
+export interface ContainerStats {
+  total: number;
+  running: number;
+  stopped: number;
+  byStatus: Array<{ status: string; count: number }>;
+  averages: {
+    cpu: number;
+    memory: number;
+  };
+}
+
+export const getContainerStats = async (): Promise<ContainerStats> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/stats/containers`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ stats: ContainerStats }>(response);
+  return data.stats;
+};
+
+// --- Users ---
+
+export const getUsers = async (): Promise<User[]> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/users`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ users: User[] }>(response);
+  return data.users;
+};
+
+export const getUser = async (userId: string): Promise<User> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/users/${userId}`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ user: User }>(response);
+  return data.user;
+};
+
+export const updateUser = async (userId: string, data: Partial<User>): Promise<User> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/users/${userId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<{ user: User }>(response);
+  return result.user;
+};
+
+export const deleteUser = async (userId: string): Promise<void> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/users/${userId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });

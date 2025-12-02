@@ -321,7 +321,14 @@ Key environment variables (see `.env.example` for complete list with description
 - **[docs/QUICK_START.md](./docs/QUICK_START.md)** - Início rápido
 - **[docs/API.md](./docs/API.md)** - Documentação da API REST
 - **[docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** - Solução de problemas
-- **[docs/NEXT_STEPS.md](./docs/NEXT_STEPS.md)** - Roadmap e próximos passos
+
+### 🗺️ Roadmap e Melhorias
+
+- **[docs/ROADMAP.md](./docs/ROADMAP.md)** - 🆕 Roadmap completo com próximos passos priorizados
+- **[docs/IMPROVEMENTS.md](./docs/IMPROVEMENTS.md)** - 🆕 Lista detalhada de melhorias sugeridas
+- **[docs/PERFORMANCE.md](./docs/PERFORMANCE.md)** - 🆕 Guia de otimizações implementadas
+- **[docs/INTEGRATION.md](./docs/INTEGRATION.md)** - 🆕 Guia de integração frontend-backend
+- **[docs/NEXT_STEPS.md](./docs/NEXT_STEPS.md)** - Roadmap técnico detalhado
 - **[docs/PLANO_IMPLEMENTACAO.md](./docs/PLANO_IMPLEMENTACAO.md)** - Plano de implementação
 - **[docs/REVIEW_GERAL.md](./docs/REVIEW_GERAL.md)** - Review técnico completo
 

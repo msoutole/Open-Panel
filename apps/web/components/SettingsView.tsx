@@ -1,8 +1,23 @@
 
-import React, { useState } from 'react';
-import { USERS_MOCK } from '../constants';
-import { Shield, Key, User, HardDrive, GitBranch, Terminal, Cpu, Box, Trash2, Plus, Server, Activity, Github, Gitlab, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { getUsers, deleteUser } from '../services/api';
+import { useToast } from '../hooks/useToast';
+import { Shield, Key, User as UserIcon, HardDrive, GitBranch, Terminal, Cpu, Box, Trash2, Plus, Server, Activity, Github, Gitlab, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { DockerBuilder, GitToken } from '../types';
+
+// Define User type locally to avoid Rollup export issues
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role?: 'admin' | 'user';
+  avatar?: string;
+  status?: string;
+  twoFactorEnabled?: boolean;
+  createdAt?: string;
+  lastLogin?: string;
+  lastLoginAt?: string;
+};
 
 interface SettingsViewProps {
     view: 'settings' | 'users' | 'backups';
@@ -19,8 +34,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
         { id: 'gt_1', name: 'OpenPanel Bot', provider: 'github', username: 'openpanel-bot', tokenMasked: 'ghp_●●●●●●●●●●●●●●●●', createdAt: '2023-10-01', status: 'active' }
     ]);
 
-    const [users, setUsers] = useState(USERS_MOCK);
+    const [users, setUsers] = useState<User[]>([]);
     const [userSearch, setUserSearch] = useState('');
+    const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+    const [usersError, setUsersError] = useState<string | null>(null);
+    const { showToast } = useToast();
+
+    // Fetch users from API
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                setIsLoadingUsers(true);
+                setUsersError(null);
+                const data = await getUsers();
+                setUsers(data);
+            } catch (error) {
+                console.error('Failed to load users', error);
+                const errorMsg = error instanceof Error ? error.message : 'Failed to load users';
+                setUsersError(errorMsg);
+                showToast({
+                    type: 'error',
+                    title: 'Erro ao carregar usuários',
+                    message: errorMsg,
+                });
+            } finally {
+                setIsLoadingUsers(false);
+            }
+        };
+        
+        if (view === 'users') {
+            fetchUsers();
+        }
+    }, [view, showToast]);
 
     // Form States
     const [isBackupTesting, setIsBackupTesting] = useState(false);
@@ -35,19 +80,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
     });
 
     // Actions
-    const handleInviteUser = () => {
+    const handleInviteUser = async () => {
         const email = prompt("Enter email address to invite:");
         if (email) {
-            alert(`Invitation sent to ${email}`);
-            // Mock adding user
-            setUsers([...users, {
-                id: `u_${Date.now()}`,
-                name: 'Pending User',
-                email: email,
-                role: 'user',
-                twoFactorEnabled: false,
-                lastLogin: 'Never'
-            }]);
+            try {
+                // TODO: Implement invite user API endpoint
+                // For now, just show a message
+                alert(`Invitation functionality will be implemented. Email: ${email}`);
+                // Refresh users list
+                const data = await getUsers();
+                setUsers(data);
+            } catch (error) {
+                console.error('Failed to invite user', error);
+                alert('Failed to invite user. Please try again.');
+            }
+        }
+    };
+
+    const handleDeleteUser = async (userId: string, userName: string) => {
+        if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+            return;
+        }
+        
+        try {
+            await deleteUser(userId);
+            // Refresh users list
+            const data = await getUsers(true); // Force refresh
+            setUsers(data);
+            showToast({
+                type: 'success',
+                title: 'Usuário removido',
+                message: `O usuário "${userName}" foi removido com sucesso`,
+            });
+        } catch (error) {
+            console.error('Failed to delete user', error);
+            showToast({
+                type: 'error',
+                title: 'Erro ao remover usuário',
+                message: error instanceof Error ? error.message : 'Não foi possível remover o usuário',
+            });
         }
     };
 
@@ -100,8 +171,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
     };
 
     const filteredUsers = users.filter(u =>
-        u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-        u.email.toLowerCase().includes(userSearch.toLowerCase())
+        (u.name || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+        (u.email || '').toLowerCase().includes(userSearch.toLowerCase())
     );
 
     return (
@@ -109,12 +180,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
 
             {/* Dynamic Header based on view */}
             <div>
-                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
+                <h2 className="text-2xl font-bold text-textPrimary tracking-tight">
                     {view === 'users' ? 'Identity & Access Management' :
                         view === 'backups' ? 'Backup & Data Recovery' :
                             'System Configuration'}
                 </h2>
-                <p className="text-slate-500 text-sm mt-1">
+                <p className="text-textSecondary text-sm mt-1">
                     {view === 'users' ? 'Manage organization members, RBAC roles, and API access tokens.' :
                         view === 'backups' ? 'Configure snapshot schedules, retention policies, and S3 storage.' :
                             'Global infrastructure settings, AI Provider selection, and MCP orchestration.'}
@@ -123,14 +194,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
 
             {/* IAM Section - Only shown when view is 'users' */}
             {view === 'users' && (
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-300">
-                    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                            <User size={18} />
+                <section className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+                    <div className="px-6 py-4 border-b border-border bg-background flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 text-primary rounded-lg">
+                            <User size={18} strokeWidth={1.5} />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-800">Users & Roles</h3>
-                            <p className="text-xs text-slate-500">Active team members</p>
+                            <h3 className="font-semibold text-textPrimary">Users & Roles</h3>
+                            <p className="text-xs text-textSecondary">Active team members</p>
                         </div>
                     </div>
                     <div className="p-6">
@@ -141,19 +212,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                     placeholder="Search users..."
                                     value={userSearch}
                                     onChange={(e) => setUserSearch(e.target.value)}
-                                    className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                    className="pl-9 pr-4 py-2 border border-border rounded-lg text-sm w-64 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary bg-white text-textPrimary placeholder-textSecondary transition-all duration-200"
                                 />
-                                <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <User size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" />
                             </div>
                             <button
                                 onClick={handleInviteUser}
-                                className="text-sm bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 shadow-sm shadow-blue-200 font-medium transition-colors"
+                                className="text-sm bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md font-medium transition-all duration-200 active:scale-95"
                             >
                                 Invite Member
                             </button>
                         </div>
                         <table className="w-full text-sm">
-                            <thead className="text-xs uppercase text-slate-400 font-bold bg-slate-50/50 rounded-lg">
+                            <thead className="text-xs uppercase text-textSecondary font-medium bg-background rounded-lg">
                                 <tr>
                                     <th className="text-left py-3 px-4 first:rounded-l-lg">User Details</th>
                                     <th className="text-left py-3 px-4">Role</th>
@@ -162,42 +233,69 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                     <th className="text-right py-3 px-4 last:rounded-r-lg">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {filteredUsers.map(user => (
-                                    <tr key={user.id} className="group hover:bg-slate-50/50 transition-colors">
-                                        <td className="py-4 px-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 border border-white shadow-sm">
-                                                    {user.name.charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <div className="font-bold text-slate-800">{user.name}</div>
-                                                    <div className="text-xs text-slate-500">{user.email}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold border ${user.role === 'admin' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-                                                {user.role}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-4">
-                                            {user.twoFactorEnabled ? (
-                                                <div className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded w-fit border border-green-200">
-                                                    <Shield size={10} strokeWidth={3} /> MFA Active
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-1.5 text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded w-fit border border-red-200">
-                                                    <Activity size={10} /> Risky
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{user.lastLogin}</td>
-                                        <td className="py-4 px-4 text-right">
-                                            <button className="text-slate-400 hover:text-primary transition-colors"><Terminal size={16} /></button>
+                            <tbody className="divide-y divide-border">
+                                {isLoadingUsers ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-12 text-center">
+                                            <Loader2 size={24} strokeWidth={1.5} className="animate-spin text-textSecondary mx-auto mb-2" />
+                                            <p className="text-sm text-textSecondary">Loading users...</p>
                                         </td>
                                     </tr>
-                                ))}
+                                ) : usersError ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-12 text-center">
+                                            <AlertCircle size={24} strokeWidth={2} className="text-error mx-auto mb-2" />
+                                            <p className="text-sm text-error">{usersError}</p>
+                                        </td>
+                                    </tr>
+                                ) : filteredUsers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-12 text-center">
+                                            <p className="text-sm text-textSecondary">
+                                                {userSearch ? `No users found matching "${userSearch}".` : 'No users found.'}
+                                            </p>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredUsers.map(user => (
+                                        <tr key={user.id} className="group hover:bg-background transition-colors duration-200">
+                                            <td className="py-4 px-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-border flex items-center justify-center text-xs font-bold text-textPrimary border border-card shadow-sm">
+                                                        {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-textPrimary">{user.name || 'Unknown'}</div>
+                                                        <div className="text-xs text-textSecondary">{user.email || 'No email'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <span className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold border ${(user.status === 'ACTIVE' || user.status === 'active') ? 'bg-primary/10 text-primary border-primary/20' : 'bg-background text-textSecondary border-border'}`}>
+                                                    {user.status || 'ACTIVE'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                {/* MFA status would need to come from API */}
+                                                <div className="flex items-center gap-1.5 text-xs font-medium text-textSecondary bg-background px-2 py-1 rounded w-fit border border-border">
+                                                    <Shield size={10} strokeWidth={2} /> Status
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-4 text-right text-textSecondary font-mono text-xs">
+                                                {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('pt-BR') : 'Never'}
+                                            </td>
+                                            <td className="py-4 px-4 text-right">
+                                                <button 
+                                                    onClick={() => handleDeleteUser(user.id, user.name || user.email || 'user')}
+                                                    className="text-textSecondary hover:text-error transition-colors duration-200"
+                                                    title="Delete user"
+                                                >
+                                                    <Trash2 size={16} strokeWidth={1.5} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>

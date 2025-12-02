@@ -310,11 +310,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           {[1, 2, 3].map((s) => (
             <React.Fragment key={s}>
               <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                step >= s ? 'bg-primary text-white' : 'bg-slate-200 text-textSecondary'
-              } font-semibold transition-all`}>
-                {step > s ? <Check size={20} /> : s}
+                step >= s ? 'bg-primary text-white' : 'bg-border text-textSecondary'
+              } font-semibold transition-all duration-200`}>
+                {step > s ? <Check size={20} strokeWidth={2} /> : s}
               </div>
-              {s < 3 && <div className={`w-12 md:w-16 h-1 ${step > s ? 'bg-primary' : 'bg-slate-200'} transition-all`} />}
+              {s < 3 && <div className={`w-12 md:w-16 h-1 ${step > s ? 'bg-primary' : 'bg-border'} transition-all duration-200`} />}
             </React.Fragment>
           ))}
         </div>
@@ -370,7 +370,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               <h2 className="text-xl font-semibold text-textPrimary mb-2 flex items-center gap-2">
                 <Key size={24} strokeWidth={1.5} /> {LL.onboarding.step2.title()}
               </h2>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-textSecondary mb-4">
                 {LL.onboarding.step2.subtitle()}
               </p>
 
@@ -386,7 +386,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                         </div>
                       </div>
                       {selectedProviders[provider.id]?.validated && (
-                        <Check size={24} className="text-green-500" />
+                        <Check size={24} className="text-success" strokeWidth={2} />
                       )}
                     </div>
 

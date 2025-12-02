@@ -43,38 +43,38 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-300">
+    <div className="p-8 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-            <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
-                <ArrowLeft size={20} />
+            <button onClick={onBack} className="p-2 hover:bg-background rounded-lg text-textSecondary transition-colors duration-200">
+                <ArrowLeft size={20} strokeWidth={1.5} />
             </button>
             <div>
-                <h2 className="text-2xl font-bold text-slate-800">{project.name}</h2>
-                <p className="text-slate-500 text-sm">{project.description}</p>
+                <h2 className="text-2xl font-bold text-textPrimary">{project.name}</h2>
+                <p className="text-textSecondary text-sm">{project.description}</p>
             </div>
         </div>
 
         <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1">
+            <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-1">
                 <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-1.5 rounded transition-all ${viewMode === 'grid' ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`p-1.5 rounded transition-all duration-200 ${viewMode === 'grid' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
                 >
-                    <LayoutGrid size={18} />
+                    <LayoutGrid size={18} strokeWidth={1.5} />
                 </button>
                 <button
                     onClick={() => setViewMode('list')}
-                    className={`p-1.5 rounded transition-all ${viewMode === 'list' ? 'bg-slate-100 text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`p-1.5 rounded transition-all duration-200 ${viewMode === 'list' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
                 >
-                    <ListIcon size={18} />
+                    <ListIcon size={18} strokeWidth={1.5} />
                 </button>
             </div>
             <button
                 onClick={handleAddService}
-                className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm"
+                className="flex items-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
             >
-                <Plus size={16} /> Add Service
+                <Plus size={16} strokeWidth={1.5} /> Add Service
             </button>
         </div>
       </div>
@@ -85,50 +85,50 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
                 <div
                     key={service.id}
                     onClick={() => setSelectedService(service)}
-                    className="bg-white border border-slate-200 rounded-xl p-6 cursor-pointer hover:shadow-lg hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 group"
+                    className="bg-card border border-border rounded-xl p-6 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200 group"
                 >
                     <div className="flex items-start justify-between mb-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 ${
-                            service.type === 'db' || service.type === 'redis' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm border border-border ${
+                            service.type === 'db' || service.type === 'redis' ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'
                         }`}>
-                            {service.type === 'db' || service.type === 'redis' ? <Database size={24} /> : <Box size={24} />}
+                            {service.type === 'db' || service.type === 'redis' ? <Database size={24} strokeWidth={1.5} /> : <Box size={24} strokeWidth={1.5} />}
                         </div>
                         <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                            service.status === 'Running' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-slate-50 text-slate-600 border-slate-100'
+                            service.status === 'Running' ? 'bg-success/10 text-success border-success/20' : 'bg-background text-textSecondary border-border'
                         }`}>
                             {service.status}
                         </div>
                     </div>
-                    <h3 className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">{service.name}</h3>
-                    <p className="text-xs text-slate-500 mt-1 font-mono bg-slate-50 px-2 py-1 rounded w-fit">{service.image}</p>
+                    <h3 className="font-bold text-lg text-textPrimary group-hover:text-primary transition-colors duration-200">{service.name}</h3>
+                    <p className="text-xs text-textSecondary mt-1 font-mono bg-background px-2 py-1 rounded w-fit">{service.image}</p>
 
-                    <div className="mt-6 pt-4 border-t border-slate-50 flex items-center gap-4 text-xs text-slate-400 font-medium">
+                    <div className="mt-6 pt-4 border-t border-border flex items-center gap-4 text-xs text-textSecondary font-medium">
                         <div className="flex items-center gap-1.5">
-                            <Gauge size={14} /> {service.cpu}%
+                            <Gauge size={14} strokeWidth={1.5} /> {service.cpu}%
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <HardDrive size={14} /> {service.memory}
+                            <HardDrive size={14} strokeWidth={1.5} /> {service.memory}
                         </div>
                         <div className="flex items-center gap-1.5 ml-auto">
-                            {service.exposedPort ? <Globe size={14} className="text-blue-400"/> : <Square size={14} />}
+                            {service.exposedPort ? <Globe size={14} strokeWidth={1.5} className="text-primary"/> : <Square size={14} strokeWidth={1.5} />}
                         </div>
                     </div>
                 </div>
             ))}
             <button
                 onClick={handleAddService}
-                className="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:text-primary hover:border-primary/50 hover:bg-blue-50/30 transition-all min-h-[180px] group"
+                className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center text-textSecondary hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 min-h-[180px] group"
             >
-                <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
-                    <Plus size={24} />
+                <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center mb-3 group-hover:bg-primary/10 transition-colors duration-200">
+                    <Plus size={24} strokeWidth={1.5} />
                 </div>
                 <span className="font-medium text-sm">Create New Service</span>
             </button>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
             <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-medium">
+                <thead className="bg-background border-b border-border text-xs uppercase text-textSecondary font-medium">
                     <tr>
                         <th className="px-6 py-4">Service Name</th>
                         <th className="px-6 py-4">Status</th>
@@ -138,58 +138,58 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
                         <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                     {localServices.map(service => (
-                         <tr key={service.id} onClick={() => setSelectedService(service)} className="hover:bg-slate-50/80 cursor-pointer transition-colors group">
+                         <tr key={service.id} onClick={() => setSelectedService(service)} className="hover:bg-background cursor-pointer transition-colors duration-200 group">
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                                        service.type === 'db' || service.type === 'redis' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+                                        service.type === 'db' || service.type === 'redis' ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'
                                     }`}>
-                                        {service.type === 'db' || service.type === 'redis' ? <Database size={16} /> : <Box size={16} />}
+                                        {service.type === 'db' || service.type === 'redis' ? <Database size={16} strokeWidth={1.5} /> : <Box size={16} strokeWidth={1.5} />}
                                     </div>
                                     <div>
-                                        <div className="font-bold text-slate-800 group-hover:text-primary transition-colors">{service.name}</div>
-                                        <div className="text-[10px] text-slate-400 uppercase font-bold">{service.type}</div>
+                                        <div className="font-bold text-textPrimary group-hover:text-primary transition-colors duration-200">{service.name}</div>
+                                        <div className="text-[10px] text-textSecondary uppercase font-bold">{service.type}</div>
                                     </div>
                                 </div>
                             </td>
                             <td className="px-6 py-4">
                                 <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                                    service.status === 'Running' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200'
+                                    service.status === 'Running' ? 'bg-success/10 text-success border-success/20' : 'bg-background text-textSecondary border-border'
                                 }`}>
-                                    <div className={`w-1.5 h-1.5 rounded-full ${service.status === 'Running' ? 'bg-green-500' : 'bg-slate-400'}`}></div>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${service.status === 'Running' ? 'bg-success' : 'bg-textSecondary'}`}></div>
                                     {service.status}
                                 </div>
                             </td>
                             <td className="px-6 py-4">
-                                <div className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded w-fit max-w-[180px] truncate" title={service.image}>
+                                <div className="font-mono text-xs text-textSecondary bg-background px-2 py-1 rounded w-fit max-w-[180px] truncate" title={service.image}>
                                     {service.image}
                                 </div>
                             </td>
                             <td className="px-6 py-4">
-                                <div className="flex flex-col gap-1 text-xs text-slate-500">
+                                <div className="flex flex-col gap-1 text-xs text-textSecondary">
                                     <div className="flex items-center gap-2">
-                                        <Cpu size={12} className="text-slate-400"/> {service.cpu}%
+                                        <Cpu size={12} strokeWidth={1.5} className="text-textSecondary"/> {service.cpu}%
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <HardDrive size={12} className="text-slate-400"/> {service.memory}
+                                        <HardDrive size={12} strokeWidth={1.5} className="text-textSecondary"/> {service.memory}
                                     </div>
                                 </div>
                             </td>
                             <td className="px-6 py-4">
-                                <div className="text-xs text-slate-500">
+                                <div className="text-xs text-textSecondary">
                                     {service.exposedPort ? (
-                                        <div className="flex items-center gap-1 text-slate-700 font-mono"><Globe size={12}/> :{service.exposedPort}</div>
+                                        <div className="flex items-center gap-1 text-textPrimary font-mono"><Globe size={12} strokeWidth={1.5}/> :{service.exposedPort}</div>
                                     ) : service.port ? (
-                                        <div className="flex items-center gap-1 text-slate-400 font-mono"><Square size={12}/> :{service.port}</div>
+                                        <div className="flex items-center gap-1 text-textSecondary font-mono"><Square size={12} strokeWidth={1.5}/> :{service.port}</div>
                                     ) : (
-                                        <span className="text-slate-300">-</span>
+                                        <span className="text-textSecondary">-</span>
                                     )}
                                 </div>
                             </td>
                             <td className="px-6 py-4 text-right">
-                                <ChevronRight size={18} className="text-slate-300 group-hover:text-primary ml-auto" />
+                                <ChevronRight size={18} strokeWidth={1.5} className="text-textSecondary group-hover:text-primary ml-auto transition-colors duration-200" />
                             </td>
                         </tr>
                     ))}

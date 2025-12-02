@@ -7,7 +7,9 @@ import {
     LayoutGrid, List as ListIcon, Calendar, User, GitCommit, Loader2, KeyRound, Square
 } from 'lucide-react';
 import { WebTerminal } from './WebTerminal';
-import { INITIAL_LOGS } from '../constants';
+import { useLogs } from '../hooks/useLogs';
+import { useMetrics } from '../hooks/useMetrics';
+import { useToast } from '../hooks/useToast';
 import {
     restartService, startService, stopService, getServiceLogs,
     createEnvVar, updateEnvVar, deleteEnvVar,
@@ -38,8 +40,24 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
     const [isStarting, setIsStarting] = useState(false);
     const [isStopping, setIsStopping] = useState(false);
     const [notification, setNotification] = useState<ErrorNotification | null>(null);
+    const { showToast } = useToast();
 
     const isDatabase = service.type === 'db' || service.type === 'redis';
+
+    // Use WebSocket for real-time logs
+    const { logs: serviceLogs, isConnected: logsConnected, clearLogs } = useLogs({
+        containerId: service.id,
+        autoConnect: activeTab === 'logs',
+        maxLogs: 500,
+    });
+
+    // Use WebSocket for real-time metrics
+    const { metrics: serviceMetrics, isConnected: metricsConnected } = useMetrics({
+        containerId: service.id,
+        autoConnect: activeTab === 'metrics',
+        interval: 2000,
+        maxHistory: 100,
+    });
 
     const handleRestart = async () => {
         setIsRestarting(true);
@@ -52,11 +70,22 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 title: 'Service Restarted',
                 message: `${service.name} restarted successfully. Container ID: ${service.id.substring(0, 12)}`
             });
+            showToast({
+                type: 'success',
+                title: 'Serviço reiniciado',
+                message: `${service.name} foi reiniciado com sucesso`,
+            });
         } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'Failed to restart service';
             setNotification({
                 type: 'error',
                 title: 'Restart Failed',
-                message: error instanceof Error ? error.message : 'Failed to restart service'
+                message: errorMsg
+            });
+            showToast({
+                type: 'error',
+                title: 'Erro ao reiniciar serviço',
+                message: errorMsg,
             });
         } finally {
             setIsRestarting(false);
@@ -158,56 +187,56 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
     const sidebarItems = isDatabase ? dbTabs : appTabs;
 
     return (
-        <div className="flex h-screen bg-[#f8f9fa] overflow-hidden">
+        <div className="flex h-screen bg-background overflow-hidden">
             {/* Sidebar */}
-            <div className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto">
-                <div className="p-4 border-b border-slate-200 flex items-center gap-3 bg-white sticky top-0 z-10">
-                    <button onClick={onBack} className="p-1.5 hover:bg-slate-100 rounded text-slate-500 transition-colors">
-                        <ArrowLeft size={16} />
+            <div className="w-64 bg-card border-r border-border flex flex-col shrink-0 overflow-y-auto">
+                <div className="p-4 border-b border-border flex items-center gap-3 bg-white sticky top-0 z-10">
+                    <button onClick={onBack} className="p-1.5 hover:bg-background rounded text-textSecondary transition-colors duration-200">
+                        <ArrowLeft size={16} strokeWidth={1.5} />
                     </button>
-                    <div className="font-bold text-slate-800 text-sm truncate" title={project.name}>{project.name}</div>
+                    <div className="font-bold text-textPrimary text-sm truncate" title={project.name}>{project.name}</div>
                 </div>
 
                 <div className="flex-1 py-4">
                     {/* Service List */}
-                    <div className="px-4 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project Services</div>
+                    <div className="px-4 mb-2 text-[10px] font-medium text-textSecondary uppercase tracking-wider">Project Services</div>
                     <div className="px-2 space-y-0.5 mb-6">
                         {project.services.map(s => (
                             <button
                                 key={s.id}
                                 onClick={() => { onSelectService(s); setActiveTab('overview'); }}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all group relative ${s.id === service.id
-                                    ? 'bg-white shadow-sm text-slate-900 border border-slate-200'
-                                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700 border border-transparent'
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 group relative ${s.id === service.id
+                                    ? 'bg-white shadow-sm text-textPrimary border border-border'
+                                    : 'text-textSecondary hover:bg-background hover:text-textPrimary border border-transparent'
                                     }`}
                             >
-                                <div className={`w-2 h-2 rounded-full shadow-sm ${s.status === 'Running' ? 'bg-green-500' : 'bg-red-400'}`}></div>
+                                <div className={`w-2 h-2 rounded-full shadow-sm ${s.status === 'Running' ? 'bg-success' : 'bg-error'}`}></div>
                                 <span className="truncate">{s.name}</span>
                                 {s.id === service.id && <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-4 bg-primary rounded-full"></div>}
                             </button>
                         ))}
                     </div>
 
-                    <div className="h-px bg-slate-200 mx-4 mb-6"></div>
+                    <div className="h-px bg-border mx-4 mb-6"></div>
 
                     {/* Configuration Tabs */}
                     <div className="px-4 mb-2 flex items-center gap-2">
-                        <div className={`p-1 rounded bg-white border border-slate-200 ${isDatabase ? 'text-amber-600' : 'text-blue-600'}`}>
-                            {isDatabase ? <Database size={12} /> : <Box size={12} />}
+                        <div className={`p-1 rounded bg-white border border-border ${isDatabase ? 'text-warning' : 'text-primary'}`}>
+                            {isDatabase ? <Database size={12} strokeWidth={1.5} /> : <Box size={12} strokeWidth={1.5} />}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate max-w-[120px]" title={service.name}>{service.name}</div>
+                        <div className="text-[10px] font-medium text-textSecondary uppercase tracking-wider truncate max-w-[120px]" title={service.name}>{service.name}</div>
                     </div>
                     <div className="px-2 space-y-0.5">
                         {sidebarItems.map(item => (
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === item.id
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${activeTab === item.id
                                     ? 'bg-primary/10 text-primary'
-                                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                                    : 'text-textSecondary hover:bg-background hover:text-textPrimary'
                                     }`}
                             >
-                                <item.icon size={16} className={activeTab === item.id ? 'text-primary' : 'text-slate-400'} />
+                                <item.icon size={16} strokeWidth={1.5} className={activeTab === item.id ? 'text-primary' : 'text-textSecondary'} />
                                 {item.label}
                             </button>
                         ))}
@@ -216,53 +245,53 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/50">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
                 {/* Top Bar */}
-                <div className="h-16 border-b border-slate-200 bg-white px-8 flex items-center justify-between shrink-0">
+                <div className="h-16 border-b border-border bg-card px-8 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        <h1 className="text-xl font-bold text-slate-800">{service.name}</h1>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${service.status === 'Running' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                        <h1 className="text-xl font-bold text-textPrimary">{service.name}</h1>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${service.status === 'Running' ? 'bg-success/10 text-success border-success/20' : 'bg-error/10 text-error border-error/20'
                             }`}>
                             {service.status}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button onClick={() => setIsWebConsoleOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200">
-                            <TerminalSquare size={14} /> Console
+                        <button onClick={() => setIsWebConsoleOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-textSecondary bg-background hover:bg-white rounded-lg transition-colors duration-200 border border-border">
+                            <TerminalSquare size={14} strokeWidth={1.5} /> Console
                         </button>
                         {service.status === 'Running' ? (
                             <button
                                 onClick={handleStop}
                                 disabled={isStopping}
-                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200 disabled:opacity-70"
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-error bg-error/10 hover:bg-error/20 rounded-lg transition-colors duration-200 border border-error/20 disabled:opacity-50"
                             >
-                                {isStopping ? <Loader2 size={14} className="animate-spin" /> : <Square size={14} />}
+                                {isStopping ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : <Square size={14} strokeWidth={1.5} />}
                                 {isStopping ? 'Stopping...' : 'Stop'}
                             </button>
                         ) : (
                             <button
                                 onClick={handleStart}
                                 disabled={isStarting}
-                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-200 disabled:opacity-70"
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-success bg-success/10 hover:bg-success/20 rounded-lg transition-colors duration-200 border border-success/20 disabled:opacity-50"
                             >
-                                {isStarting ? <Loader2 size={14} className="animate-spin" /> : <div className="w-0 h-0 border-l-[6px] border-l-green-600 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5"></div>}
+                                {isStarting ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : <div className="w-0 h-0 border-l-[6px] border-l-success border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5"></div>}
                                 {isStarting ? 'Starting...' : 'Start'}
                             </button>
                         )}
                         <button
                             onClick={handleRestart}
                             disabled={isRestarting || service.status !== 'Running'}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200 disabled:opacity-70"
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-textSecondary bg-background hover:bg-white rounded-lg transition-colors duration-200 border border-border disabled:opacity-50"
                         >
-                            {isRestarting ? <Loader2 size={14} className="animate-spin" /> : <RotateCw size={14} />}
+                            {isRestarting ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : <RotateCw size={14} strokeWidth={1.5} />}
                             {isRestarting ? 'Restarting...' : 'Restart'}
                         </button>
                         <button
                             onClick={handleDeploy}
                             disabled={isDeploying}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-sm disabled:opacity-70"
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-primary hover:bg-primaryHover active:bg-primaryActive rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50"
                         >
-                            {isDeploying ? <Loader2 size={14} className="animate-spin" /> : null}
+                            {isDeploying ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : null}
                             Deploy
                         </button>
                     </div>
@@ -271,7 +300,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 {/* Tab Content */}
                 <div className="flex-1 overflow-y-auto p-8">
                     <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {activeTab === 'overview' && <OverviewTab service={service} onOpenConsole={() => setIsWebConsoleOpen(true)} />}
+                        {activeTab === 'overview' && <OverviewTab service={service} serviceLogs={serviceLogs} onOpenConsole={() => setIsWebConsoleOpen(true)} />}
 
                         {activeTab === 'environment' && <EnvironmentTab service={service} projectId={project.id} />}
                         {activeTab === 'networking' && <NetworkingTab service={service} projectId={project.id} isDatabase={isDatabase} />}
@@ -292,37 +321,37 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
 
             {/* Notification Toast */}
             {notification && (
-                <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
-                    <div className={`rounded-xl shadow-2xl border p-4 min-w-[400px] ${notification.type === 'success'
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-red-50 border-red-200'
+                <div className="fixed bottom-8 right-8 z-50">
+                    <div className={`rounded-xl shadow-xl border p-4 min-w-[400px] ${notification.type === 'success'
+                        ? 'bg-success/10 border-success/20'
+                        : 'bg-error/10 border-error/20'
                         }`}>
                         <div className="flex items-start gap-3">
                             <div className={`p-2 rounded-lg ${notification.type === 'success'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
+                                ? 'bg-success/20 text-success'
+                                : 'bg-error/20 text-error'
                                 }`}>
                                 {notification.type === 'success' ? (
-                                    <Check size={18} />
+                                    <Check size={18} strokeWidth={2} />
                                 ) : (
-                                    <Info size={18} />
+                                    <Info size={18} strokeWidth={2} />
                                 )}
                             </div>
                             <div className="flex-1">
-                                <h4 className={`font-bold text-sm mb-1 ${notification.type === 'success' ? 'text-green-900' : 'text-red-900'
+                                <h4 className={`font-bold text-sm mb-1 ${notification.type === 'success' ? 'text-success' : 'text-error'
                                     }`}>
                                     {notification.title}
                                 </h4>
-                                <p className={`text-xs ${notification.type === 'success' ? 'text-green-700' : 'text-red-700'
+                                <p className={`text-xs ${notification.type === 'success' ? 'text-success' : 'text-error'
                                     }`}>
                                     {notification.message}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setNotification(null)}
-                                className={`p-1 rounded hover:bg-opacity-50 transition-colors ${notification.type === 'success'
-                                    ? 'text-green-700 hover:bg-green-200'
-                                    : 'text-red-700 hover:bg-red-200'
+                                className={`p-1 rounded hover:bg-opacity-50 transition-colors duration-200 ${notification.type === 'success'
+                                    ? 'text-success hover:bg-success/20'
+                                    : 'text-error hover:bg-error/20'
                                     }`}
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -342,66 +371,74 @@ const ChevronDown = ({ size, className }: { size: number, className?: string }) 
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6" /></svg>
 );
 
-const OverviewTab: React.FC<{ service: Service, onOpenConsole: () => void }> = ({ service, onOpenConsole }) => (
+const OverviewTab: React.FC<{ service: Service, serviceLogs: any[], onOpenConsole: () => void }> = ({ service, serviceLogs, onOpenConsole }) => (
     <div className="space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">CPU Usage</div>
+            <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
+                <div className="text-textSecondary text-xs font-medium uppercase tracking-wider mb-2">CPU Usage</div>
                 <div className="flex items-end gap-2">
-                    <span className="text-2xl font-bold text-slate-800">{service.cpu}%</span>
-                    <span className="text-xs text-slate-400 mb-1">of 2 cores</span>
+                    <span className="text-2xl font-bold text-textPrimary">{service.cpu}%</span>
+                    <span className="text-xs text-textSecondary mb-1">of 2 cores</span>
                 </div>
-                <div className="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                    <div className="bg-blue-500 h-full rounded-full" style={{ width: `${service.cpu}%` }}></div>
+                <div className="w-full bg-background h-1.5 rounded-full mt-3 overflow-hidden border border-border">
+                    <div className="bg-primary h-full rounded-full" style={{ width: `${service.cpu}%` }}></div>
                 </div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Memory</div>
+            <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
+                <div className="text-textSecondary text-xs font-medium uppercase tracking-wider mb-2">Memory</div>
                 <div className="flex items-end gap-2">
-                    <span className="text-2xl font-bold text-slate-800">{service.memory}</span>
+                    <span className="text-2xl font-bold text-textPrimary">{service.memory}</span>
                 </div>
-                <div className="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                    <div className="bg-purple-500 h-full rounded-full" style={{ width: '45%' }}></div>
+                <div className="w-full bg-background h-1.5 rounded-full mt-3 overflow-hidden border border-border">
+                    <div className="bg-primary h-full rounded-full" style={{ width: '45%' }}></div>
                 </div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Network I/O</div>
+            <div className="bg-card p-5 rounded-xl border border-border shadow-sm">
+                <div className="text-textSecondary text-xs font-medium uppercase tracking-wider mb-2">Network I/O</div>
                 <div className="flex items-end gap-2">
-                    <span className="text-2xl font-bold text-slate-800">45 MB</span>
-                    <span className="text-xs text-slate-400 mb-1">/ 120 MB</span>
+                    <span className="text-2xl font-bold text-textPrimary">45 MB</span>
+                    <span className="text-xs text-textSecondary mb-1">/ 120 MB</span>
                 </div>
                 <div className="flex gap-1 mt-3">
-                    <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="bg-orange-500 h-full w-[30%]"></div>
+                    <div className="h-1.5 flex-1 bg-background rounded-full overflow-hidden border border-border">
+                        <div className="bg-warning h-full w-[30%]"></div>
                     </div>
                 </div>
             </div>
         </div>
 
         {/* Logs Preview */}
-        <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-sm">
-            <div className="px-4 py-3 bg-slate-800/50 border-b border-slate-700 flex items-center justify-between">
+        <div className="bg-[#1f2937] rounded-xl overflow-hidden border border-[#374151] shadow-sm">
+            <div className="px-4 py-3 bg-[#111827]/50 border-b border-[#374151] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <TerminalSquare size={16} className="text-slate-400" />
-                    <span className="text-sm font-medium text-slate-200">Container Logs</span>
+                    <TerminalSquare size={16} className="text-textSecondary" strokeWidth={1.5} />
+                    <span className="text-sm font-medium text-white">Container Logs</span>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={onOpenConsole} className="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded transition-colors">Open Console</button>
+                    <button onClick={onOpenConsole} className="text-xs bg-[#374151] hover:bg-[#4B5563] text-white px-3 py-1 rounded transition-colors duration-200">Open Console</button>
                 </div>
             </div>
-            <div className="p-4 font-mono text-xs text-slate-400 h-64 overflow-hidden relative">
+            <div className="p-4 font-mono text-xs text-textSecondary h-64 overflow-hidden relative">
                 <div className="space-y-1">
-                    <div className="text-slate-500">2023-10-27 10:00:01 [INFO] Service started successfully on port {service.port}</div>
-                    <div className="text-slate-500">2023-10-27 10:00:02 [INFO] Connected to database at {service.credentials?.host || 'localhost'}</div>
-                    {INITIAL_LOGS.slice(0, 6).map((log, i) => (
-                        <div key={i} className="flex gap-2">
-                            <span className="text-slate-600 shrink-0">{log.timestamp.split('T')[1]?.split('.')[0] || log.timestamp}</span>
-                            <span className={log.level === 'ERROR' ? 'text-red-400' : 'text-slate-300'}>{log.message}</span>
-                        </div>
-                    ))}
+                    <div className="text-textSecondary">2023-10-27 10:00:01 [INFO] Service started successfully on port {service.port}</div>
+                    <div className="text-textSecondary">2023-10-27 10:00:02 [INFO] Connected to database at {service.credentials?.host || 'localhost'}</div>
+                    {serviceLogs.length > 0 ? (
+                        serviceLogs.slice(0, 6).map((log) => (
+                            <div key={log.id} className="flex gap-2">
+                                <span className="text-textSecondary shrink-0">
+                                    {new Date(log.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
+                                <span className={log.level === 'ERROR' ? 'text-error' : log.level === 'WARN' ? 'text-warning' : 'text-white'}>
+                                    {log.message}
+                                </span>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-textSecondary text-sm">No logs available. Logs will appear here when the service is running.</div>
+                    )}
                 </div>
-                <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none"></div>
+                <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#1f2937] to-transparent pointer-events-none"></div>
             </div>
         </div>
     </div>
@@ -417,22 +454,22 @@ const CredentialsTab: React.FC<{ service: Service }> = ({ service }) => {
 
         return (
             <div className="group">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">{label}</label>
+                <label className="block text-xs font-medium text-textSecondary uppercase tracking-wide mb-1.5">{label}</label>
                 <div className="relative flex items-center">
                     <input
                         type={visible ? "text" : "password"}
                         readOnly
                         value={value}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 font-mono focus:outline-none focus:border-primary transition-colors"
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-textPrimary font-mono focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
                     />
                     <div className="absolute right-2 flex items-center gap-1">
                         {isSecret && (
-                            <button onClick={() => setVisible(!visible)} className="p-1.5 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-200">
-                                {visible ? <EyeOff size={14} /> : <Eye size={14} />}
+                            <button onClick={() => setVisible(!visible)} className="p-1.5 text-textSecondary hover:text-textPrimary rounded hover:bg-background transition-colors duration-200">
+                                {visible ? <EyeOff size={14} strokeWidth={1.5} /> : <Eye size={14} strokeWidth={1.5} />}
                             </button>
                         )}
-                        <button onClick={copyToClipboard} className="p-1.5 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-200" title="Copy">
-                            <Copy size={14} />
+                        <button onClick={copyToClipboard} className="p-1.5 text-textSecondary hover:text-textPrimary rounded hover:bg-background transition-colors duration-200" title="Copy">
+                            <Copy size={14} strokeWidth={1.5} />
                         </button>
                     </div>
                 </div>
@@ -442,7 +479,7 @@ const CredentialsTab: React.FC<{ service: Service }> = ({ service }) => {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <CopyInput label="Username" value={service.credentials?.user || 'postgres'} />
                     <CopyInput label="Password" value={service.credentials?.password || ''} isSecret />
@@ -552,44 +589,44 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
                 <>
                     {/* App Domains */}
                     <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-slate-700">Domains</h3>
+                        <h3 className="text-lg font-semibold text-textPrimary">Domains</h3>
                         <button
                             onClick={handleAddDomain}
                             disabled={isAddingDomain}
-                            className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-600 transition-colors shadow-sm shadow-blue-200 disabled:opacity-70"
+                            className="text-sm bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-3 py-1.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-70"
                         >
                             {isAddingDomain ? 'Adding...' : 'Add Domain'}
                         </button>
                     </div>
                     <div className="space-y-3">
                         {localDomains.map(domain => (
-                            <div key={domain.id} className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-4 shadow-sm hover:border-primary/30 transition-colors">
+                            <div key={domain.id} className="bg-card border border-border rounded-xl p-3 flex items-center justify-between gap-4 shadow-sm hover:border-primary/30 transition-all duration-200">
                                 <div className="flex items-center gap-3 flex-1 overflow-hidden">
-                                    <div className="bg-green-50 text-green-700 p-2 rounded-lg">
-                                        <Globe size={18} />
+                                    <div className="bg-success/10 text-success p-2 rounded-lg">
+                                        <Globe size={18} strokeWidth={1.5} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <a href={`https://${domain.domain}`} target="_blank" rel="noreferrer" className="text-sm font-bold text-slate-800 hover:text-primary hover:underline truncate">
+                                        <a href={`https://${domain.domain}`} target="_blank" rel="noreferrer" className="text-sm font-bold text-textPrimary hover:text-primary hover:underline truncate">
                                             {domain.domain}
                                         </a>
-                                        <span className="text-xs text-slate-400 flex items-center gap-1">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                        <span className="text-xs text-textSecondary flex items-center gap-1">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-success"></div>
                                             TLS Active • {domain.targetProtocol || 'HTTP'} {'->'} {domain.targetPort || service.port}
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 border-l border-slate-100 pl-3">
+                                <div className="flex items-center gap-1 border-l border-border pl-3">
                                     <button
                                         onClick={() => handleRemoveDomain(domain.id)}
-                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        className="p-2 text-textSecondary hover:text-error hover:bg-error/10 rounded-lg transition-colors duration-200"
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={16} strokeWidth={1.5} />
                                     </button>
                                 </div>
                             </div>
                         ))}
                         {localDomains.length === 0 && (
-                            <div className="text-center p-8 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 text-sm">
+                            <div className="text-center p-8 bg-background rounded-xl border border-dashed border-border text-textSecondary text-sm">
                                 No domains configured.
                             </div>
                         )}
@@ -597,10 +634,10 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
 
                     <div className="mt-8">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-slate-700">Redirects</h3>
+                            <h3 className="text-lg font-semibold text-textPrimary">Redirects</h3>
                             <button
                                 onClick={handleAddRedirect}
-                                className="text-sm bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                className="text-sm bg-card border border-border text-textPrimary px-3 py-1.5 rounded-lg font-medium hover:bg-background transition-colors duration-200"
                             >
                                 Add Redirect
                             </button>
@@ -608,20 +645,20 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
 
                         <div className="space-y-2">
                             {redirects.map((r: any) => (
-                                <div key={r.id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200">
+                                <div key={r.id} className="flex items-center justify-between bg-card p-3 rounded-lg border border-border">
                                     <div className="flex items-center gap-2 text-sm">
-                                        <span className="font-mono text-slate-600">{r.from}</span>
-                                        <ArrowLeft size={14} className="rotate-180 text-slate-400" />
-                                        <span className="font-mono text-slate-600">{r.to}</span>
-                                        <span className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">{r.type}</span>
+                                        <span className="font-mono text-textPrimary">{r.from}</span>
+                                        <ArrowLeft size={14} strokeWidth={1.5} className="rotate-180 text-textSecondary" />
+                                        <span className="font-mono text-textPrimary">{r.to}</span>
+                                        <span className="text-xs bg-background px-1.5 py-0.5 rounded text-textSecondary">{r.type}</span>
                                     </div>
-                                    <button onClick={() => handleRemoveRedirect(r.id)} className="text-slate-400 hover:text-red-500">
-                                        <Trash2 size={14} />
+                                    <button onClick={() => handleRemoveRedirect(r.id)} className="text-textSecondary hover:text-error transition-colors duration-200">
+                                        <Trash2 size={14} strokeWidth={1.5} />
                                     </button>
                                 </div>
                             ))}
                             {redirects.length === 0 && (
-                                <div className="text-center p-4 bg-slate-50 rounded-lg border border-dashed border-slate-200 text-slate-400 text-xs">
+                                <div className="text-center p-4 bg-background rounded-lg border border-dashed border-border text-textSecondary text-xs">
                                     No redirects configured.
                                 </div>
                             )}
@@ -631,27 +668,27 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
             ) : (
                 <>
                     {/* DB Expose */}
-                    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                    <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                         <div className="flex items-start gap-4">
                             <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
                                 <Globe size={24} />
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-bold text-slate-800 mb-1">Public Exposure</h3>
-                                <p className="text-sm text-slate-500 mb-4">
+                                <p className="text-sm text-textSecondary mb-4">
                                     Make this service accessible from outside the cluster.
                                     <br /><span className="text-amber-600 text-xs mt-1 block">Warning: This opens the port to the public internet. Ensure you have strong passwords.</span>
                                 </p>
 
                                 <div className="max-w-xs">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Public Port</label>
+                                    <label className="block text-xs font-bold text-textSecondary uppercase tracking-wide mb-1.5">Public Port</label>
                                     <div className="flex gap-2">
                                         <input
                                             type="number"
                                             value={exposedPort}
                                             onChange={(e) => setExposedPort(Number(e.target.value))}
                                             placeholder="e.g. 5432"
-                                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                                            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                                         />
                                         <button
                                             onClick={handleSaveExposedPort}
@@ -708,56 +745,56 @@ const AdvancedTab: React.FC<{ service: Service, projectId: string }> = ({ servic
 
     return (
         <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Docker Image</label>
+                        <label className="block text-xs font-medium text-textSecondary uppercase tracking-wide mb-1.5">Docker Image</label>
                         <input
                             type="text"
                             value={image}
                             onChange={(e) => setImage(e.target.value)}
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
+                            className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-mono transition-all duration-200"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Container User</label>
+                        <label className="block text-xs font-medium text-textSecondary uppercase tracking-wide mb-1.5">Container User</label>
                         <input
                             type="text"
                             placeholder="root"
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
+                            className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-mono transition-all duration-200"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Command / Entrypoint</label>
+                    <label className="block text-xs font-medium text-textSecondary uppercase tracking-wide mb-1.5">Command / Entrypoint</label>
                     <input
                         type="text"
                         value={command}
                         onChange={(e) => setCommand(e.target.value)}
                         placeholder="e.g. npm start"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary font-mono text-slate-700"
+                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary font-mono transition-all duration-200"
                     />
                 </div>
 
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-border">
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm disabled:opacity-70"
+                        className="bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-70"
                     >
                         {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             </div>
 
-            <div className="bg-red-50 border border-red-100 rounded-xl p-6">
-                <h3 className="text-red-800 font-bold mb-2">Danger Zone</h3>
-                <p className="text-red-600 text-sm mb-4">Irreversible actions that affect the availability of your service.</p>
+            <div className="bg-error/10 border border-error/20 rounded-xl p-6">
+                <h3 className="text-error font-bold mb-2">Danger Zone</h3>
+                <p className="text-error text-sm mb-4">Irreversible actions that affect the availability of your service.</p>
                 <div className="flex gap-3">
                     <button
                         onClick={handleDelete}
-                        className="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                        className="bg-card border border-error/20 text-error px-4 py-2 rounded-lg text-sm font-medium hover:bg-error/10 transition-colors duration-200"
                     >
                         Delete Service
                     </button>
@@ -768,7 +805,7 @@ const AdvancedTab: React.FC<{ service: Service, projectId: string }> = ({ servic
                                 alert('Rebuild triggered');
                             }
                         }}
-                        className="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                        className="bg-card border border-error/20 text-error px-4 py-2 rounded-lg text-sm font-medium hover:bg-error/10 transition-colors duration-200"
                     >
                         Force Rebuild
                     </button>
@@ -886,15 +923,15 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                 </button>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 {isLoading ? (
-                    <div className="p-12 text-center text-slate-500">
-                        <Loader2 size={32} className="mx-auto mb-3 text-slate-300 animate-spin" />
+                    <div className="p-12 text-center text-textSecondary">
+                        <Loader2 size={32} className="mx-auto mb-3 text-textSecondary animate-spin" />
                         <p>Loading backups...</p>
                     </div>
                 ) : backups && backups.length > 0 ? (
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                        <thead className="bg-background text-textSecondary font-medium border-b border-border">
                             <tr>
                                 <th className="px-6 py-3 font-semibold">Filename</th>
                                 <th className="px-6 py-3 font-semibold">Size</th>
@@ -905,12 +942,12 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {backups.map(bk => (
-                                <tr key={bk.id} className="hover:bg-slate-50/50">
+                                <tr key={bk.id} className="hover:bg-background/50">
                                     <td className="px-6 py-4 font-mono text-slate-600">{bk.filename || bk.name}</td>
                                     <td className="px-6 py-4 text-slate-600">{bk.size || 'N/A'}</td>
                                     <td className="px-6 py-4 text-slate-600">{bk.timestamp || bk.createdAt}</td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success/10 text-success border border-success/20">
                                             {bk.status || 'Complete'}
                                         </span>
                                     </td>
@@ -923,7 +960,7 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                                         </button>
                                         <button
                                             onClick={() => handleDeleteBackup(bk.id)}
-                                            className="text-red-600 hover:underline font-medium"
+                                            className="text-error hover:underline font-medium"
                                         >
                                             Delete
                                         </button>
@@ -933,8 +970,8 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                         </tbody>
                     </table>
                 ) : (
-                    <div className="p-12 text-center text-slate-500">
-                        <HardDrive size={32} className="mx-auto mb-3 text-slate-300" />
+                    <div className="p-12 text-center text-textSecondary">
+                        <HardDrive size={32} className="mx-auto mb-3 text-textSecondary" />
                         <p>No backups found.</p>
                     </div>
                 )}
@@ -943,13 +980,13 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
             {backupNotification && (
                 <div className="fixed bottom-8 right-8 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
                     <div className={`rounded-xl shadow-2xl border p-4 min-w-[400px] ${backupNotification.type === 'success'
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-red-50 border-red-200'
+                        ? 'bg-success/10 border-success/20'
+                        : 'bg-error/10 border-error/20'
                         }`}>
                         <div className="flex items-start gap-3">
                             <div className={`p-2 rounded-lg ${backupNotification.type === 'success'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
+                                ? 'bg-success/20 text-success'
+                                : 'bg-error/20 text-error'
                                 }`}>
                                 {backupNotification.type === 'success' ? (
                                     <Check size={18} />
@@ -958,20 +995,20 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                                 )}
                             </div>
                             <div className="flex-1">
-                                <h4 className={`font-bold text-sm mb-1 ${backupNotification.type === 'success' ? 'text-green-900' : 'text-red-900'
+                                <h4 className={`font-bold text-sm mb-1 ${backupNotification.type === 'success' ? 'text-success' : 'text-error'
                                     }`}>
                                     {backupNotification.title}
                                 </h4>
-                                <p className={`text-xs ${backupNotification.type === 'success' ? 'text-green-700' : 'text-red-700'
+                                <p className={`text-xs ${backupNotification.type === 'success' ? 'text-success' : 'text-error'
                                     }`}>
                                     {backupNotification.message}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setBackupNotification(null)}
-                                className={`p-1 rounded hover:bg-opacity-50 transition-colors ${backupNotification.type === 'success'
-                                    ? 'text-green-700 hover:bg-green-200'
-                                    : 'text-red-700 hover:bg-red-200'
+                                className={`p-1 rounded hover:bg-opacity-50 transition-colors duration-200 ${backupNotification.type === 'success'
+                                    ? 'text-success hover:bg-success/20'
+                                    : 'text-error hover:bg-error/20'
                                     }`}
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1038,10 +1075,10 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                 <div className="mb-6">
                     <h3 className="font-bold text-slate-800">Resource Limits</h3>
-                    <p className="text-xs text-slate-500 mt-1">Host capacity: {HOST_MAX_CPU} CPU cores, {HOST_MAX_MEMORY} MB memory</p>
+                    <p className="text-xs text-textSecondary mt-1">Host capacity: {HOST_MAX_CPU} CPU cores, {HOST_MAX_MEMORY} MB memory</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1053,7 +1090,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
 
                         <div>
                             <div className="flex justify-between mb-1">
-                                <label className="text-xs font-medium text-slate-500">Reservation</label>
+                                <label className="text-xs font-medium text-textSecondary">Reservation</label>
                                 <input
                                     type="number"
                                     value={memoryReservation}
@@ -1063,7 +1100,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                     min="0"
                                     max={HOST_MAX_MEMORY}
                                 />
-                                <span className="text-xs font-medium text-slate-500">MB</span>
+                                <span className="text-xs font-medium text-textSecondary">MB</span>
                             </div>
                             <input
                                 type="range"
@@ -1076,7 +1113,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
                             />
                             {errors.memoryReservation && (
-                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                <p className="text-xs text-error mt-1 flex items-center gap-1">
                                     <Info size={12} /> {errors.memoryReservation}
                                 </p>
                             )}
@@ -1084,7 +1121,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
 
                         <div>
                             <div className="flex justify-between mb-1">
-                                <label className="text-xs font-medium text-slate-500">Limit</label>
+                                <label className="text-xs font-medium text-textSecondary">Limit</label>
                                 <input
                                     type="number"
                                     value={memoryLimit}
@@ -1094,7 +1131,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                     min="0"
                                     max={HOST_MAX_MEMORY}
                                 />
-                                <span className="text-xs font-medium text-slate-500">MB</span>
+                                <span className="text-xs font-medium text-textSecondary">MB</span>
                             </div>
                             <input
                                 type="range"
@@ -1107,7 +1144,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
                             />
                             {errors.memoryLimit && (
-                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                <p className="text-xs text-error mt-1 flex items-center gap-1">
                                     <Info size={12} /> {errors.memoryLimit}
                                 </p>
                             )}
@@ -1122,7 +1159,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
 
                         <div>
                             <div className="flex justify-between mb-1">
-                                <label className="text-xs font-medium text-slate-500">Reservation</label>
+                                <label className="text-xs font-medium text-textSecondary">Reservation</label>
                                 <input
                                     type="number"
                                     value={cpuReservation}
@@ -1133,7 +1170,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                     max={HOST_MAX_CPU}
                                     step="0.1"
                                 />
-                                <span className="text-xs font-medium text-slate-500">Cores</span>
+                                <span className="text-xs font-medium text-textSecondary">Cores</span>
                             </div>
                             <input
                                 type="range"
@@ -1146,7 +1183,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                             />
                             {errors.cpuReservation && (
-                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                <p className="text-xs text-error mt-1 flex items-center gap-1">
                                     <Info size={12} /> {errors.cpuReservation}
                                 </p>
                             )}
@@ -1154,7 +1191,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
 
                         <div>
                             <div className="flex justify-between mb-1">
-                                <label className="text-xs font-medium text-slate-500">Limit</label>
+                                <label className="text-xs font-medium text-textSecondary">Limit</label>
                                 <input
                                     type="number"
                                     value={cpuLimit}
@@ -1165,7 +1202,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                     max={HOST_MAX_CPU}
                                     step="0.1"
                                 />
-                                <span className="text-xs font-medium text-slate-500">Cores</span>
+                                <span className="text-xs font-medium text-textSecondary">Cores</span>
                             </div>
                             <input
                                 type="range"
@@ -1178,7 +1215,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                             />
                             {errors.cpuLimit && (
-                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                <p className="text-xs text-error mt-1 flex items-center gap-1">
                                     <Info size={12} /> {errors.cpuLimit}
                                 </p>
                             )}
@@ -1230,14 +1267,14 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
 
     return (
         <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                 <h3 className="font-bold text-slate-800 mb-6">Build Source</h3>
                 <div className="flex bg-slate-100 p-1 rounded-lg w-fit mb-6">
                     <button
                         onClick={() => setActiveSourceType('docker')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeSourceType === 'docker'
-                            ? 'bg-white text-slate-800 shadow-sm border border-slate-200/50'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-white text-slate-800 shadow-sm border border-border/50'
+                            : 'text-textSecondary hover:text-slate-700'
                             }`}
                     >
                         Docker Image
@@ -1245,8 +1282,8 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
                     <button
                         onClick={() => setActiveSourceType('git')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeSourceType === 'git'
-                            ? 'bg-white text-slate-800 shadow-sm border border-slate-200/50'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-white text-slate-800 shadow-sm border border-border/50'
+                            : 'text-textSecondary hover:text-slate-700'
                             }`}
                     >
                         Git Repository
@@ -1256,30 +1293,30 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
                 <div className="space-y-6">
                     {activeSourceType === 'docker' ? (
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Image Name</label>
+                            <label className="block text-xs font-bold text-textSecondary uppercase tracking-wide mb-1.5">Image Name</label>
                             <input
                                 type="text"
                                 value={image}
                                 onChange={(e) => setImage(e.target.value)}
                                 placeholder="e.g. nginx:latest"
-                                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                             />
                         </div>
                     ) : (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Repository URL</label>
+                                    <label className="block text-xs font-bold text-textSecondary uppercase tracking-wide mb-1.5">Repository URL</label>
                                     <input
                                         type="text"
                                         value={repo}
                                         onChange={(e) => setRepo(e.target.value)}
                                         placeholder="https://github.com/org/repo"
-                                        className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Branch</label>
+                                    <label className="block text-xs font-bold text-textSecondary uppercase tracking-wide mb-1.5">Branch</label>
                                     <div className="flex items-center">
                                         <GitBranch size={16} className="absolute ml-3 text-slate-400" />
                                         <input
@@ -1287,16 +1324,16 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
                                             value={branch}
                                             onChange={(e) => setBranch(e.target.value)}
                                             placeholder="main"
-                                            className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                            className="w-full border border-border rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
                                         />
                                     </div>
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Git Credential</label>
+                                <label className="block text-xs font-bold text-textSecondary uppercase tracking-wide mb-1.5">Git Credential</label>
                                 <div className="relative">
                                     <KeyRound size={16} className="absolute ml-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <select className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary bg-white appearance-none text-slate-600">
+                                    <select className="w-full border border-border rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary bg-white appearance-none text-slate-600">
                                         <option value="">No Credentials (Public Repo)</option>
                                         <option value="gh_1">OpenPanel Bot (GitHub)</option>
                                     </select>
@@ -1311,14 +1348,14 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
                         </>
                     )}
 
-                    <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                    <div className="bg-background rounded-lg p-4 border border-border">
                         <div className="flex items-center justify-between mb-2">
                             <label className="text-sm font-medium text-slate-800">Auto Deploy</label>
                             <div className="relative inline-block w-10 h-6 bg-green-500 rounded-full cursor-pointer">
                                 <span className="absolute right-1 top-1 inline-block w-4 h-4 bg-white rounded-full shadow transition-transform"></span>
                             </div>
                         </div>
-                        <p className="text-xs text-slate-500">Automatically deploy new versions when the {activeSourceType === 'docker' ? 'image' : 'code'} is updated.</p>
+                        <p className="text-xs text-textSecondary">Automatically deploy new versions when the {activeSourceType === 'docker' ? 'image' : 'code'} is updated.</p>
                     </div>
 
                     <button
@@ -1340,8 +1377,8 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm min-h-[400px]">
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm min-h-[400px]">
+                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-background/50">
                     <div className="flex items-center gap-4">
                         <h3 className="font-semibold text-slate-700">Deployment History</h3>
                         <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded font-bold border border-green-200">Webhook Active</span>
@@ -1350,14 +1387,14 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
                     <div className="flex items-center gap-2 bg-slate-200 rounded-lg p-1">
                         <button
                             onClick={() => setViewMode('grid')}
-                            className={`p-1.5 rounded transition-all ${viewMode === 'grid' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`p-1.5 rounded transition-all ${viewMode === 'grid' ? 'bg-white text-slate-800 shadow-sm' : 'text-textSecondary hover:text-slate-700'}`}
                             title="Grid View"
                         >
                             <LayoutGrid size={16} />
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`p-1.5 rounded transition-all ${viewMode === 'list' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`p-1.5 rounded transition-all ${viewMode === 'list' ? 'bg-white text-slate-800 shadow-sm' : 'text-textSecondary hover:text-slate-700'}`}
                             title="List View"
                         >
                             <ListIcon size={16} />
@@ -1368,11 +1405,11 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
                 {viewMode === 'list' ? (
                     <div className="divide-y divide-slate-100">
                         {(service.deployments || []).map((dep, idx) => (
-                            <div key={dep.id} className="px-6 py-4 flex items-center justify-between group hover:bg-slate-50 transition-colors">
+                            <div key={dep.id} className="px-6 py-4 flex items-center justify-between group hover:bg-background transition-colors">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${dep.status === 'Success' ? 'bg-green-100 text-green-600' :
                                         dep.status === 'Building' ? 'bg-blue-100 text-blue-600 animate-pulse' :
-                                            'bg-red-100 text-red-600'
+                                            'bg-red-100 text-error'
                                         }`}>
                                         {dep.status === 'Success' ? <Check size={18} /> :
                                             dep.status === 'Building' ? <RotateCw size={18} /> :
@@ -1384,9 +1421,9 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${dep.status === 'Success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
                                                 }`}>{dep.status}</span>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                                        <p className="text-xs text-textSecondary mt-1 flex items-center gap-2">
                                             <GitCommit size={12} /> {dep.commit}
-                                            <span className="text-slate-300">|</span>
+                                            <span className="text-textSecondary">|</span>
                                             <span className="italic">{dep.message}</span>
                                         </p>
                                     </div>
@@ -1403,27 +1440,27 @@ const DeploymentsTab: React.FC<{ service: Service }> = ({ service }) => {
                         ))}
                     </div>
                 ) : (
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/50">
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-background/50">
                         {(service.deployments || []).map((dep, idx) => (
-                            <div key={dep.id} className="bg-white p-5 rounded-xl border border-slate-200 hover:border-primary/40 hover:shadow-lg transition-all group flex flex-col hover:-translate-y-0.5 duration-300">
+                            <div key={dep.id} className="bg-white p-5 rounded-xl border border-border hover:border-primary/40 hover:shadow-lg transition-all group flex flex-col hover:-translate-y-0.5 duration-300">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border border-white shadow-sm ${dep.status === 'Success' ? 'bg-green-100 text-green-600' :
                                         dep.status === 'Building' ? 'bg-blue-100 text-blue-600' :
-                                            'bg-red-100 text-red-600'
+                                            'bg-red-100 text-error'
                                         }`}>
                                         {dep.status === 'Success' ? <Check size={14} /> :
                                             dep.status === 'Building' ? <RotateCw size={14} /> :
                                                 <Info size={14} />}
                                     </div>
-                                    <span className="text-xs font-mono text-slate-300 bg-slate-100 px-2 py-0.5 rounded">#{dep.id.split('_')[1]}</span>
+                                    <span className="text-xs font-mono text-textSecondary bg-slate-100 px-2 py-0.5 rounded">#{dep.id.split('_')[1]}</span>
                                 </div>
 
                                 <h4 className="font-bold text-slate-800 text-sm mb-1 line-clamp-2 leading-tight">{dep.message}</h4>
 
                                 <div className="mt-auto space-y-3 pt-4">
-                                    <div className="flex items-center gap-2 text-xs text-slate-500 font-mono bg-slate-50 p-1.5 rounded border border-slate-100">
+                                    <div className="flex items-center gap-2 text-xs text-textSecondary font-mono bg-background p-1.5 rounded border border-slate-100">
                                         <GitBranch size={12} className="text-slate-400" /> {dep.branch}
-                                        <span className="text-slate-300 mx-1">|</span>
+                                        <span className="text-textSecondary mx-1">|</span>
                                         <span className="text-slate-400">{dep.commit.substring(0, 7)}</span>
                                     </div>
 
@@ -1529,13 +1566,13 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
                 <div className="flex bg-slate-200 p-1 rounded-lg">
                     <button
                         onClick={() => setMode('simple')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'simple' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'simple' ? 'bg-white shadow-sm text-slate-800' : 'text-textSecondary'}`}
                     >
                         Simple
                     </button>
                     <button
                         onClick={() => setMode('raw')}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'raw' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${mode === 'raw' ? 'bg-white shadow-sm text-slate-800' : 'text-textSecondary'}`}
                     >
                         Raw .env
                     </button>
@@ -1554,11 +1591,11 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
                 </button>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
                 {mode === 'simple' ? (
                     <div className="divide-y divide-slate-100">
                         {localEnvVars.map((env, i) => (
-                            <div key={i} className="p-3 flex items-start gap-3 group hover:bg-slate-50 transition-colors">
+                            <div key={i} className="p-3 flex items-start gap-3 group hover:bg-background transition-colors">
                                 <div className="flex-1 space-y-1">
                                     <input
                                         type="text"
@@ -1572,7 +1609,7 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
                                         type="text"
                                         value={env.value}
                                         onChange={(e) => handleUpdate(i, env.key, e.target.value)}
-                                        className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded px-2 py-1.5 focus:border-primary focus:outline-none"
+                                        className="w-full text-sm text-slate-600 bg-background border border-border rounded px-2 py-1.5 focus:border-primary focus:outline-none"
                                         placeholder="Value"
                                         readOnly={env.locked}
                                     />
@@ -1581,7 +1618,7 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
                                     {env.locked ? (
                                         <LockIcon size={16} className="text-amber-500" />
                                     ) : (
-                                        <button onClick={() => handleDelete(i)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+                                        <button onClick={() => handleDelete(i)} className="p-2 text-textSecondary hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
                                     )}
                                 </div>
                             </div>

@@ -30,6 +30,10 @@ docs/
 ├── QUICK_START.md              # Início rápido
 ├── TROUBLESHOOTING.md          # Solução de problemas
 ├── API.md                      # Documentação da API
+├── ROADMAP.md                  # 🆕 Roadmap completo com próximos passos
+├── IMPROVEMENTS.md             # 🆕 Lista detalhada de melhorias sugeridas
+├── PERFORMANCE.md              # 🆕 Guia de otimizações implementadas
+├── INTEGRATION.md              # 🆕 Guia de integração frontend-backend
 ├── NEXT_STEPS.md               # Roadmap e próximos passos
 ├── TESTING_CHECKLIST.md        # Checklist de testes
 │
@@ -44,6 +48,25 @@ docs/
 └── architecture/              # Arquitetura do sistema
     └── 01-system-architecture.md
 ```
+
+## 📖 Documentos Principais
+
+### 🗺️ Planejamento e Roadmap
+
+- **[ROADMAP.md](./ROADMAP.md)** - Roadmap completo com próximos passos priorizados por impacto
+- **[IMPROVEMENTS.md](./IMPROVEMENTS.md)** - Lista detalhada de melhorias sugeridas (UX, Performance, Segurança)
+- **[NEXT_STEPS.md](./NEXT_STEPS.md)** - Próximos passos técnicos imediatos
+- **[PLANO_IMPLEMENTACAO.md](./PLANO_IMPLEMENTACAO.md)** - Plano de implementação detalhado
+
+### ⚡ Performance e Otimização
+
+- **[PERFORMANCE.md](./PERFORMANCE.md)** - Guia completo de otimizações implementadas
+- **[INTEGRATION.md](./INTEGRATION.md)** - Guia de integração frontend-backend
+
+### 📡 API e Desenvolvimento
+
+- **[API.md](./API.md)** - Documentação completa da API REST
+- **[TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md)** - Checklist de testes
 
 ---
 
@@ -81,7 +104,9 @@ A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um �
 | Entender uma feature | [Domain Docs](./domains/) |
 | Desenvolver nova feature | [Domain Docs](./domains/) + [Plano de Implementação](./PLANO_IMPLEMENTACAO.md) |
 | Entender arquitetura | [System Architecture](./architecture/01-system-architecture.md) |
-| Ver roadmap | [NEXT_STEPS.md](./NEXT_STEPS.md) |
+| Ver roadmap | [ROADMAP.md](./ROADMAP.md) ou [NEXT_STEPS.md](./NEXT_STEPS.md) |
+| Ver melhorias sugeridas | [IMPROVEMENTS.md](./IMPROVEMENTS.md) |
+| Ver otimizações | [PERFORMANCE.md](./PERFORMANCE.md) |
 | Ver análise técnica | [Review Geral](./REVIEW_GERAL.md) |
 
 ---

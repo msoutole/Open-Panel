@@ -5,6 +5,50 @@
 
 ---
 
+## [2024-01-XX] - Remoção Completa de Dados Mockados e Integração Total
+
+### ✨ Adicionado
+
+#### Backend
+- **Métricas**: Nova rota `/api/metrics/*` com endpoints para métricas do sistema e containers
+- **Audit Logs**: Nova rota `/api/audit/*` para consulta e filtros de logs de auditoria
+- **Estatísticas**: Nova rota `/api/stats/*` para estatísticas agregadas do dashboard
+- **WebSockets**: Gateways para logs (`/ws/logs`) e métricas (`/ws/metrics`) em tempo real
+- **Serviço de Métricas**: `MetricsService` para coleta de métricas do sistema e containers
+
+#### Frontend
+- **Hooks Customizados**: `useWebSocket`, `useLogs`, `useMetrics` para integração em tempo real
+- **API Service**: Funções completas para métricas, audit logs e estatísticas
+- **Estados de Loading**: Skeleton loaders e indicadores de carregamento em todos os componentes
+- **Tratamento de Erros**: Mensagens amigáveis e retry automático
+
+#### Documentação
+- **INTEGRATION.md**: Novo guia completo de integração frontend-backend
+- **API.md**: Documentação atualizada com novos endpoints de métricas, audit logs e stats
+
+### 🔄 Modificado
+
+- **DashboardView**: Conectado com APIs reais de métricas e estatísticas, WebSocket para atualização em tempo real
+- **SettingsView**: Conectado com API de usuários, CRUD completo implementado
+- **SecurityView**: Conectado com API de audit logs e WebSocket de eventos Docker
+- **GeminiChat**: Ferramentas mockadas substituídas por chamadas reais à API
+- **ServiceDetailView**: Conectado com WebSockets para logs e métricas em tempo real
+
+### ❌ Removido
+
+- **Dados Mockados**: Removidos `PROJECTS`, `USERS_MOCK`, `AUDIT_LOGS`, `CPU_DATA`, `NETWORK_DATA`, `INITIAL_LOGS` de `constants.ts`
+- **Mock Service**: Arquivo `mockService.ts` deletado completamente
+- **Ferramentas Inseguras**: `execute_shell_command` e `read_file` removidas do GeminiChat por questões de segurança
+
+### 🚀 Melhorias
+
+- **Performance**: Implementado cache e debounce para métricas em tempo real
+- **UX**: Estados de loading e empty states em todos os componentes
+- **Segurança**: Autenticação obrigatória em todos os WebSockets, rate limiting
+- **Tratamento de Erros**: Mensagens de erro amigáveis e retry automático
+
+---
+
 ## 🎯 Objetivo
 
 Revisão completa e organização do repositório OpenPanel, incluindo documentação, scripts, estrutura de pastas e arquivos de configuração.

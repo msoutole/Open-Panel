@@ -27,12 +27,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={selectId}
             className={`w-full px-4 py-3 border rounded-lg text-textPrimary bg-white
-              focus:outline-none transition-all appearance-none cursor-pointer
+              focus:outline-none transition-all duration-200 appearance-none cursor-pointer
               ${error
                 ? 'border-error focus:border-error focus:ring-4 focus:ring-error/10'
                 : 'border-border focus:border-primary focus:ring-4 focus:ring-primary/10'
               }
-              disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed
+              disabled:bg-[#f1f5f9] disabled:text-[#94a3b8] disabled:cursor-not-allowed
               ${className}`}
             {...props}
           >
@@ -43,12 +43,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ))}
           </select>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-            <ChevronDown size={18} className="text-textSecondary" />
+            <ChevronDown size={18} strokeWidth={1.5} className="text-textSecondary" />
           </div>
         </div>
         {error && (
           <div className="flex items-center gap-1 mt-1">
-            <AlertCircle size={14} className="text-error" />
+            <AlertCircle size={14} strokeWidth={2} className="text-error" />
             <p className="text-xs text-error">{error}</p>
           </div>
         )}
