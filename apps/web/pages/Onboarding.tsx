@@ -654,7 +654,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-border text-center text-xs text-textSecondary">
-            <p>© 2024 Soullabs. {LL.onboarding.footer()}</p>
+            <p>© 2025 Soullabs. {LL.onboarding.footer()}</p>
           </div>
         </div>
       </div>

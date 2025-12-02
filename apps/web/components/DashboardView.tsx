@@ -29,7 +29,7 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, subtext, children, className = "", onRemove, trend, accentColor = "bg-primary" }) => (
-  <div className={`bg-card p-6 rounded-xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 group relative overflow-hidden h-full ${className}`}>
+  <div className={`bg-card p-4 sm:p-6 rounded-xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 group relative overflow-hidden h-full ${className}`}>
     <div className={`absolute top-0 left-0 w-full h-1 ${accentColor}`}></div>
     {onRemove && (
       <button
@@ -613,9 +613,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
   );
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
       {/* Host Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {isLoadingMetrics && allWidgets.length === 0 ? (
           Array.from({ length: 4 }).map((_, idx) => (
             <SkeletonWidget key={idx} />
@@ -701,7 +701,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
               <Loader2 size={32} strokeWidth={1.5} className="animate-spin text-textSecondary" />
             </div>
           ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-fr">
               {filteredProjects.map(project => (
                 <ProjectCard
                   key={project.id}

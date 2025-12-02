@@ -33,6 +33,9 @@ const AppContent: React.FC = () => {
   
   // Sidebar state management
   const { isCollapsed, toggleSidebar } = useSidebar();
+  
+  // All hooks must be called before any early returns
+  const LL = useTranslations();
 
   // Detect mobile screen size
   useEffect(() => {
@@ -57,7 +60,7 @@ const AppContent: React.FC = () => {
   // Check onboarding status after login
   useEffect(() => {
     const checkOnboarding = async () => {
-      if (isLoggedIn && !showOnboarding) {
+      if (isLoggedIn) {
         try {
           // Use relative paths in development to leverage Vite proxy
           const getApiBaseUrl = (): string => {
@@ -85,7 +88,7 @@ const AppContent: React.FC = () => {
     };
 
     checkOnboarding();
-  }, [isLoggedIn, showOnboarding]);
+  }, [isLoggedIn]);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -112,8 +115,10 @@ const AppContent: React.FC = () => {
     setCurrentView('project_details');
   };
 
-  // Hooks must be called before any early returns
-  const LL = useTranslations();
+  // Wrapper function to convert string to ViewState for Header navigation
+  const handleNavigate = (view: string) => {
+    handleViewChange(view as ViewState);
+  };
 
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
@@ -162,6 +167,7 @@ const AppContent: React.FC = () => {
           title={getPageTitle(currentView)} 
           onLogout={handleLogout}
           onMenuToggle={toggleSidebar}
+          onNavigate={handleNavigate}
           isMobile={isMobile}
         />
 

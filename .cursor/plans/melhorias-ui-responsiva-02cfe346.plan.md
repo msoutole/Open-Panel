@@ -1,226 +1,295 @@
-<!-- 02cfe346-513d-4408-8900-4220a23d304b 76372653-788f-4d52-8807-3cec4ad90019 -->
-# Melhorias de UI e Responsividade
+<!-- 02cfe346-513d-4408-8900-4220a23d304b 2c573d46-a8d7-4ed4-ad5a-b616f4d1c8d0 -->
+# Otimização de Manutenabilidade no Monorepo
 
-## Objetivos
+## Objetivo
 
-1. Melhorar a visualização dos dropdowns de perfil e notificações no Header
-2. Implementar sidebar retrátil com animação suave
-3. Tornar toda a aplicação responsiva para mobile, tablet e desktop
-4. Definir Português Brasileiro como linguagem primária da aplicação
-5. Implementar CRUD completo para todas as funcionalidades presentes
+Refatorar os arquivos grandes de rotas em módulos menores, adicionar documentação JSDoc completa e criar arquivos CONTEXT.md para melhorar a manutenabilidade e facilitar o trabalho de LLMs.
 
-## Arquivos a Modificar
+## Estratégias de Otimização
 
-### 1. Header Component (`apps/web/components/Header.tsx`)
+### 1. Modularização
 
-- **Melhorias no dropdown de perfil:**
-- Adicionar avatar com inicial do usuário ou imagem
-- Melhorar espaçamento e hierarquia visual
-- Adicionar separadores visuais mais claros
-- Melhorar estados hover e transições
+Dividir arquivos grandes (>300 linhas) em módulos menores com responsabilidade única:
 
-- **Melhorias no dropdown de notificações:**
-- Adicionar scroll suave quando houver muitas notificações
-- Melhorar visualização de notificações não lidas
-- Adicionar indicadores visuais mais claros
-- Melhorar espaçamento entre itens
+- Cada handler em arquivo separado
+- Separação clara entre rotas, handlers, services e tipos
+- Arquivos menores facilitam compreensão por LLMs
 
-### 2. Sidebar Component (`apps/web/components/Sidebar.tsx`)
+### 2. Documentação Inline
 
-- **Implementar sidebar retrátil:**
-- Adicionar estado de colapso/expansão
-- Criar versão compacta mostrando apenas ícones quando retraída
-- Adicionar botão toggle para expandir/retrair
-- Implementar animação suave de transição
-- Ajustar largura: 64px (retraída) / 256px (expandida)
-- Adicionar tooltips nos ícones quando retraída
+JSDoc completo em todas as funções públicas:
 
-### 3. App Component (`apps/web/App.tsx`)
+- Descrição detalhada do que a função faz
+- Parâmetros documentados com tipos e descrições
+- Retornos documentados
+- Exemplos de uso quando necessário
+- Erros possíveis documentados
 
-- **Gerenciar estado da sidebar:**
-- Adicionar estado `isSidebarCollapsed` no AppContent
-- Passar estado e handler para Sidebar
-- Ajustar margem do conteúdo principal baseado no estado da sidebar
-- Implementar responsividade: sidebar oculta em mobile, overlay em tablet
+### 3. Tipos Bem Definidos
 
-### 4. DashboardView Component (`apps/web/components/DashboardView.tsx`)
+Eliminar uso de `any` e criar interfaces documentadas:
 
-- **Melhorar responsividade:**
-- Ajustar grid de cards para diferentes breakpoints
-- Mobile: 1 coluna
-- Tablet: 2 colunas  
-- Desktop: 4 colunas
-- Melhorar padding e espaçamento em telas menores
+- Tipos específicos para cada domínio
+- Interfaces bem nomeadas e documentadas
+- Tipos compartilhados em `packages/shared`
+- Comentários em campos de interfaces quando necessário
 
-### 5. Header Component - Responsividade (`apps/web/components/Header.tsx`)
+### 4. Arquivos de Contexto
 
-- **Adaptações mobile:**
-- Ocultar barra de busca em telas pequenas
-- Ajustar tamanho dos dropdowns para não ultrapassar viewport
-- Melhorar posicionamento dos dropdowns em mobile
+Criar CONTEXT.md em cada módulo principal:
 
-### 6. Internacionalização - Português Brasileiro (`apps/web/src/i18n/`)
+- Visão geral do domínio
+- Entidades principais e relacionamentos
+- Fluxos principais documentados
+- Dependências (services, middlewares)
+- Regras de negócio
+- Endpoints documentados com exemplos
 
-- **Definir PT-BR como linguagem primária:**
-- Configurar i18n com Português Brasileiro como padrão
-- Traduzir todos os textos da interface para PT-BR
-- Atualizar mensagens de erro e validação
-- Traduzir tooltips e placeholders
-- Garantir consistência terminológica
-- Atualizar documentação de componentes com textos em PT-BR
+## Documentação de Referência
 
-### 7. CRUD Completo - Todas as Funcionalidades
+Os seguintes documentos foram criados como guia para esta refatoração:
 
-- **Projetos:**
-- [x] Create (Criar projeto)
-- [x] Read (Listar e visualizar projetos)
-- [ ] Update (Editar projeto existente)
-- [ ] Delete (Excluir projeto)
+- **`docs/LLM_OPTIMIZATION.md`** - Guia completo com estratégias práticas de otimização
+- **`docs/LLM_BEST_PRACTICES.md`** - Padrões e convenções de código para LLMs
+- **`docs/REFACTORING_EXAMPLE.md`** - Exemplo prático mostrando refatoração de `projects.ts`
+- **`docs/LLM_OPTIMIZATION_SUMMARY.md`** - Resumo executivo e recomendações
 
-- **Serviços/Containers:**
-- [x] Create (Criar serviço)
-- [x] Read (Listar e visualizar serviços)
-- [ ] Update (Editar serviço)
-- [ ] Delete (Excluir serviço)
+Estes documentos devem ser consultados durante a implementação para garantir consistência e seguir as melhores práticas estabelecidas.
 
-- **Usuários (IAM):**
-- [ ] Create (Criar usuário)
-- [ ] Read (Listar e visualizar usuários)
-- [ ] Update (Editar usuário)
-- [ ] Delete (Excluir usuário)
+## Arquivos Identificados para Refatoração
 
-- **Backups:**
-- [ ] Create (Criar backup manual)
-- [x] Read (Listar backups)
-- [ ] Update (Editar configurações de backup)
-- [ ] Delete (Excluir backup)
+### Prioridade Alta (Arquivos > 400 linhas)
 
-- **Configurações:**
-- [ ] Create (Criar configuração)
-- [x] Read (Visualizar configurações)
-- [ ] Update (Atualizar configurações)
-- [ ] Delete (Remover configuração)
+1. `apps/api/src/routes/projects.ts` (440 linhas)
+2. `apps/api/src/routes/containers.ts` (500 linhas)
+3. `apps/api/src/routes/builds.ts` (466 linhas)
 
-- **Logs de Segurança:**
-- [ ] Create (Registrar evento de segurança)
-- [x] Read (Visualizar logs)
-- [ ] Update (Marcar como resolvido)
-- [ ] Delete (Arquivar logs antigos)
+## Estrutura Proposta
 
-## Breakpoints e Responsividade
+### Para cada rota grande, criar estrutura modular:
 
-### Mobile (< 640px)
+```
+apps/api/src/routes/{domain}/
+├── CONTEXT.md              # Documentação completa do domínio
+├── index.ts                # Exporta e registra todas as rotas (~30 linhas)
+├── handlers/
+│   ├── list.ts            # GET /{domain}
+│   ├── create.ts          # POST /{domain}
+│   ├── read.ts            # GET /{domain}/:id
+│   ├── update.ts          # PUT /{domain}/:id
+│   ├── delete.ts          # DELETE /{domain}/:id
+│   └── [sub-resources].ts # Handlers de sub-recursos
+├── types.ts               # Tipos específicos deste módulo
+└── validators.ts          # Validações Zod (se necessário)
+```
 
-- Sidebar oculta por padrão, acessível via botão hamburger
-- Header com elementos essenciais apenas
-- Grid de 1 coluna no dashboard
-- Dropdowns com largura adaptada ao viewport
+## Fase 1: Refatorar `projects.ts`
 
-### Tablet (640px - 1024px)
+### 1.1 Criar estrutura de diretórios
 
-- Sidebar retrátil por padrão ou overlay
-- Grid de 2 colunas no dashboard
-- Header com busca condicional
+- Criar `apps/api/src/routes/projects/`
+- Criar subdiretório `handlers/`
 
-### Desktop (> 1024px)
+### 1.2 Extrair handlers individuais
 
-- Sidebar expandida por padrão
-- Grid de 4 colunas no dashboard
-- Todos os elementos visíveis
+- `handlers/list.ts`: GET /projects (listar projetos)
+- `handlers/create.ts`: POST /projects (criar projeto)
+- `handlers/read.ts`: GET /projects/:projectId (ler projeto)
+- `handlers/update.ts`: PUT /projects/:projectId (atualizar projeto)
+- `handlers/delete.ts`: DELETE /projects/:projectId (deletar projeto)
+- `handlers/env-vars.ts`: CRUD de variáveis de ambiente (GET, POST, PUT, DELETE)
 
-## Implementação Técnica
+### 1.3 Criar arquivo index.ts
 
-### Hook para gerenciar sidebar
+- Registrar todas as rotas usando os handlers
+- Manter compatibilidade com importação atual
 
-- Criar hook `useSidebar` para gerenciar estado de colapso
-- Persistir preferência no localStorage
-- Detectar tamanho da tela para comportamento padrão
+### 1.4 Adicionar JSDoc completo
 
-### Animações
+- Documentar todas as funções handlers
+- Incluir descrição, parâmetros, retornos, exemplos, erros
+- Documentar tipos em `types.ts`
 
-- Usar Tailwind transitions para sidebar
-- Animar largura, opacidade e transform
-- Duração: 200-300ms para transições suaves
+### 1.5 Criar CONTEXT.md
 
-### Acessibilidade
+- Visão geral do domínio Projects
+- Entidades principais e relacionamentos
+- Fluxos principais (criar, atualizar, deletar)
+- Dependências (services, middlewares)
+- Regras de negócio
+- Endpoints documentados
 
-- Adicionar aria-labels nos botões
-- Manter navegação por teclado funcional
-- Tooltips acessíveis quando sidebar retraída
+### 1.6 Criar ProjectService (se necessário)
 
-### Internacionalização (i18n)
+- Extrair lógica de negócio para `apps/api/src/services/project.service.ts`
+- Handlers devem apenas chamar o service
 
-- Verificar configuração atual do i18n em `apps/web/src/i18n/`
-- Definir Português Brasileiro (pt-BR) como locale padrão
-- Criar/atualizar arquivos de tradução em `apps/web/src/i18n/locales/pt-BR/`
-- Traduzir todos os textos hardcoded nos componentes
-- Usar hooks de tradução (`useTranslation`) em todos os componentes
-- Garantir que mensagens de API também sejam traduzidas quando possível
+## Fase 2: Refatorar `containers.ts`
 
-### CRUD Completo
+### 2.1 Criar estrutura modular
 
-**Padrão de Implementação:**
+- `apps/api/src/routes/containers/`
+- Handlers: list, create, read, update, delete, logs, metrics, actions (start/stop/restart)
 
-- Criar modais/formulários para Create e Update
-- Implementar validação de formulários (usar biblioteca como react-hook-form + zod)
-- Adicionar confirmação para operações Delete
-- Implementar loading states durante operações
-- Adicionar tratamento de erros com mensagens traduzidas
-- Atualizar listas automaticamente após operações CRUD
-- Implementar otimistic updates quando apropriado
+### 2.2 Adicionar JSDoc completo
 
-**Endpoints de API necessários:**
+- Documentar todos os handlers
+- Documentar schemas de validação
 
-- Verificar endpoints existentes em `apps/api/`
-- Criar endpoints faltantes para Update e Delete
-- Garantir validação adequada no backend
-- Implementar tratamento de erros consistente
+### 2.3 Criar CONTEXT.md
 
-**Componentes a criar/atualizar:**
+- Documentar domínio de containers
+- Integração com Docker
+- Fluxos de lifecycle
 
-- Modais de edição para cada entidade
-- Formulários de criação/edição
-- Confirmações de exclusão
-- Feedback visual (toasts) para sucesso/erro
+## Fase 3: Refatorar `builds.ts`
 
-#### UI e Responsividade (Concluído)
+### 3.1 Criar estrutura modular
 
-- [x] Melhorar visualização do dropdown de perfil no Header com melhor espaçamento, avatar e separadores visuais
-- [x] Melhorar visualização do dropdown de notificações com scroll suave e indicadores visuais aprimorados
-- [x] Implementar sidebar retrátil com estados expandido/retraído, animações e botão toggle
-- [x] Adicionar gerenciamento de estado da sidebar no App.tsx e ajustar layout do conteúdo principal
-- [x] Tornar Header, Sidebar e DashboardView totalmente responsivos para mobile, tablet e desktop
-- [x] Atualizar documentação em docs/ com as melhorias implementadas
+- `apps/api/src/routes/builds/`
+- Handlers: create, read, list, status, logs, cancel
 
-#### Internacionalização - Português Brasileiro
+### 3.2 Adicionar JSDoc completo
 
-- [ ] Configurar i18n com PT-BR como linguagem padrão
-- [ ] Traduzir todos os textos da interface para Português Brasileiro
-- [ ] Traduzir mensagens de erro e validação
-- [ ] Traduzir tooltips, placeholders e labels
-- [ ] Traduzir notificações e toasts
-- [ ] Garantir consistência terminológica em toda aplicação
-- [ ] Atualizar documentação de componentes com textos em PT-BR
+- Documentar processo de build
+- Documentar integração com Git e Docker
 
-#### CRUD Completo - Funcionalidades
+### 3.3 Criar CONTEXT.md
 
-- [ ] Implementar Update (Editar) para Projetos
-- [ ] Implementar Delete (Excluir) para Projetos
-- [ ] Implementar Update (Editar) para Serviços/Containers
-- [ ] Implementar Delete (Excluir) para Serviços/Containers
-- [ ] Implementar CRUD completo para Usuários (IAM)
-- [ ] Implementar CRUD completo para Backups
-- [ ] Implementar CRUD completo para Configurações
-- [ ] Implementar operações de Update e Delete para Logs de Segurança
-- [ ] Adicionar confirmações de exclusão em todas as operações Delete
-- [ ] Implementar validações adequadas em todas as operações CRUD
-- [ ] Adicionar feedback visual (toasts) para todas as operações CRUD
+- Documentar domínio de builds
+- Fluxos de build (Dockerfile, Nixpacks, Paketo)
+- Integração com Git
+
+## Fase 4: Melhorar Services Existentes
+
+### 4.1 Adicionar JSDoc em serviços principais
+
+- `apps/api/src/services/docker.ts`
+- `apps/api/src/services/build.ts`
+- `apps/api/src/services/git.ts`
+- `apps/api/src/services/backup.ts`
+- `apps/api/src/services/traefik.ts`
+
+### 4.2 Melhorar tipos
+
+- Eliminar uso de `any` onde possível
+- Criar interfaces documentadas
+
+## Fase 5: Atualizar Imports
+
+### 5.1 Atualizar `apps/api/src/index.ts`
+
+- Manter compatibilidade com imports existentes
+- Verificar que todas as rotas funcionam
+
+### 5.2 Testar integração
+
+- Verificar que não há quebras
+- Testar endpoints principais
+
+## Padrões de Código
+
+### JSDoc Template para Handlers
+
+````typescript
+/**
+ * [Título descritivo]
+ * 
+ * [Descrição detalhada do que o handler faz]
+ * 
+ * **Fluxo de Execução**:
+ * 1. [Passo 1]
+ * 2. [Passo 2]
+ * 
+ * **Permissões Requeridas**:
+ * - [Permissão]
+ * 
+ * @param c - Context do Hono com usuário autenticado
+ * @returns Resposta JSON
+ * 
+ * @throws {HTTPException} 400 - [Quando ocorre]
+ * @throws {HTTPException} 404 - [Quando ocorre]
+ * 
+ * @example
+ * ```typescript
+ * GET /api/projects
+ * ```
+ */
+````
+
+### Estrutura de Handler
+
+```typescript
+import { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+import type { Variables } from '../../types';
+
+export const listProjectsHandler = async (
+  c: Context<{ Variables: Variables }>
+) => {
+  // Implementação
+};
+```
+
+## Arquivos a Modificar/Criar
+
+### Novos Arquivos (Projects)
+
+- `apps/api/src/routes/projects/CONTEXT.md`
+- `apps/api/src/routes/projects/index.ts`
+- `apps/api/src/routes/projects/handlers/list.ts`
+- `apps/api/src/routes/projects/handlers/create.ts`
+- `apps/api/src/routes/projects/handlers/read.ts`
+- `apps/api/src/routes/projects/handlers/update.ts`
+- `apps/api/src/routes/projects/handlers/delete.ts`
+- `apps/api/src/routes/projects/handlers/env-vars.ts`
+- `apps/api/src/routes/projects/types.ts`
+
+### Novos Arquivos (Containers)
+
+- `apps/api/src/routes/containers/CONTEXT.md`
+- `apps/api/src/routes/containers/index.ts`
+- `apps/api/src/routes/containers/handlers/*.ts` (múltiplos handlers)
+
+### Novos Arquivos (Builds)
+
+- `apps/api/src/routes/builds/CONTEXT.md`
+- `apps/api/src/routes/builds/index.ts`
+- `apps/api/src/routes/builds/handlers/*.ts` (múltiplos handlers)
+
+### Arquivos a Modificar
+
+- `apps/api/src/index.ts` (manter compatibilidade de imports)
+- `apps/api/src/services/*.ts` (adicionar JSDoc)
+
+### Arquivos a Remover (após migração)
+
+- `apps/api/src/routes/projects.ts` (substituído por módulo)
+- `apps/api/src/routes/containers.ts` (substituído por módulo)
+- `apps/api/src/routes/builds.ts` (substituído por módulo)
+
+## Critérios de Sucesso
+
+1. Cada arquivo handler tem menos de 150 linhas
+2. Todos os handlers têm JSDoc completo
+3. Arquivo CONTEXT.md criado para cada módulo
+4. Imports mantêm compatibilidade
+5. Nenhuma funcionalidade quebrada
+6. Tipos bem definidos (sem `any` desnecessário)
+
+## Ordem de Implementação
+
+1. **Fase 1**: Projects (mais usado, serve como template)
+2. **Fase 2**: Containers (complexo, valida padrão)
+3. **Fase 3**: Builds (completa refatoração)
+4. **Fase 4**: Melhorar services (documentação)
+5. **Fase 5**: Validar e testar tudo
 
 ### To-dos
 
-- [x] Melhorar visualização do dropdown de perfil no Header com melhor espaçamento, avatar e separadores visuais
-- [x] Melhorar visualização do dropdown de notificações com scroll suave e indicadores visuais aprimorados
-- [x] Implementar sidebar retrátil com estados expandido/retraído, animações e botão toggle
-- [x] Adicionar gerenciamento de estado da sidebar no App.tsx e ajustar layout do conteúdo principal
-- [x] Tornar Header, Sidebar e DashboardView totalmente responsivos para mobile, tablet e desktop
-- [x] Atualizar documentação em docs/ com as melhorias implementadas
+- [ ] Melhorar visualização do dropdown de perfil no Header com melhor espaçamento, avatar e separadores visuais
+- [ ] Melhorar visualização do dropdown de notificações com scroll suave e indicadores visuais aprimorados
+- [ ] Implementar sidebar retrátil com estados expandido/retraído, animações e botão toggle
+- [ ] Adicionar gerenciamento de estado da sidebar no App.tsx e ajustar layout do conteúdo principal
+- [ ] Tornar Header, Sidebar e DashboardView totalmente responsivos para mobile, tablet e desktop
+- [ ] Atualizar documentação em docs/ com as melhorias implementadas

@@ -46,7 +46,8 @@ docs/
 │   └── storage.md             # Backups e databases
 │
 └── architecture/              # Arquitetura do sistema
-    └── 01-system-architecture.md
+    ├── 01-system-architecture.md
+    └── 02-microservices-proposal.md  # Proposta de microserviços
 ```
 
 ## 📖 Documentos Principais
@@ -62,6 +63,13 @@ docs/
 
 - **[PERFORMANCE.md](./PERFORMANCE.md)** - Guia completo de otimizações implementadas
 - **[INTEGRATION.md](./INTEGRATION.md)** - Guia de integração frontend-backend
+
+### 🤖 Otimização para LLMs
+
+- **[LLM_OPTIMIZATION.md](./LLM_OPTIMIZATION.md)** - Guia completo de otimização para LLMs
+- **[LLM_BEST_PRACTICES.md](./LLM_BEST_PRACTICES.md)** - Boas práticas e padrões de código
+- **[REFACTORING_EXAMPLE.md](./REFACTORING_EXAMPLE.md)** - Exemplo prático de refatoração
+- **[LLM_OPTIMIZATION_SUMMARY.md](./LLM_OPTIMIZATION_SUMMARY.md)** - Resumo executivo e recomendações
 
 ### 📡 API e Desenvolvimento
 
@@ -108,6 +116,7 @@ A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um �
 | Ver melhorias sugeridas | [IMPROVEMENTS.md](./IMPROVEMENTS.md) |
 | Ver otimizações | [PERFORMANCE.md](./PERFORMANCE.md) |
 | Ver análise técnica | [Review Geral](./REVIEW_GERAL.md) |
+| Otimizar para LLMs | [LLM_OPTIMIZATION.md](./LLM_OPTIMIZATION.md) |
 
 ---
 

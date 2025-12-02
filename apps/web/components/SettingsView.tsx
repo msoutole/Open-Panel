@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { getUsers, deleteUser } from '../services/api';
 import { useToast } from '../hooks/useToast';
+import { useTranslations } from '../src/i18n/i18n-react';
 import { Shield, Key, User as UserIcon, HardDrive, GitBranch, Terminal, Cpu, Box, Trash2, Plus, Server, Activity, Github, Gitlab, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { DockerBuilder, GitToken } from '../types';
 
@@ -24,6 +25,7 @@ interface SettingsViewProps {
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
+    const LL = useTranslations();
     // State for Lists
     const [builders, setBuilders] = useState<DockerBuilder[]>([
         { id: 'b1', name: 'Standard Builder', cpuLimitCores: 2, memoryLimitMB: 2048, swapLimitMB: 4096, status: 'Ready' },
@@ -126,16 +128,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
         setIsBackupTesting(true);
         setTimeout(() => {
             setIsBackupTesting(false);
-            const providerName = backupProvider === 's3' ? 'S3-compatible storage' :
-                backupProvider === 'backblaze' ? 'Backblaze B2' : 'Local filesystem';
-            alert(`Connection successful! ${providerName} settings saved.`);
+            const providerName = backupProvider === 's3' ? LL.settings.s3CompatibleStorage() :
+                backupProvider === 'backblaze' ? LL.settings.backblazeB2() : LL.settings.localFilesystem();
+            alert(LL.settings.connectionSuccessful({ provider: providerName }));
         }, 1500);
     };
 
     const handleAddGitToken = () => {
         setGitTokens([...gitTokens, {
             id: `gt_${Date.now()}`,
-            name: 'New Git Connection',
+            name: LL.settings.newGitConnection(),
             provider: 'github',
             username: 'user-added',
             tokenMasked: 'ghp_newtoken●●●●●●',
@@ -146,13 +148,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
     };
 
     const handleRemoveToken = (id: string) => {
-        if (confirm("Revoke this token?")) {
+        if (confirm(LL.settings.revokeToken())) {
             setGitTokens(gitTokens.filter(t => t.id !== id));
         }
     };
 
     const handleAddBuilder = () => {
-        const name = prompt("Builder Name (e.g., Heavy Worker):");
+        const name = prompt(LL.settings.builderName());
         if (!name) return;
         setBuilders([...builders, {
             id: `b_${Date.now()}`,
@@ -165,7 +167,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
     };
 
     const handleRemoveBuilder = (id: string) => {
-        if (confirm("Remove this build environment?")) {
+        if (confirm(LL.settings.removeBuildEnvironment())) {
             setBuilders(builders.filter(b => b.id !== id));
         }
     };
@@ -176,19 +178,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
     );
 
     return (
-        <div className="p-8 max-w-6xl mx-auto space-y-8 pb-32">
+        <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-16 sm:pb-32">
 
             {/* Dynamic Header based on view */}
             <div>
                 <h2 className="text-2xl font-bold text-textPrimary tracking-tight">
-                    {view === 'users' ? 'Identity & Access Management' :
-                        view === 'backups' ? 'Backup & Data Recovery' :
-                            'System Configuration'}
+                    {view === 'users' ? LL.settings.identityAccessManagement() :
+                        view === 'backups' ? LL.settings.backupDataRecovery() :
+                            LL.settings.systemConfiguration()}
                 </h2>
                 <p className="text-textSecondary text-sm mt-1">
-                    {view === 'users' ? 'Manage organization members, RBAC roles, and API access tokens.' :
-                        view === 'backups' ? 'Configure snapshot schedules, retention policies, and S3 storage.' :
-                            'Global infrastructure settings, AI Provider selection, and MCP orchestration.'}
+                    {view === 'users' ? LL.settings.identityAccessManagementDesc() :
+                        view === 'backups' ? LL.settings.backupDataRecoveryDesc() :
+                            LL.settings.systemConfigurationDesc()}
                 </p>
             </div>
 
@@ -200,8 +202,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                             <UserIcon size={18} strokeWidth={1.5} />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-textPrimary">Users & Roles</h3>
-                            <p className="text-xs text-textSecondary">Active team members</p>
+                            <h3 className="font-semibold text-textPrimary">{LL.settings.usersRoles()}</h3>
+                            <p className="text-xs text-textSecondary">{LL.settings.activeTeamMembers()}</p>
                         </div>
                     </div>
                     <div className="p-6">
@@ -209,10 +211,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                             <div className="relative">
                                 <input
                                     type="text"
-                                    placeholder="Search users..."
+                                    placeholder={LL.settings.searchUsers()}
                                     value={userSearch}
                                     onChange={(e) => setUserSearch(e.target.value)}
-                                    className="pl-9 pr-4 py-2 border border-border rounded-lg text-sm w-64 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary bg-white text-textPrimary placeholder-textSecondary transition-all duration-200"
+                                    className="pl-9 pr-4 py-2 border border-border rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary bg-white text-textPrimary placeholder-textSecondary transition-all duration-200"
                                 />
                                 <UserIcon size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" />
                             </div>
@@ -220,17 +222,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                 onClick={handleInviteUser}
                                 className="text-sm bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md font-medium transition-all duration-200 active:scale-95"
                             >
-                                Invite Member
+                                {LL.settings.addUser()}
                             </button>
                         </div>
                         <table className="w-full text-sm">
                             <thead className="text-xs uppercase text-textSecondary font-medium bg-background rounded-lg">
                                 <tr>
-                                    <th className="text-left py-3 px-4 first:rounded-l-lg">User Details</th>
-                                    <th className="text-left py-3 px-4">Role</th>
-                                    <th className="text-left py-3 px-4">Security</th>
-                                    <th className="text-right py-3 px-4">Last Activity</th>
-                                    <th className="text-right py-3 px-4 last:rounded-r-lg">Action</th>
+                                    <th className="text-left py-3 px-4 first:rounded-l-lg">{LL.settings.userDetails()}</th>
+                                    <th className="text-left py-3 px-4">{LL.settings.role()}</th>
+                                    <th className="text-left py-3 px-4">{LL.security.status()}</th>
+                                    <th className="text-right py-3 px-4">{LL.settings.lastActivity()}</th>
+                                    <th className="text-right py-3 px-4 last:rounded-r-lg">{LL.settings.action()}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
@@ -238,7 +240,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                     <tr>
                                         <td colSpan={5} className="py-12 text-center">
                                             <Loader2 size={24} strokeWidth={1.5} className="animate-spin text-textSecondary mx-auto mb-2" />
-                                            <p className="text-sm text-textSecondary">Loading users...</p>
+                                            <p className="text-sm text-textSecondary">{LL.settings.loadingUsers()}</p>
                                         </td>
                                     </tr>
                                 ) : usersError ? (
@@ -252,7 +254,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                     <tr>
                                         <td colSpan={5} className="py-12 text-center">
                                             <p className="text-sm text-textSecondary">
-                                                {userSearch ? `No users found matching "${userSearch}".` : 'No users found.'}
+                                                {userSearch ? LL.settings.noUsersFound() : LL.settings.noUsersFound()}
                                             </p>
                                         </td>
                                     </tr>
@@ -310,13 +312,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                             <HardDrive size={18} />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-800">Storage & Retention</h3>
-                            <p className="text-xs text-slate-500">Manage disaster recovery</p>
+                            <h3 className="font-semibold text-slate-800">{LL.settings.storageRetention()}</h3>
+                            <p className="text-xs text-slate-500">{LL.settings.manageDisasterRecovery()}</p>
                         </div>
                     </div>
-                    <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                         <div className="space-y-6">
-                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Storage Provider</h4>
+                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{LL.settings.storageProvider()}</h4>
 
                             <div className="space-y-3">
                                 <label
@@ -331,8 +333,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                             : 'border-slate-300'
                                         }`}></div>
                                     <div className="flex-1">
-                                        <div className="text-sm font-bold text-slate-800">S3 Compatible Storage</div>
-                                        <div className="text-xs text-slate-500">AWS S3, MinIO, DigitalOcean Spaces</div>
+                                        <div className="text-sm font-bold text-slate-800">{LL.settings.s3CompatibleStorage()}</div>
+                                        <div className="text-xs text-slate-500">{LL.settings.s3CompatibleStorageDesc()}</div>
                                     </div>
                                     <HardDrive size={20} className={backupProvider === 's3' ? 'text-blue-500' : 'text-slate-400'} />
                                 </label>
@@ -349,8 +351,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                             : 'border-slate-300'
                                         }`}></div>
                                     <div className="flex-1">
-                                        <div className="text-sm font-bold text-slate-800">Backblaze B2</div>
-                                        <div className="text-xs text-slate-500">Cost-effective cloud storage</div>
+                                        <div className="text-sm font-bold text-slate-800">{LL.settings.backblazeB2()}</div>
+                                        <div className="text-xs text-slate-500">Armazenamento em nuvem econômico</div>
                                     </div>
                                     <HardDrive size={20} className={backupProvider === 'backblaze' ? 'text-orange-500' : 'text-slate-400'} />
                                 </label>
@@ -367,8 +369,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                             : 'border-slate-300'
                                         }`}></div>
                                     <div className="flex-1">
-                                        <div className="text-sm font-bold text-slate-800">Local Filesystem</div>
-                                        <div className="text-xs text-slate-500">Not recommended for production</div>
+                                        <div className="text-sm font-bold text-slate-800">{LL.settings.localFilesystem()}</div>
+                                        <div className="text-xs text-slate-500">Não recomendado para produção</div>
                                     </div>
                                     <Server size={20} className={backupProvider === 'local' ? 'text-slate-500' : 'text-slate-400'} />
                                 </label>
@@ -378,11 +380,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                 <div className="space-y-4 pt-2">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-semibold text-slate-500">
-                                            {backupProvider === 'backblaze' ? 'Application Key ID' : 'Access Key ID'}
+                                            {backupProvider === 'backblaze' ? LL.settings.applicationKeyId() : LL.settings.accessKeyId()}
                                         </label>
                                         <input
                                             type="text"
-                                            placeholder={backupProvider === 'backblaze' ? 'Your B2 Application Key ID' : 'Your AWS Access Key ID'}
+                                            placeholder={backupProvider === 'backblaze' ? LL.settings.applicationKeyIdPlaceholder() : LL.settings.accessKeyIdPlaceholder()}
                                             value={backupConfig.accessKeyId}
                                             onChange={(e) => setBackupConfig({ ...backupConfig, accessKeyId: e.target.value })}
                                             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
@@ -390,11 +392,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-semibold text-slate-500">
-                                            {backupProvider === 'backblaze' ? 'Application Key' : 'Secret Access Key'}
+                                            {backupProvider === 'backblaze' ? LL.settings.applicationKey() : LL.settings.secretAccessKey()}
                                         </label>
                                         <input
                                             type="password"
-                                            placeholder={backupProvider === 'backblaze' ? 'Your B2 Application Key' : 'Your AWS Secret Access Key'}
+                                            placeholder={backupProvider === 'backblaze' ? LL.settings.applicationKeyPlaceholder() : LL.settings.secretAccessKeyPlaceholder()}
                                             value={backupConfig.secretAccessKey}
                                             onChange={(e) => setBackupConfig({ ...backupConfig, secretAccessKey: e.target.value })}
                                             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
@@ -471,7 +473,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                 className="w-full bg-slate-900 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2"
                             >
                                 {isBackupTesting ? <Loader2 size={16} className="animate-spin" /> : null}
-                                {isBackupTesting ? 'Testing Connection...' : 'Save & Test Connection'}
+                                {isBackupTesting ? LL.settings.testingConnection() : LL.settings.saveTestConnection()}
                             </button>
                         </div>
                     </div>

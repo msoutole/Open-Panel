@@ -200,6 +200,7 @@ type RootTranslation = {
 		searchPlaceholder: string
 		notifications: string
 		markAllRead: string
+		clearAll: string
 		noNotifications: string
 		toggleMenu: string
 		userMenu: string
@@ -371,7 +372,24 @@ export type TranslationFunctions = {
 	projects: {
 		title: () => LocalizedString
 		create: () => LocalizedString
+		createProject: () => LocalizedString
 		noProjects: () => LocalizedString
+		projectName: () => LocalizedString
+		slug: () => LocalizedString
+		description: () => LocalizedString
+		projectType: () => LocalizedString
+		webService: () => LocalizedString
+		backendAPI: () => LocalizedString
+		database: () => LocalizedString
+		backgroundWorker: () => LocalizedString
+		nodejsPythonGo: () => LocalizedString
+		restGraphQLAPI: () => LocalizedString
+		postgresqlMySQL: () => LocalizedString
+		queueConsumerCronJob: () => LocalizedString
+		whatProjectDoes: () => LocalizedString
+		createError: () => LocalizedString
+		updateError: () => LocalizedString
+		projectNamePlaceholder: () => LocalizedString
 		status: {
 			active: () => LocalizedString
 			paused: () => LocalizedString
@@ -420,6 +438,7 @@ export type TranslationFunctions = {
 		searchPlaceholder: () => LocalizedString
 		notifications: () => LocalizedString
 		markAllRead: () => LocalizedString
+		clearAll: () => LocalizedString
 		noNotifications: () => LocalizedString
 		toggleMenu: () => LocalizedString
 		userMenu: () => LocalizedString
@@ -469,6 +488,151 @@ export type TranslationFunctions = {
 		projects: () => LocalizedString
 		securityLogs: () => LocalizedString
 		panel: () => LocalizedString
+	}
+	projectDetails: {
+		addService: () => LocalizedString
+		createNewService: () => LocalizedString
+		serviceName: () => LocalizedString
+		status: () => LocalizedString
+		imageType: () => LocalizedString
+		resources: () => LocalizedString
+		networking: () => LocalizedString
+		actions: () => LocalizedString
+	}
+	settings: {
+		identityAccessManagement: () => LocalizedString
+		identityAccessManagementDesc: () => LocalizedString
+		backupDataRecovery: () => LocalizedString
+		backupDataRecoveryDesc: () => LocalizedString
+		systemConfiguration: () => LocalizedString
+		systemConfigurationDesc: () => LocalizedString
+		usersRoles: () => LocalizedString
+		activeTeamMembers: () => LocalizedString
+		searchUsers: () => LocalizedString
+		addUser: () => LocalizedString
+		userDetails: () => LocalizedString
+		role: () => LocalizedString
+		lastActivity: () => LocalizedString
+		action: () => LocalizedString
+		noUsersFound: () => LocalizedString
+		loadingUsers: () => LocalizedString
+		errorLoadingUsers: () => LocalizedString
+		storageRetention: () => LocalizedString
+		manageDisasterRecovery: () => LocalizedString
+		storageProvider: () => LocalizedString
+		s3CompatibleStorage: () => LocalizedString
+		s3CompatibleStorageDesc: () => LocalizedString
+		backblazeB2: () => LocalizedString
+		localFilesystem: () => LocalizedString
+		applicationKeyId: () => LocalizedString
+		applicationKeyIdPlaceholder: () => LocalizedString
+		accessKeyId: () => LocalizedString
+		accessKeyIdPlaceholder: () => LocalizedString
+		applicationKey: () => LocalizedString
+		applicationKeyPlaceholder: () => LocalizedString
+		secretAccessKey: () => LocalizedString
+		secretAccessKeyPlaceholder: () => LocalizedString
+		saveTestConnection: () => LocalizedString
+		testConnection: () => LocalizedString
+		connectionSuccessful: (arg: { provider: string }) => LocalizedString
+		newGitConnection: () => LocalizedString
+		revokeToken: () => LocalizedString
+		builderName: () => LocalizedString
+		removeBuildEnvironment: () => LocalizedString
+	}
+	security: {
+		exportLogs: () => LocalizedString
+		exportingLogs: () => LocalizedString
+		preparingCsv: () => LocalizedString
+		exportSuccess: () => LocalizedString
+		exportError: () => LocalizedString
+		analyzeLogs: () => LocalizedString
+		analyzing: () => LocalizedString
+		timestamp: () => LocalizedString
+		action: () => LocalizedString
+		userEmail: () => LocalizedString
+		userId: () => LocalizedString
+		targetResource: () => LocalizedString
+		ipAddress: () => LocalizedString
+		status: () => LocalizedString
+	}
+	serviceDetail: {
+		projectServices: () => LocalizedString
+		overview: () => LocalizedString
+		environment: () => LocalizedString
+		networking: () => LocalizedString
+		metrics: () => LocalizedString
+		logs: () => LocalizedString
+		deployments: () => LocalizedString
+		advanced: () => LocalizedString
+		credentials: () => LocalizedString
+		backups: () => LocalizedString
+		console: () => LocalizedString
+		stop: () => LocalizedString
+		stopping: () => LocalizedString
+		start: () => LocalizedString
+		starting: () => LocalizedString
+		restart: () => LocalizedString
+		restarting: () => LocalizedString
+		deploy: () => LocalizedString
+		serviceRestarted: () => LocalizedString
+		serviceRestartedMessage: (arg: { name: string; containerId: string }) => LocalizedString
+		restartFailed: () => LocalizedString
+		serviceStarted: () => LocalizedString
+		serviceStartedMessage: (arg: { name: string }) => LocalizedString
+		startFailed: () => LocalizedString
+		serviceStopped: () => LocalizedString
+		serviceStoppedMessage: (arg: { name: string }) => LocalizedString
+		stopFailed: () => LocalizedString
+		deploymentTriggered: () => LocalizedString
+		deploymentTriggeredMessage: (arg: { name: string }) => LocalizedString
+		deployFailed: () => LocalizedString
+		containerLogs: () => LocalizedString
+		noLogsAvailable: () => LocalizedString
+		username: () => LocalizedString
+		password: () => LocalizedString
+		databaseName: () => LocalizedString
+		internalHost: () => LocalizedString
+		internalPort: () => LocalizedString
+		connectionString: () => LocalizedString
+		dangerZone: () => LocalizedString
+		dangerZoneDesc: () => LocalizedString
+		deleteService: () => LocalizedString
+		deleteServiceConfirm: () => LocalizedString
+		forceRebuild: () => LocalizedString
+		forceRebuildConfirm: () => LocalizedString
+		rebuildTriggered: () => LocalizedString
+		changesSaved: () => LocalizedString
+		failedToSave: () => LocalizedString
+		failedToDelete: () => LocalizedString
+		loadingBackups: () => LocalizedString
+		noBackupsFound: () => LocalizedString
+		restoreBackup: () => LocalizedString
+		restoreBackupConfirm: () => LocalizedString
+		deleteBackup: () => LocalizedString
+		deleteBackupConfirm: () => LocalizedString
+		failedToDeleteBackup: () => LocalizedString
+		addVariable: () => LocalizedString
+		cannotDeleteLocked: () => LocalizedString
+		failedToDeleteEnvVar: () => LocalizedString
+		allVarsMustHaveKey: () => LocalizedString
+		failedToSaveEnvVars: () => LocalizedString
+		failedToSaveSource: () => LocalizedString
+		noCredentialsPublicRepo: () => LocalizedString
+		addMoreCredentials: () => LocalizedString
+		sourceConfigurationSaved: () => LocalizedString
+		filename: () => LocalizedString
+		size: () => LocalizedString
+		date: () => LocalizedString
+		restore: () => LocalizedString
+		creating: () => LocalizedString
+		createBackup: () => LocalizedString
+		updateResources: () => LocalizedString
+		updating: () => LocalizedString
+		backupRestored: () => LocalizedString
+		restoreFailed: () => LocalizedString
+		backupDeleted: () => LocalizedString
+		deleteFailed: () => LocalizedString
 	}
 }
 

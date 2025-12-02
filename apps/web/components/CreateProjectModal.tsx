@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Loader2, Box, Database, Globe, Server, AlertCircle } from 'lucide-react';
 import { createProject } from '../services/api';
 import { Project } from '../types';
+import { useTranslations } from '../src/i18n/i18n-react';
 
 interface CreateProjectModalProps {
     isOpen: boolean;
@@ -10,6 +11,7 @@ interface CreateProjectModalProps {
 }
 
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onCreated }) => {
+    const LL = useTranslations();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -38,24 +40,24 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
             onCreated(newProject);
             onClose();
         } catch (err: any) {
-            setError(err.message || 'Failed to create project');
+            setError(err.message || LL.projects.createError());
         } finally {
             setLoading(false);
         }
     };
 
     const projectTypes = [
-        { id: 'WEB', label: 'Web Service', icon: Globe, desc: 'Node.js, Python, Go, etc.' },
-        { id: 'API', label: 'Backend API', icon: Server, desc: 'REST or GraphQL API' },
-        { id: 'DATABASE', label: 'Database', icon: Database, desc: 'PostgreSQL, MySQL, etc.' },
-        { id: 'WORKER', label: 'Background Worker', icon: Box, desc: 'Queue consumer, Cron job' },
+        { id: 'WEB', label: LL.projects.webService(), icon: Globe, desc: LL.projects.nodejsPythonGo() },
+        { id: 'API', label: LL.projects.backendAPI(), icon: Server, desc: LL.projects.restGraphQLAPI() },
+        { id: 'DATABASE', label: LL.projects.database(), icon: Database, desc: LL.projects.postgresqlMySQL() },
+        { id: 'WORKER', label: LL.projects.backgroundWorker(), icon: Box, desc: LL.projects.queueConsumerCronJob() },
     ];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="bg-card rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
                 <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-background">
-                    <h3 className="font-bold text-lg text-textPrimary">Create New Project</h3>
+                    <h3 className="font-bold text-lg text-textPrimary">{LL.projects.createProject()}</h3>
                     <button onClick={onClose} className="text-textSecondary hover:text-textPrimary transition-colors duration-200">
                         <X size={20} strokeWidth={1.5} />
                     </button>
@@ -71,7 +73,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">Project Name</label>
+                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.projectName()}</label>
                             <input
                                 type="text"
                                 required
@@ -83,7 +85,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">Slug (URL)</label>
+                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.slug()}</label>
                             <input
                                 type="text"
                                 required
@@ -94,18 +96,18 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">Description</label>
+                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.description()}</label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="What does this project do?"
+                                placeholder={LL.projects.whatProjectDoes()}
                                 rows={2}
                                 className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 resize-none"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-3">Project Type</label>
+                            <label className="block text-sm font-medium text-textPrimary mb-3">{LL.projects.projectType()}</label>
                             <div className="grid grid-cols-2 gap-3">
                                 {projectTypes.map((type) => (
                                     <button
@@ -137,7 +139,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             onClick={onClose}
                             className="flex-1 px-4 py-2.5 border-2 border-border text-border rounded-xl text-sm font-medium hover:bg-background transition-all duration-200"
                         >
-                            Cancel
+                            {LL.common.cancel()}
                         </button>
                         <button
                             type="submit"
@@ -145,7 +147,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                             className="flex-1 px-4 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? <Loader2 size={16} strokeWidth={1.5} className="animate-spin" /> : null}
-                            Create Project
+                            {LL.projects.createProject()}
                         </button>
                     </div>
                 </form>

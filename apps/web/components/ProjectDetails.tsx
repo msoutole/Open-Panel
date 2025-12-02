@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { ServiceDetailView } from './ServiceDetailView';
 import CreateServiceModal from './CreateServiceModal';
+import { useTranslations } from '../src/i18n/i18n-react';
 
 interface ProjectDetailsProps {
   project: Project;
@@ -18,6 +19,7 @@ interface ProjectDetailsProps {
 // ----------------------------------------------------------------------------------
 
 export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack }) => {
+  const LL = useTranslations();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [localServices, setLocalServices] = useState<Service[]>(project.services);
@@ -43,19 +45,19 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex items-center gap-3 sm:gap-4">
             <button onClick={onBack} className="p-2 hover:bg-background rounded-lg text-textSecondary transition-colors duration-200">
                 <ArrowLeft size={20} strokeWidth={1.5} />
             </button>
             <div>
-                <h2 className="text-2xl font-bold text-textPrimary">{project.name}</h2>
-                <p className="text-textSecondary text-sm">{project.description}</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-textPrimary">{project.name}</h2>
+                <p className="text-textSecondary text-xs sm:text-sm">{project.description}</p>
             </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-1">
                 <button
                     onClick={() => setViewMode('grid')}
@@ -74,13 +76,13 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
                 onClick={handleAddService}
                 className="flex items-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
             >
-                <Plus size={16} strokeWidth={1.5} /> Add Service
+                <Plus size={16} strokeWidth={1.5} /> {LL.projectDetails.addService()}
             </button>
         </div>
       </div>
 
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {localServices.map(service => (
                 <div
                     key={service.id}
@@ -122,7 +124,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
                 <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center mb-3 group-hover:bg-primary/10 transition-colors duration-200">
                     <Plus size={24} strokeWidth={1.5} />
                 </div>
-                <span className="font-medium text-sm">Create New Service</span>
+                <span className="font-medium text-sm">{LL.projectDetails.createNewService()}</span>
             </button>
         </div>
       ) : (
@@ -130,12 +132,12 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project, onBack 
             <table className="w-full text-sm text-left">
                 <thead className="bg-background border-b border-border text-xs uppercase text-textSecondary font-medium">
                     <tr>
-                        <th className="px-6 py-4">Service Name</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4">Image / Type</th>
-                        <th className="px-6 py-4">Resources</th>
-                        <th className="px-6 py-4">Networking</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
+                        <th className="px-6 py-4">{LL.projectDetails.serviceName()}</th>
+                        <th className="px-6 py-4">{LL.projectDetails.status()}</th>
+                        <th className="px-6 py-4">{LL.projectDetails.imageType()}</th>
+                        <th className="px-6 py-4">{LL.projectDetails.resources()}</th>
+                        <th className="px-6 py-4">{LL.projectDetails.networking()}</th>
+                        <th className="px-6 py-4 text-right">{LL.projectDetails.actions()}</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-border">

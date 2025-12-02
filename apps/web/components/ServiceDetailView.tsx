@@ -10,6 +10,7 @@ import { WebTerminal } from './WebTerminal';
 import { useLogs } from '../hooks/useLogs';
 import { useMetrics } from '../hooks/useMetrics';
 import { useToast } from '../hooks/useToast';
+import { useTranslations } from '../src/i18n/i18n-react';
 import {
     restartService, startService, stopService, getServiceLogs,
     createEnvVar, updateEnvVar, deleteEnvVar,
@@ -33,6 +34,7 @@ interface ErrorNotification {
 }
 
 export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, project, onBack, onSelectService }) => {
+    const LL = useTranslations();
     const [activeTab, setActiveTab] = useState<string>('overview');
     const [isWebConsoleOpen, setIsWebConsoleOpen] = useState(false);
     const [isRestarting, setIsRestarting] = useState(false);
@@ -67,8 +69,8 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
             await restartService(service.id);
             setNotification({
                 type: 'success',
-                title: 'Service Restarted',
-                message: `${service.name} restarted successfully. Container ID: ${service.id.substring(0, 12)}`
+                title: LL.serviceDetail.serviceRestarted(),
+                message: LL.serviceDetail.serviceRestartedMessage({ name: service.name, containerId: service.id.substring(0, 12) })
             });
             showToast({
                 type: 'success',
@@ -76,10 +78,10 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 message: `${service.name} foi reiniciado com sucesso`,
             });
         } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : 'Failed to restart service';
+            const errorMsg = error instanceof Error ? error.message : LL.serviceDetail.restartFailed();
             setNotification({
                 type: 'error',
-                title: 'Restart Failed',
+                title: LL.serviceDetail.restartFailed(),
                 message: errorMsg
             });
             showToast({
@@ -103,14 +105,14 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
             await restartService(service.id);
             setNotification({
                 type: 'success',
-                title: 'Deployment Triggered',
-                message: `Building ${service.name} from ${service.source?.type || 'docker'}. Build ID: #${Date.now().toString().slice(-4)}`
+                title: LL.serviceDetail.deploymentTriggered(),
+                message: LL.serviceDetail.deploymentTriggeredMessage({ name: service.name })
             });
         } catch (error) {
             setNotification({
                 type: 'error',
-                title: 'Deploy Failed',
-                message: error instanceof Error ? error.message : 'Failed to deploy service'
+                title: LL.serviceDetail.deployFailed(),
+                message: error instanceof Error ? error.message : LL.serviceDetail.deployFailed()
             });
         } finally {
             setIsDeploying(false);
@@ -127,14 +129,14 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
             await startService(service.id);
             setNotification({
                 type: 'success',
-                title: 'Service Started',
-                message: `${service.name} started successfully`
+                title: LL.serviceDetail.serviceStarted(),
+                message: LL.serviceDetail.serviceStartedMessage({ name: service.name })
             });
         } catch (error) {
             setNotification({
                 type: 'error',
-                title: 'Start Failed',
-                message: error instanceof Error ? error.message : 'Failed to start service'
+                title: LL.serviceDetail.startFailed(),
+                message: error instanceof Error ? error.message : LL.serviceDetail.startFailed()
             });
         } finally {
             setIsStarting(false);
@@ -150,14 +152,14 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
             await stopService(service.id);
             setNotification({
                 type: 'success',
-                title: 'Service Stopped',
-                message: `${service.name} stopped successfully`
+                title: LL.serviceDetail.serviceStopped(),
+                message: LL.serviceDetail.serviceStoppedMessage({ name: service.name })
             });
         } catch (error) {
             setNotification({
                 type: 'error',
-                title: 'Stop Failed',
-                message: error instanceof Error ? error.message : 'Failed to stop service'
+                title: LL.serviceDetail.stopFailed(),
+                message: error instanceof Error ? error.message : LL.serviceDetail.stopFailed()
             });
         } finally {
             setIsStopping(false);
@@ -166,22 +168,22 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
     };
 
     const appTabs = [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { id: 'environment', label: 'Environment', icon: SlidersHorizontal },
-        { id: 'networking', label: 'Networking', icon: Globe },
-        { id: 'source', label: 'Source', icon: GitBranch },
-        { id: 'deployments', label: 'Deployments', icon: History },
-        { id: 'resources', label: 'Resources', icon: Cpu },
-        { id: 'advanced', label: 'Advanced', icon: Settings },
+        { id: 'overview', label: LL.serviceDetail.overview(), icon: LayoutDashboard },
+        { id: 'environment', label: LL.serviceDetail.environment(), icon: SlidersHorizontal },
+        { id: 'networking', label: LL.serviceDetail.networking(), icon: Globe },
+        { id: 'source', label: 'Origem', icon: GitBranch },
+        { id: 'deployments', label: LL.serviceDetail.deployments(), icon: History },
+        { id: 'resources', label: 'Recursos', icon: Cpu },
+        { id: 'advanced', label: LL.serviceDetail.advanced(), icon: Settings },
     ];
 
     const dbTabs = [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { id: 'credentials', label: 'Connection', icon: Key },
-        { id: 'networking', label: 'Networking', icon: Globe },
-        { id: 'backups', label: 'Backups', icon: Database },
-        { id: 'resources', label: 'Resources', icon: Cpu },
-        { id: 'advanced', label: 'Advanced', icon: Settings },
+        { id: 'overview', label: LL.serviceDetail.overview(), icon: LayoutDashboard },
+        { id: 'credentials', label: LL.serviceDetail.credentials(), icon: Key },
+        { id: 'networking', label: LL.serviceDetail.networking(), icon: Globe },
+        { id: 'backups', label: LL.serviceDetail.backups(), icon: Database },
+        { id: 'resources', label: 'Recursos', icon: Cpu },
+        { id: 'advanced', label: LL.serviceDetail.advanced(), icon: Settings },
     ];
 
     const sidebarItems = isDatabase ? dbTabs : appTabs;
@@ -199,7 +201,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
 
                 <div className="flex-1 py-4">
                     {/* Service List */}
-                    <div className="px-4 mb-2 text-[10px] font-medium text-textSecondary uppercase tracking-wider">Project Services</div>
+                    <div className="px-4 mb-2 text-[10px] font-medium text-textSecondary uppercase tracking-wider">{LL.serviceDetail.projectServices()}</div>
                     <div className="px-2 space-y-0.5 mb-6">
                         {project.services.map(s => (
                             <button
@@ -257,7 +259,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                     </div>
                     <div className="flex items-center gap-2">
                         <button onClick={() => setIsWebConsoleOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-textSecondary bg-background hover:bg-white rounded-lg transition-colors duration-200 border border-border">
-                            <TerminalSquare size={14} strokeWidth={1.5} /> Console
+                            <TerminalSquare size={14} strokeWidth={1.5} /> {LL.serviceDetail.console()}
                         </button>
                         {service.status === 'Running' ? (
                             <button
@@ -266,7 +268,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                                 className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-error bg-error/10 hover:bg-error/20 rounded-lg transition-colors duration-200 border border-error/20 disabled:opacity-50"
                             >
                                 {isStopping ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : <Square size={14} strokeWidth={1.5} />}
-                                {isStopping ? 'Stopping...' : 'Stop'}
+                                {isStopping ? LL.serviceDetail.stopping() : LL.serviceDetail.stop()}
                             </button>
                         ) : (
                             <button
@@ -275,7 +277,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                                 className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-success bg-success/10 hover:bg-success/20 rounded-lg transition-colors duration-200 border border-success/20 disabled:opacity-50"
                             >
                                 {isStarting ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : <div className="w-0 h-0 border-l-[6px] border-l-success border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5"></div>}
-                                {isStarting ? 'Starting...' : 'Start'}
+                                {isStarting ? LL.serviceDetail.starting() : LL.serviceDetail.start()}
                             </button>
                         )}
                         <button
@@ -284,7 +286,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-textSecondary bg-background hover:bg-white rounded-lg transition-colors duration-200 border border-border disabled:opacity-50"
                         >
                             {isRestarting ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : <RotateCw size={14} strokeWidth={1.5} />}
-                            {isRestarting ? 'Restarting...' : 'Restart'}
+                            {isRestarting ? LL.serviceDetail.restarting() : LL.serviceDetail.restart()}
                         </button>
                         <button
                             onClick={handleDeploy}
@@ -292,7 +294,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-primary hover:bg-primaryHover active:bg-primaryActive rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50"
                         >
                             {isDeploying ? <Loader2 size={14} strokeWidth={1.5} className="animate-spin" /> : null}
-                            Deploy
+                            {LL.serviceDetail.deploy()}
                         </button>
                     </div>
                 </div>
@@ -371,7 +373,9 @@ const ChevronDown = ({ size, className }: { size: number, className?: string }) 
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6" /></svg>
 );
 
-const OverviewTab: React.FC<{ service: Service, serviceLogs: any[], onOpenConsole: () => void }> = ({ service, serviceLogs, onOpenConsole }) => (
+const OverviewTab: React.FC<{ service: Service, serviceLogs: any[], onOpenConsole: () => void }> = ({ service, serviceLogs, onOpenConsole }) => {
+    const LL = useTranslations();
+    return (
     <div className="space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -416,7 +420,7 @@ const OverviewTab: React.FC<{ service: Service, serviceLogs: any[], onOpenConsol
                     <span className="text-sm font-medium text-white">Container Logs</span>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={onOpenConsole} className="text-xs bg-[#374151] hover:bg-[#4B5563] text-white px-3 py-1 rounded transition-colors duration-200">Open Console</button>
+                    <button onClick={onOpenConsole} className="text-xs bg-[#374151] hover:bg-[#4B5563] text-white px-3 py-1 rounded transition-colors duration-200">{LL.serviceDetail.console()}</button>
                 </div>
             </div>
             <div className="p-4 font-mono text-xs text-textSecondary h-64 overflow-hidden relative">
@@ -435,21 +439,23 @@ const OverviewTab: React.FC<{ service: Service, serviceLogs: any[], onOpenConsol
                             </div>
                         ))
                     ) : (
-                        <div className="text-textSecondary text-sm">No logs available. Logs will appear here when the service is running.</div>
+                        <div className="text-textSecondary text-sm">{LL.serviceDetail.noLogsAvailable()}</div>
                     )}
                 </div>
                 <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#1f2937] to-transparent pointer-events-none"></div>
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const CredentialsTab: React.FC<{ service: Service }> = ({ service }) => {
+    const LL = useTranslations();
     const CopyInput = ({ label, value, isSecret = false }: { label: string, value: string, isSecret?: boolean }) => {
         const [visible, setVisible] = useState(!isSecret);
         const copyToClipboard = () => {
             navigator.clipboard.writeText(value);
-            alert("Copied to clipboard!");
+            alert("Copiado para a área de transferência!");
         };
 
         return (
@@ -481,21 +487,21 @@ const CredentialsTab: React.FC<{ service: Service }> = ({ service }) => {
         <div className="space-y-6">
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <CopyInput label="Username" value={service.credentials?.user || 'postgres'} />
-                    <CopyInput label="Password" value={service.credentials?.password || ''} isSecret />
+                    <CopyInput label={LL.serviceDetail.username()} value={service.credentials?.user || 'postgres'} />
+                    <CopyInput label={LL.serviceDetail.password()} value={service.credentials?.password || ''} isSecret />
                 </div>
 
                 <div>
-                    <CopyInput label="Database Name" value={service.credentials?.databaseName || 'postgres'} />
+                    <CopyInput label={LL.serviceDetail.databaseName()} value={service.credentials?.databaseName || 'postgres'} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <CopyInput label="Internal Host" value={service.credentials?.host || ''} />
-                    <CopyInput label="Internal Port" value={service.credentials?.port.toString() || '5432'} />
+                    <CopyInput label={LL.serviceDetail.internalHost()} value={service.credentials?.host || ''} />
+                    <CopyInput label={LL.serviceDetail.internalPort()} value={service.credentials?.port.toString() || '5432'} />
                 </div>
 
                 <div>
-                    <CopyInput label="Connection String" value={service.credentials?.connectionString || ''} isSecret />
+                    <CopyInput label={LL.serviceDetail.connectionString()} value={service.credentials?.connectionString || ''} isSecret />
                 </div>
             </div>
         </div>
@@ -515,10 +521,10 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
             await updateService(projectId, service.id, {
                 exposedPort
             });
-            alert('Exposed port updated successfully');
+            alert('Porta exposta atualizada com sucesso');
         } catch (error: any) {
             console.error('Failed to update exposed port:', error);
-            alert('Failed to update exposed port: ' + error.message);
+            alert('Falha ao atualizar porta exposta: ' + error.message);
         } finally {
             setIsSavingPort(false);
         }
@@ -721,17 +727,17 @@ const AdvancedTab: React.FC<{ service: Service, projectId: string }> = ({ servic
                 image,
                 command
             });
-            alert("Changes saved");
+            alert(LL.serviceDetail.changesSaved());
         } catch (error: any) {
             console.error('Failed to save:', error);
-            alert('Failed to save changes: ' + error.message);
+            alert(LL.serviceDetail.failedToSave() + ': ' + error.message);
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) {
+        if (!confirm(LL.serviceDetail.deleteServiceConfirm())) {
             return;
         }
         try {
@@ -739,7 +745,7 @@ const AdvancedTab: React.FC<{ service: Service, projectId: string }> = ({ servic
             window.location.reload();
         } catch (error: any) {
             console.error('Failed to delete service:', error);
-            alert('Failed to delete service: ' + error.message);
+            alert(LL.serviceDetail.failedToDelete() + ': ' + error.message);
         }
     };
 
@@ -789,25 +795,25 @@ const AdvancedTab: React.FC<{ service: Service, projectId: string }> = ({ servic
             </div>
 
             <div className="bg-error/10 border border-error/20 rounded-xl p-6">
-                <h3 className="text-error font-bold mb-2">Danger Zone</h3>
-                <p className="text-error text-sm mb-4">Irreversible actions that affect the availability of your service.</p>
+                <h3 className="text-error font-bold mb-2">{LL.serviceDetail.dangerZone()}</h3>
+                <p className="text-error text-sm mb-4">{LL.serviceDetail.dangerZoneDesc()}</p>
                 <div className="flex gap-3">
                     <button
                         onClick={handleDelete}
                         className="bg-card border border-error/20 text-error px-4 py-2 rounded-lg text-sm font-medium hover:bg-error/10 transition-colors duration-200"
                     >
-                        Delete Service
+                        {LL.serviceDetail.deleteService()}
                     </button>
                     <button
                         onClick={async () => {
-                            if (confirm('Force rebuild?')) {
+                            if (confirm(LL.serviceDetail.forceRebuildConfirm())) {
                                 await restartService(service.id);
-                                alert('Rebuild triggered');
+                                alert(LL.serviceDetail.rebuildTriggered());
                             }
                         }}
                         className="bg-card border border-error/20 text-error px-4 py-2 rounded-lg text-sm font-medium hover:bg-error/10 transition-colors duration-200"
                     >
-                        Force Rebuild
+                        {LL.serviceDetail.forceRebuild()}
                     </button>
                 </div>
             </div>
@@ -816,6 +822,7 @@ const AdvancedTab: React.FC<{ service: Service, projectId: string }> = ({ servic
 };
 
 const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
+    const LL = useTranslations();
     const [isCreatingBackup, setIsCreatingBackup] = useState(false);
     const [backupNotification, setBackupNotification] = useState<ErrorNotification | null>(null);
     const [backups, setBackups] = useState<any[]>(service.backups || []);
@@ -863,7 +870,7 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
     };
 
     const handleRestoreBackup = async (backupId: string) => {
-        if (!confirm('Are you sure you want to restore this backup? This will overwrite the current database.')) {
+        if (!confirm(LL.serviceDetail.restoreBackupConfirm())) {
             return;
         }
 
@@ -871,14 +878,14 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
             await restoreBackup(service.id, backupId);
             setBackupNotification({
                 type: 'success',
-                title: 'Backup Restored',
-                message: 'Database restored successfully from backup.'
+                title: LL.serviceDetail.backupRestored(),
+                message: 'Banco de dados restaurado com sucesso do backup.'
             });
         } catch (error: any) {
             setBackupNotification({
                 type: 'error',
-                title: 'Restore Failed',
-                message: error.message || 'Failed to restore backup'
+                title: LL.serviceDetail.restoreFailed(),
+                message: error.message || 'Falha ao restaurar backup'
             });
         } finally {
             setTimeout(() => setBackupNotification(null), 5000);
@@ -886,7 +893,7 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
     };
 
     const handleDeleteBackup = async (backupId: string) => {
-        if (!confirm('Are you sure you want to delete this backup? This action cannot be undone.')) {
+        if (!confirm(LL.serviceDetail.deleteBackupConfirm())) {
             return;
         }
 
@@ -895,14 +902,14 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
             setBackups(backups.filter(b => b.id !== backupId));
             setBackupNotification({
                 type: 'success',
-                title: 'Backup Deleted',
-                message: 'Backup deleted successfully.'
+                title: LL.serviceDetail.backupDeleted(),
+                message: 'Backup excluído com sucesso.'
             });
         } catch (error: any) {
             setBackupNotification({
                 type: 'error',
-                title: 'Delete Failed',
-                message: error.message || 'Failed to delete backup'
+                title: LL.serviceDetail.deleteFailed(),
+                message: error.message || LL.serviceDetail.failedToDeleteBackup()
             });
         } finally {
             setTimeout(() => setBackupNotification(null), 5000);
@@ -912,14 +919,14 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-700">Backups</h3>
+                <h3 className="text-lg font-semibold text-slate-700">{LL.serviceDetail.backups()}</h3>
                 <button
                     onClick={handleCreateBackup}
                     disabled={isCreatingBackup}
                     className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
                 >
                     {isCreatingBackup ? <Loader2 size={14} className="animate-spin" /> : null}
-                    {isCreatingBackup ? 'Creating...' : 'Create Backup'}
+                    {isCreatingBackup ? LL.serviceDetail.creating() : LL.serviceDetail.createBackup()}
                 </button>
             </div>
 
@@ -927,17 +934,17 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                 {isLoading ? (
                     <div className="p-12 text-center text-textSecondary">
                         <Loader2 size={32} className="mx-auto mb-3 text-textSecondary animate-spin" />
-                        <p>Loading backups...</p>
+                        <p>{LL.serviceDetail.loadingBackups()}</p>
                     </div>
                 ) : backups && backups.length > 0 ? (
                     <table className="w-full text-sm text-left">
                         <thead className="bg-background text-textSecondary font-medium border-b border-border">
                             <tr>
-                                <th className="px-6 py-3 font-semibold">Filename</th>
-                                <th className="px-6 py-3 font-semibold">Size</th>
-                                <th className="px-6 py-3 font-semibold">Date</th>
-                                <th className="px-6 py-3 font-semibold">Status</th>
-                                <th className="px-6 py-3 text-right font-semibold">Actions</th>
+                                <th className="px-6 py-3 font-semibold">{LL.serviceDetail.filename()}</th>
+                                <th className="px-6 py-3 font-semibold">{LL.serviceDetail.size()}</th>
+                                <th className="px-6 py-3 font-semibold">{LL.serviceDetail.date()}</th>
+                                <th className="px-6 py-3 font-semibold">{LL.serviceDetail.status()}</th>
+                                <th className="px-6 py-3 text-right font-semibold">{LL.serviceDetail.actions()}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -956,13 +963,13 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                                             onClick={() => handleRestoreBackup(bk.id)}
                                             className="text-primary hover:underline font-medium"
                                         >
-                                            Restore
+                                            {LL.serviceDetail.restoreBackup()}
                                         </button>
                                         <button
                                             onClick={() => handleDeleteBackup(bk.id)}
                                             className="text-error hover:underline font-medium"
                                         >
-                                            Delete
+                                            {LL.common.delete()}
                                         </button>
                                     </td>
                                 </tr>
@@ -972,7 +979,7 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
                 ) : (
                     <div className="p-12 text-center text-textSecondary">
                         <HardDrive size={32} className="mx-auto mb-3 text-textSecondary" />
-                        <p>No backups found.</p>
+                        <p>{LL.serviceDetail.noBackupsFound()}</p>
                     </div>
                 )}
             </div>
@@ -1230,7 +1237,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
                         className="bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ml-auto"
                     >
                         {isSaving ? <Loader2 size={14} className="animate-spin" /> : null}
-                        {isSaving ? 'Updating...' : 'Update Resources'}
+                        {isSaving ? LL.serviceDetail.updating() : LL.serviceDetail.updateResources()}
                     </button>
                 </div>
             </div>
@@ -1239,6 +1246,7 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
 };
 
 const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service, projectId }) => {
+    const LL = useTranslations();
     const [activeSourceType, setActiveSourceType] = useState<'docker' | 'git'>(service.source?.type || 'docker');
     const [image, setImage] = useState(service.image || '');
     const [repo, setRepo] = useState(service.source?.repo || '');
@@ -1256,10 +1264,10 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
                     branch
                 } : undefined
             });
-            alert('Source configuration saved');
+            alert('Configuração de origem salva');
         } catch (error: any) {
             console.error('Failed to save source:', error);
-            alert('Failed to save source: ' + error.message);
+            alert(LL.serviceDetail.failedToSaveSource() + ': ' + error.message);
         } finally {
             setIsSaving(false);
         }
@@ -1334,7 +1342,7 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
                                 <div className="relative">
                                     <KeyRound size={16} className="absolute ml-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <select className="w-full border border-border rounded-lg pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary bg-white appearance-none text-slate-600">
-                                        <option value="">No Credentials (Public Repo)</option>
+                                        <option value="">{LL.serviceDetail.noCredentialsPublicRepo()}</option>
                                         <option value="gh_1">OpenPanel Bot (GitHub)</option>
                                     </select>
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -1342,7 +1350,7 @@ const SourceTab: React.FC<{ service: Service, projectId: string }> = ({ service,
                                     </div>
                                 </div>
                                 <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                                    <Info size={10} /> Add more credentials in System Settings {'>'} GitOps
+                                    <Info size={10} /> {LL.serviceDetail.addMoreCredentials()}
                                 </p>
                             </div>
                         </>
@@ -1496,7 +1504,7 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
         if (!envVar) return;
 
         if (envVar.locked) {
-            alert('Cannot delete locked environment variable');
+            alert(LL.serviceDetail.cannotDeleteLocked());
             return;
         }
 
@@ -1506,7 +1514,7 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
                 setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
             } catch (error) {
                 console.error('Failed to delete env var:', error);
-                alert('Failed to delete environment variable');
+                alert(LL.serviceDetail.failedToDeleteEnvVar());
             }
         } else {
             setLocalEnvVars(localEnvVars.filter((_, i) => i !== index));
@@ -1525,7 +1533,7 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
         try {
             const hasInvalidVars = localEnvVars.some(v => !v.key.trim() && v.value.trim());
             if (hasInvalidVars) {
-                setSaveError('All environment variables must have a key');
+                setSaveError(LL.serviceDetail.allVarsMustHaveKey());
                 setIsSaving(false);
                 return;
             }
@@ -1554,7 +1562,7 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (error: any) {
             console.error('Failed to save environment variables:', error);
-            setSaveError(error.message || 'Failed to save environment variables');
+                setSaveError(error.message || LL.serviceDetail.failedToSaveEnvVars());
         } finally {
             setIsSaving(false);
         }
@@ -1625,7 +1633,7 @@ const EnvironmentTab: React.FC<{ service: Service, projectId: string }> = ({ ser
                         ))}
                         <div className="p-3">
                             <button onClick={handleAdd} className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors uppercase tracking-wide">
-                                <Plus size={14} /> Add Variable
+                                <Plus size={14} /> {LL.serviceDetail.addVariable()}
                             </button>
                         </div>
                     </div>

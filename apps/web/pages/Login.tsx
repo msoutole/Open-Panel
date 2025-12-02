@@ -180,7 +180,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         {/* Footer */}
         <div className="mt-8 pt-6 border-t border-border text-center text-xs text-textSecondary">
-          <p>© 2024 Soullabs. Todos os direitos reservados.</p>
+          <p>© 2025 Soullabs. Todos os direitos reservados.</p>
         </div>
       </div>
     </div>

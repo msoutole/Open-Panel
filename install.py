@@ -366,7 +366,7 @@ class OpenPanelInstaller:
             content = """# Frontend Environment Variables
 VITE_API_URL=http://localhost:3001
 VITE_APP_NAME=OpenPanel
-VITE_APP_VERSION=0.1.0
+VITE_APP_VERSION=0.2.0
 VITE_ENABLE_AI_CHAT=true
 VITE_ENABLE_TERMINAL=true
 VITE_ENABLE_MONITORING=true

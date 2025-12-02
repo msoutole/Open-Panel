@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, User, ChevronDown, LogOut, Settings, UserCircle, CheckCheck, Menu } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, LogOut, Settings, UserCircle, CheckCheck, Menu, Trash2 } from 'lucide-react';
 import { useTranslations } from '../src/i18n/i18n-react';
 
 interface HeaderProps {
   title: string;
   onLogout?: () => void;
   onMenuToggle?: () => void;
+  onNavigate?: (view: string) => void;
   isMobile?: boolean;
 }
 
@@ -17,7 +18,7 @@ interface Notification {
   read: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, isMobile = false }) => {
+export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, onNavigate, isMobile = false }) => {
   const LL = useTranslations();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -59,7 +60,11 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, i
   
   const handleMarkAllRead = () => {
       setNotifications(notifications.map(n => ({ ...n, read: true })));
-      // setTimeout(() => setIsNotifOpen(false), 300);
+  };
+
+  const handleClearAll = () => {
+      setNotifications([]);
+      setIsNotifOpen(false);
   };
 
   // Get user initials for avatar
@@ -117,17 +122,29 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, i
                   ref={notifPanelRef} 
                   className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-card rounded-xl shadow-lg border border-border py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
                 >
-                    <div className="px-4 py-3 border-b border-border flex justify-between items-center">
+                    <div className="px-4 py-3 border-b border-border flex justify-between items-center gap-2">
                         <span className="text-xs font-bold text-textSecondary uppercase tracking-wider">{LL.header.notifications()}</span>
-                        {unreadCount > 0 && (
-                            <button 
-                              onClick={handleMarkAllRead} 
-                              className="text-[10px] text-primary font-medium hover:underline flex items-center gap-1 transition-colors"
-                              aria-label={LL.header.markAllRead()}
-                            >
-                                <CheckCheck size={12} strokeWidth={2} /> {LL.header.markAllRead()}
-                            </button>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {unreadCount > 0 && (
+                                <button 
+                                  onClick={handleMarkAllRead} 
+                                  className="text-[10px] text-primary font-medium hover:underline flex items-center gap-1 transition-colors"
+                                  aria-label={LL.header.markAllRead()}
+                                >
+                                    <CheckCheck size={12} strokeWidth={2} /> {LL.header.markAllRead()}
+                                </button>
+                            )}
+                            {notifications.length > 0 && (
+                                <button 
+                                  onClick={handleClearAll} 
+                                  className="text-[10px] text-error font-medium hover:underline flex items-center gap-1 transition-colors"
+                                  aria-label={LL.header.clearAll()}
+                                  title={LL.header.clearAll()}
+                                >
+                                    <Trash2 size={12} strokeWidth={2} />
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <div className="max-h-64 overflow-y-auto scroll-smooth">
                         {notifications.length === 0 ? (
@@ -213,6 +230,10 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, i
                   {/* Menu Items */}
                   <div className="py-1.5">
                       <button 
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          onNavigate?.('users');
+                        }}
                         className="w-full text-left px-4 py-2.5 text-sm text-textSecondary hover:bg-background hover:text-primary flex items-center gap-3 transition-colors duration-150"
                         aria-label={LL.header.profileSettings()}
                       >
@@ -220,6 +241,10 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, i
                           <span>{LL.header.profileSettings()}</span>
                       </button>
                       <button 
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          onNavigate?.('settings');
+                        }}
                         className="w-full text-left px-4 py-2.5 text-sm text-textSecondary hover:bg-background hover:text-primary flex items-center gap-3 transition-colors duration-150"
                         aria-label={LL.header.preferences()}
                       >

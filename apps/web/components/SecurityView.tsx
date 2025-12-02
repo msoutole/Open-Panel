@@ -2,10 +2,12 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getAuditLogs, getAuditLogStats, AuditLog, AuditLogStats } from '../services/api';
 import { useLogs } from '../hooks/useLogs';
 import { useToast } from '../hooks/useToast';
+import { useTranslations } from '../src/i18n/i18n-react';
 import { Shield, Activity, FileText, AlertTriangle, CheckCircle, XCircle, Sparkles, Loader2 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
 export const SecurityView: React.FC = () => {
+  const LL = useTranslations();
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -89,7 +91,7 @@ export const SecurityView: React.FC = () => {
       const allLogs = response.logs;
 
       // Convert audit logs to CSV format
-      const headers = ['Timestamp', 'Action', 'User Email', 'User ID', 'Target Resource', 'IP Address', 'Status'];
+      const headers = [LL.security.timestamp(), LL.security.action(), LL.security.userEmail(), LL.security.userId(), LL.security.targetResource(), LL.security.ipAddress(), LL.security.status()];
       const csvRows = [headers.join(',')];
 
       allLogs.forEach(log => {
@@ -204,7 +206,7 @@ export const SecurityView: React.FC = () => {
             className="flex items-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
         >
             {analyzing ? <Loader2 size={18} strokeWidth={1.5} className="animate-spin" /> : <Sparkles size={18} strokeWidth={1.5} />}
-            {analyzing ? 'Analyzing...' : 'AI Threat Analysis'}
+            {analyzing ? LL.security.analyzing() : 'Análise de Ameaças por IA'}
         </button>
       </div>
 
@@ -213,7 +215,7 @@ export const SecurityView: React.FC = () => {
           <div className="bg-primary/5 border border-primary/20 p-6 rounded-xl">
               <div className="flex items-center gap-2 mb-3 text-primary font-bold">
                   <Sparkles size={18} strokeWidth={1.5} />
-                  <h3>AI Security Assessment</h3>
+                  <h3>Avaliação de Segurança por IA</h3>
               </div>
               <div className="prose prose-sm text-textPrimary max-w-none">
                   <pre className="whitespace-pre-wrap font-sans bg-transparent border-0 p-0 text-textPrimary text-sm leading-relaxed">{analysis}</pre>
@@ -228,13 +230,13 @@ export const SecurityView: React.FC = () => {
                 <div className="p-2 bg-success/10 text-success rounded-lg">
                     <Shield size={20} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-semibold text-textPrimary">Security Status</h3>
+                <h3 className="font-semibold text-textPrimary">Status de Segurança</h3>
              </div>
              <p className="text-2xl font-bold text-textPrimary">
-               {auditStats ? (auditStats.failed > 0 ? 'Warning' : 'Healthy') : 'Loading...'}
+               {auditStats ? (auditStats.failed > 0 ? 'Aviso' : 'Saudável') : LL.common.loading()}
              </p>
              <p className="text-xs text-textSecondary mt-1">
-               {auditStats ? `${auditStats.failed} failed actions in last 24h` : 'Loading status...'}
+               {auditStats ? `${auditStats.failed} ações falharam nas últimas 24h` : 'Carregando status...'}
              </p>
           </div>
           
@@ -243,12 +245,12 @@ export const SecurityView: React.FC = () => {
                 <div className="p-2 bg-primary/10 text-primary rounded-lg">
                     <Activity size={20} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-semibold text-textPrimary">Events (24h)</h3>
+                <h3 className="font-semibold text-textPrimary">Eventos (24h)</h3>
              </div>
              <p className="text-2xl font-bold text-textPrimary">
                {auditStats ? auditStats.recent24h.toLocaleString() : '...'}
              </p>
-             <p className="text-xs text-textSecondary mt-1">Audit events processed.</p>
+             <p className="text-xs text-textSecondary mt-1">Eventos de auditoria processados.</p>
           </div>
 
           <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
@@ -256,13 +258,13 @@ export const SecurityView: React.FC = () => {
                 <div className="p-2 bg-warning/10 text-warning rounded-lg">
                     <AlertTriangle size={20} strokeWidth={1.5} />
                 </div>
-                <h3 className="font-semibold text-textPrimary">Failed Actions</h3>
+                <h3 className="font-semibold text-textPrimary">Ações Falhadas</h3>
              </div>
              <p className="text-2xl font-bold text-textPrimary">
                {auditStats ? auditStats.failed : '...'}
              </p>
              <p className="text-xs text-textSecondary mt-1">
-               {auditStats ? `Out of ${auditStats.total} total events` : 'Loading...'}
+               {auditStats ? `De ${auditStats.total} eventos totais` : LL.common.loading()}
              </p>
           </div>
       </div>
@@ -272,7 +274,7 @@ export const SecurityView: React.FC = () => {
         <div className="px-6 py-4 border-b border-border bg-background flex items-center justify-between">
            <div className="flex items-center gap-2">
                 <FileText className="text-textSecondary" size={18} strokeWidth={1.5} />
-                <h3 className="font-semibold text-textPrimary">Audit Log (Immutable)</h3>
+                <h3 className="font-semibold text-textPrimary">Log de Auditoria (Imutável)</h3>
            </div>
            <button
             onClick={handleExportCSV}
@@ -285,10 +287,10 @@ export const SecurityView: React.FC = () => {
             {exportSuccess ? (
               <>
                 <CheckCircle size={12} strokeWidth={2} />
-                Exported!
+                Exportado!
               </>
             ) : (
-              'Export CSV'
+              LL.security.exportLogs()
             )}
           </button>
         </div>
@@ -296,7 +298,7 @@ export const SecurityView: React.FC = () => {
             {totalPages > 1 && (
                 <div className="px-6 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                     <span className="text-xs text-slate-500">
-                        Page {page} of {totalPages}
+                        Página {page} de {totalPages}
                     </span>
                     <div className="flex gap-2">
                         <button
@@ -304,14 +306,14 @@ export const SecurityView: React.FC = () => {
                             disabled={page === 1}
                             className="px-3 py-1 text-xs border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Previous
+                            {LL.common.back()}
                         </button>
                         <button
                             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                             disabled={page === totalPages}
                             className="px-3 py-1 text-xs border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Next
+                            Próximo
                         </button>
                     </div>
                 </div>
@@ -319,12 +321,12 @@ export const SecurityView: React.FC = () => {
             <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50/50 text-xs uppercase text-slate-500 font-medium border-b border-slate-100">
                     <tr>
-                        <th className="px-6 py-3">Timestamp</th>
-                        <th className="px-6 py-3">Action</th>
-                        <th className="px-6 py-3">User</th>
-                        <th className="px-6 py-3">Target</th>
-                        <th className="px-6 py-3">IP Address</th>
-                        <th className="px-6 py-3 text-right">Status</th>
+                        <th className="px-6 py-3">{LL.security.timestamp()}</th>
+                        <th className="px-6 py-3">{LL.security.action()}</th>
+                        <th className="px-6 py-3">{LL.security.userEmail()}</th>
+                        <th className="px-6 py-3">{LL.security.targetResource()}</th>
+                        <th className="px-6 py-3">{LL.security.ipAddress()}</th>
+                        <th className="px-6 py-3 text-right">{LL.security.status()}</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -332,13 +334,13 @@ export const SecurityView: React.FC = () => {
                         <tr>
                             <td colSpan={6} className="px-6 py-12 text-center">
                                 <Loader2 size={24} className="animate-spin text-slate-400 mx-auto mb-2" />
-                                <p className="text-sm text-slate-500">Loading audit logs...</p>
+                                <p className="text-sm text-slate-500">{LL.common.loading()}</p>
                             </td>
                         </tr>
                     ) : auditLogs.length === 0 ? (
                         <tr>
                             <td colSpan={6} className="px-6 py-12 text-center">
-                                <p className="text-sm text-slate-500">No audit logs found.</p>
+                                <p className="text-sm text-slate-500">Nenhum log de auditoria encontrado.</p>
                             </td>
                         </tr>
                     ) : (
@@ -357,8 +359,8 @@ export const SecurityView: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4 text-slate-500">{log.ipAddress || 'N/A'}</td>
                                 <td className="px-6 py-4 text-right">
-                                    {log.status === 'Success' && <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded"><CheckCircle size={12}/> Success</span>}
-                                    {log.status === 'Failure' && <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded"><XCircle size={12}/> Failure</span>}
+                                    {log.status === 'Success' && <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded"><CheckCircle size={12}/> Sucesso</span>}
+                                    {log.status === 'Failure' && <span className="inline-flex items-center gap-1 text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded"><XCircle size={12}/> Falha</span>}
                                 </td>
                             </tr>
                         ))
@@ -373,10 +375,10 @@ export const SecurityView: React.FC = () => {
         <div className="px-4 py-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
             <h3 className="text-sm font-mono font-medium text-slate-200 flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${logsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                Live Docker Events Stream
+                Stream de Eventos do Docker em Tempo Real
             </h3>
             <span className="text-xs text-slate-500">
-                {logsConnected ? 'Connected' : 'Disconnected'}
+                {logsConnected ? 'Conectado' : 'Desconectado'}
             </span>
         </div>
         <div className="p-4 h-64 overflow-y-auto font-mono text-xs space-y-2 terminal-scroll">

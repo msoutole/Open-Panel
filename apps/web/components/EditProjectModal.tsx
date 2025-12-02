@@ -49,17 +49,17 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ isOpen, onCl
             onUpdated(updatedProject);
             onClose();
         } catch (err: any) {
-            setError(err.message || 'Falha ao atualizar projeto');
+            setError(err.message || LL.projects.updateError());
         } finally {
             setLoading(false);
         }
     };
 
     const projectTypes = [
-        { id: 'WEB', label: 'Web Service', icon: Globe, desc: 'Node.js, Python, Go, etc.' },
-        { id: 'API', label: 'Backend API', icon: Server, desc: 'REST or GraphQL API' },
-        { id: 'DATABASE', label: 'Database', icon: Database, desc: 'PostgreSQL, MySQL, etc.' },
-        { id: 'WORKER', label: 'Background Worker', icon: Box, desc: 'Queue consumer, Cron job' },
+        { id: 'WEB', label: LL.projects.webService(), icon: Globe, desc: LL.projects.nodejsPythonGo() },
+        { id: 'API', label: LL.projects.backendAPI(), icon: Server, desc: LL.projects.restGraphQLAPI() },
+        { id: 'DATABASE', label: LL.projects.database(), icon: Database, desc: LL.projects.postgresqlMySQL() },
+        { id: 'WORKER', label: LL.projects.backgroundWorker(), icon: Box, desc: LL.projects.queueConsumerCronJob() },
     ];
 
     return (
@@ -88,13 +88,13 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ isOpen, onCl
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-') })}
-                                placeholder="e.g. My Awesome App"
+                                placeholder={LL.projects.projectNamePlaceholder()}
                                 className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">Slug (URL)</label>
+                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.slug()}</label>
                             <input
                                 type="text"
                                 required
@@ -105,18 +105,18 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ isOpen, onCl
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">Descrição</label>
+                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.description()}</label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="O que este projeto faz?"
+                                placeholder={LL.projects.whatProjectDoes()}
                                 rows={2}
                                 className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 resize-none"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-3">Tipo de Projeto</label>
+                            <label className="block text-sm font-medium text-textPrimary mb-3">{LL.projects.projectType()}</label>
                             <div className="grid grid-cols-2 gap-3">
                                 {projectTypes.map((type) => (
                                     <button
