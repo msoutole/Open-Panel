@@ -38,12 +38,21 @@ export const useSidebar = (): UseSidebarReturn => {
       const saved = localStorage.getItem('sidebar_collapsed');
       const wasManuallySet = saved !== null; // Se foi salvo manualmente pelo usuário
       
-      // Em mobile, sempre colapsar
+      // Em mobile (<640px), sempre colapsar
       if (window.innerWidth < 640) {
         setIsCollapsed(true);
       }
-      // Em desktop grande (>= 1024px), expandir apenas se não foi definido manualmente
-      // ou se foi definido como expandido
+      // Em tablet (640-1023px), colapsada por padrão, mas respeitar preferência se foi definida manualmente
+      else if (window.innerWidth >= 640 && window.innerWidth < 1024) {
+        if (!wasManuallySet) {
+          // Se nunca foi definido manualmente, colapsar em tablet
+          setIsCollapsed(true);
+        } else {
+          // Se foi definido manualmente, respeitar a preferência salva
+          setIsCollapsed(saved === 'true');
+        }
+      }
+      // Em desktop (>= 1024px), expandir por padrão, mas respeitar preferência se foi definida manualmente
       else if (window.innerWidth >= 1024) {
         if (!wasManuallySet) {
           // Se nunca foi definido manualmente, expandir em desktop
