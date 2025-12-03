@@ -35,18 +35,41 @@
         background: #4b5563;
         border-radius: 4px;
       }
+      /* Shimmer animation for skeleton loaders */
+      @keyframes shimmer {
+        0% {
+          background-position: -1000px 0;
+        }
+        100% {
+          background-position: 1000px 0;
+        }
+      }
+      .animate-shimmer {
+        animation: shimmer 2s infinite;
+        background: linear-gradient(
+          to right,
+          #e2e8f0 0%,
+          #f1f5f9 20%,
+          #e2e8f0 40%,
+          #e2e8f0 100%
+        );
+        background-size: 1000px 100%;
+      }
     </style>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              // Cores Primárias & Destaque
-              primary: '#4A7BA7', // Azul Dessaturado
-              primaryHover: '#3a6b97',
-              primaryActive: '#2a5b87',
-              secondary: '#6B9B6E', // Verde Dessaturado
-
+              // Cores Primárias & Destaque - Design System
+              primary: '#4A7BA7', // Azul de destaque (cor principal)
+              primaryHover: '#3a6b97', // Hover mais escuro
+              primaryActive: '#2a5b87', // Active ainda mais escuro
+              primaryLight: '#E8F0F7', // Azul claro para backgrounds hover
+              
+              // Cores Secundárias
+              secondary: '#6B9B6E', // Verde (mantido para compatibilidade)
+              
               // Cores de Status
               success: '#22c55e',
               successHover: '#16a34a',
@@ -55,26 +78,48 @@
               error: '#ef4444',
               errorHover: '#dc2626',
 
-              // Cores de Texto
-              textPrimary: '#1f2937',
-              textSecondary: '#6b7280',
+              // Cores de Texto - Design System
+              textPrimary: '#1f2937', // Texto principal (cinza escuro)
+              textSecondary: '#6b7280', // Texto secundário (cinza médio)
 
-              // Cores de Fundo & Bordas
-              background: '#F8FAFC',
-              card: '#FFFFFF',
-              border: '#e2e8f0',
+              // Cores de Fundo & Bordas - Design System
+              background: '#F8FAFC', // Fundo principal (cinza muito claro)
+              card: '#FFFFFF', // Cards e modais (branco)
+              border: '#e2e8f0', // Bordas padrão (cinza claro)
+              borderFocus: '#4A7BA7', // Borda em foco (azul)
+              borderError: '#ef4444', // Borda de erro (vermelho)
+              
+              // Input backgrounds
+              inputBg: '#F8FAFC', // Fundo de inputs (cinza muito claro)
+              inputDisabled: '#F3F4F6', // Fundo de inputs desabilitados
 
               // Cores antigas (manter para compatibilidade)
               dark: '#1a1d21',
             },
             spacing: {
-              // Espaçamento modular baseado em múltiplos de 4px/8px
+              // Sistema de Espaçamento Modular - Design System
+              // Pequeno: 4px, 8px (ícones e texto, itens de lista)
+              // Médio: 16px, 24px (paddings internos, lacunas entre componentes)
+              // Grande: 32px, 48px (margens de cartões, lacunas entre seções)
               '18': '4.5rem',
-              // Já existem: 4px (1), 8px (2), 16px (4), 24px (6), 32px (8), 48px (12)
+              // Tailwind já inclui: 4px (1), 8px (2), 16px (4), 24px (6), 32px (8), 48px (12)
             },
             borderRadius: {
+              // Bordas arredondadas consistentes
+              'sm': '4px',
+              'DEFAULT': '8px',
+              'md': '8px',
+              'lg': '12px',
               'xl': '12px',
               '2xl': '16px',
+            },
+            strokeWidth: {
+              // Stroke width para ícones - Design System
+              'icon': '1.5',
+            },
+            fontFamily: {
+              // Fonte Inter já está configurada no body
+              sans: ['Inter', 'sans-serif'],
             }
           }
         }

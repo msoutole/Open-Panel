@@ -8,6 +8,8 @@ interface HeaderProps {
   onMenuToggle?: () => void;
   onNavigate?: (view: string) => void;
   isMobile?: boolean;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 interface Notification {
@@ -18,11 +20,20 @@ interface Notification {
   read: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, onNavigate, isMobile = false }) => {
+export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, onNavigate, isMobile = false, searchValue: externalSearchValue, onSearchChange }) => {
   const LL = useTranslations();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [internalSearchValue, setInternalSearchValue] = useState('');
+  const searchValue = externalSearchValue !== undefined ? externalSearchValue : internalSearchValue;
+  
+  const handleSearchChange = (value: string) => {
+    if (onSearchChange) {
+      onSearchChange(value);
+    } else {
+      setInternalSearchValue(value);
+    }
+  };
   
   const [notifications, setNotifications] = useState<Notification[]>([
     { id: '1', title: 'Falha no Deploy', message: 'O projeto "chatwoot" falhou ao construir.', time: 'há 2 minutos', read: false },
@@ -53,7 +64,10 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
         if (searchValue.trim()) {
-            alert(`Searching for: "${searchValue}"... \n(In a real app, this would route to a global search results page)`);
+            // Navegar para dashboard se não estiver lá
+            if (onNavigate) {
+              onNavigate('dashboard');
+            }
         }
     }
   };
@@ -67,11 +81,29 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
       setIsNotifOpen(false);
   };
 
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    const name = 'Admin User';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  // Get user info from localStorage
+  const getUserInfo = () => {
+    try {
+      const userStr = localStorage.getItem('openpanel_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return {
+          name: user.name || user.email?.split('@')[0] || 'User',
+          email: user.email || 'user@openpanel.dev',
+          initials: (user.name || user.email || 'U').split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+        };
+      }
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+    }
+    return {
+      name: 'User',
+      email: 'user@openpanel.dev',
+      initials: 'U'
+    };
   };
+
+  const userInfo = getUserInfo();
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
@@ -114,9 +146,9 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
               type="text"
               placeholder={LL.header.searchPlaceholder()}
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleSearch}
-              className="pl-10 pr-4 py-2 w-64 bg-white border border-border rounded-lg text-sm text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
+              className="pl-10 pr-4 py-2 w-64 bg-inputBg border border-border rounded-lg text-sm text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-colors duration-200"
             />
           </div>
         </div>
@@ -149,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
                                   className="text-[10px] text-primary font-medium hover:underline flex items-center gap-1 transition-colors"
                                   aria-label={LL.header.markAllRead()}
                                 >
-                                    <CheckCheck size={12} strokeWidth={2} /> {LL.header.markAllRead()}
+                                    <CheckCheck size={12} strokeWidth={1.5} /> {LL.header.markAllRead()}
                                 </button>
                             )}
                             {notifications.length > 0 && (
@@ -159,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
                                   aria-label={LL.header.clearAll()}
                                   title={LL.header.clearAll()}
                                 >
-                                    <Trash2 size={12} strokeWidth={2} />
+                                    <Trash2 size={12} strokeWidth={1.5} />
                                 </button>
                             )}
                         </div>
@@ -214,11 +246,11 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
             }}
           >
             <div className="text-right hidden md:block">
-                <p className="text-sm font-medium text-textPrimary group-hover:text-primary transition-colors">umoniem</p>
-                <p className="text-xs text-textSecondary">admin@openpanel.dev</p>
+                <p className="text-sm font-medium text-textPrimary group-hover:text-primary transition-colors truncate max-w-[120px]">{userInfo.name}</p>
+                <p className="text-xs text-textSecondary truncate max-w-[120px]">{userInfo.email}</p>
             </div>
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-white border-2 border-card shadow-sm group-hover:shadow-md transition-all duration-200">
-                <span className="text-xs sm:text-sm font-semibold">{getUserInitials()}</span>
+                <span className="text-xs sm:text-sm font-semibold">{userInfo.initials}</span>
             </div>
             <ChevronDown 
               size={16} 
@@ -233,11 +265,11 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
                   <div className="px-4 py-4 border-b border-border">
                       <div className="flex items-center gap-3 mb-2">
                           <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center text-white border-2 border-card shadow-sm">
-                              <span className="text-base font-semibold">{getUserInitials()}</span>
+                              <span className="text-base font-semibold">{userInfo.initials}</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-textPrimary truncate">Admin User</p>
-                              <p className="text-xs text-textSecondary truncate">admin@openpanel.dev</p>
+                              <p className="text-sm font-bold text-textPrimary truncate">{userInfo.name}</p>
+                              <p className="text-xs text-textSecondary truncate">{userInfo.email}</p>
                           </div>
                       </div>
                       <div className="px-2 py-1.5 bg-background rounded-lg">

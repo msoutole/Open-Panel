@@ -34,6 +34,7 @@ const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState('');
   
   // Sidebar state management
   const { isCollapsed, toggleSidebar } = useSidebar();
@@ -179,6 +180,8 @@ const AppContent: React.FC = () => {
           onMenuToggle={toggleSidebar}
           onNavigate={handleNavigate}
           isMobile={isMobile}
+          searchValue={globalSearch}
+          onSearchChange={setGlobalSearch}
         />
 
         <main className="flex-1 overflow-y-auto bg-background">
@@ -187,6 +190,7 @@ const AppContent: React.FC = () => {
               <DashboardView
                 onProjectSelect={handleProjectSelect}
                 view={currentView}
+                searchQuery={globalSearch}
               />
             </Suspense>
           )}

@@ -5,6 +5,8 @@ import { useToast } from '../hooks/useToast';
 import { useTranslations } from '../src/i18n/i18n-react';
 import { Shield, Key, User as UserIcon, HardDrive, GitBranch, Terminal, Cpu, Box, Trash2, Plus, Server, Activity, Github, Gitlab, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { DockerBuilder, GitToken } from '../types';
+import { Input } from './ui/Input';
+import { Button } from './ui/Button';
 
 // Define User type locally to avoid Rollup export issues
 type User = {
@@ -208,22 +210,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                     </div>
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">
-                            <div className="relative">
-                                <input
+                            <div className="relative w-full sm:w-64">
+                                <UserIcon size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary z-10" />
+                                <Input
                                     type="text"
                                     placeholder={LL.settings.searchUsers()}
                                     value={userSearch}
                                     onChange={(e) => setUserSearch(e.target.value)}
-                                    className="pl-9 pr-4 py-2 border border-border rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary bg-white text-textPrimary placeholder-textSecondary transition-all duration-200"
+                                    className="pl-9"
                                 />
-                                <UserIcon size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" />
                             </div>
-                            <button
+                            <Button
                                 onClick={() => void handleInviteUser()}
-                                className="text-sm bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md font-medium transition-all duration-200 active:scale-95"
+                                variant="primary"
+                                size="sm"
                             >
+                                <Plus size={16} strokeWidth={1.5} />
                                 {LL.settings.addUser()}
-                            </button>
+                            </Button>
                         </div>
                         <table className="w-full text-sm">
                             <thead className="text-xs uppercase text-textSecondary font-medium bg-background rounded-lg">
@@ -246,7 +250,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                 ) : usersError ? (
                                     <tr>
                                         <td colSpan={5} className="py-12 text-center">
-                                            <AlertCircle size={24} strokeWidth={2} className="text-error mx-auto mb-2" />
+                                            <AlertCircle size={24} strokeWidth={1.5} className="text-error mx-auto mb-2" />
                                             <p className="text-sm text-error">{usersError}</p>
                                         </td>
                                     </tr>
@@ -280,7 +284,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                             <td className="py-4 px-4">
                                                 {/* MFA status would need to come from API */}
                                                 <div className="flex items-center gap-1.5 text-xs font-medium text-textSecondary bg-background px-2 py-1 rounded w-fit border border-border">
-                                                    <Shield size={10} strokeWidth={2} /> Status
+                                                    <Shield size={10} strokeWidth={1.5} /> Status
                                                 </div>
                                             </td>
                                             <td className="py-4 px-4 text-right text-textSecondary font-mono text-xs">
@@ -307,18 +311,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
             {/* Backups Section - Only shown when view is 'backups' */}
             {view === 'backups' && (
                 <section className="bg-card rounded-xl shadow-sm border border-border overflow-hidden animate-in fade-in duration-300">
-                    <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                        <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-                            <HardDrive size={18} />
+                    <div className="px-6 py-4 border-b border-border bg-background flex items-center gap-3">
+                        <div className="p-2 bg-success/10 text-success rounded-lg">
+                            <HardDrive size={18} strokeWidth={1.5} />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-800">{LL.settings.storageRetention()}</h3>
-                            <p className="text-xs text-slate-500">{LL.settings.manageDisasterRecovery()}</p>
+                            <h3 className="font-semibold text-textPrimary">{LL.settings.storageRetention()}</h3>
+                            <p className="text-xs text-textSecondary">{LL.settings.manageDisasterRecovery()}</p>
                         </div>
                     </div>
                     <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                         <div className="space-y-6">
-                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">{LL.settings.storageProvider()}</h4>
+                            <h4 className="text-sm font-bold text-textPrimary uppercase tracking-wide">{LL.settings.storageProvider()}</h4>
 
                             <div className="space-y-3">
                                 <label
@@ -333,10 +337,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                             : 'border-slate-300'
                                         }`}></div>
                                     <div className="flex-1">
-                                        <div className="text-sm font-bold text-slate-800">{LL.settings.s3CompatibleStorage()}</div>
-                                        <div className="text-xs text-slate-500">{LL.settings.s3CompatibleStorageDesc()}</div>
+                                        <div className="text-sm font-bold text-textPrimary">{LL.settings.s3CompatibleStorage()}</div>
+                                        <div className="text-xs text-textSecondary">{LL.settings.s3CompatibleStorageDesc()}</div>
                                     </div>
-                                    <HardDrive size={20} className={backupProvider === 's3' ? 'text-blue-500' : 'text-slate-400'} />
+                                    <HardDrive size={20} strokeWidth={1.5} className={backupProvider === 's3' ? 'text-primary' : 'text-textSecondary'} />
                                 </label>
 
                                 <label
@@ -351,10 +355,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                             : 'border-slate-300'
                                         }`}></div>
                                     <div className="flex-1">
-                                        <div className="text-sm font-bold text-slate-800">{LL.settings.backblazeB2()}</div>
-                                        <div className="text-xs text-slate-500">Armazenamento em nuvem econômico</div>
+                                        <div className="text-sm font-bold text-textPrimary">{LL.settings.backblazeB2()}</div>
+                                        <div className="text-xs text-textSecondary">Armazenamento em nuvem econômico</div>
                                     </div>
-                                    <HardDrive size={20} className={backupProvider === 'backblaze' ? 'text-orange-500' : 'text-slate-400'} />
+                                    <HardDrive size={20} strokeWidth={1.5} className={backupProvider === 'backblaze' ? 'text-warning' : 'text-textSecondary'} />
                                 </label>
 
                                 <label
@@ -369,78 +373,61 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                             : 'border-slate-300'
                                         }`}></div>
                                     <div className="flex-1">
-                                        <div className="text-sm font-bold text-slate-800">{LL.settings.localFilesystem()}</div>
-                                        <div className="text-xs text-slate-500">Não recomendado para produção</div>
+                                        <div className="text-sm font-bold text-textPrimary">{LL.settings.localFilesystem()}</div>
+                                        <div className="text-xs text-textSecondary">Não recomendado para produção</div>
                                     </div>
-                                    <Server size={20} className={backupProvider === 'local' ? 'text-slate-500' : 'text-slate-400'} />
+                                    <Server size={20} strokeWidth={1.5} className={backupProvider === 'local' ? 'text-textSecondary' : 'text-textSecondary'} />
                                 </label>
                             </div>
 
                             {(backupProvider === 's3' || backupProvider === 'backblaze') && (
                                 <div className="space-y-4 pt-2">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-500">
-                                            {backupProvider === 'backblaze' ? LL.settings.applicationKeyId() : LL.settings.accessKeyId()}
-                                        </label>
-                                        <input
+                                        <Input
                                             type="text"
+                                            label={backupProvider === 'backblaze' ? LL.settings.applicationKeyId() : LL.settings.accessKeyId()}
                                             placeholder={backupProvider === 'backblaze' ? LL.settings.applicationKeyIdPlaceholder() : LL.settings.accessKeyIdPlaceholder()}
                                             value={backupConfig.accessKeyId}
                                             onChange={(e) => setBackupConfig({ ...backupConfig, accessKeyId: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
                                         />
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-500">
-                                            {backupProvider === 'backblaze' ? LL.settings.applicationKey() : LL.settings.secretAccessKey()}
-                                        </label>
-                                        <input
-                                            type="password"
-                                            placeholder={backupProvider === 'backblaze' ? LL.settings.applicationKeyPlaceholder() : LL.settings.secretAccessKeyPlaceholder()}
-                                            value={backupConfig.secretAccessKey}
-                                            onChange={(e) => setBackupConfig({ ...backupConfig, secretAccessKey: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-                                        />
-                                    </div>
+                                    <Input
+                                        type="password"
+                                        label={backupProvider === 'backblaze' ? LL.settings.applicationKey() : LL.settings.secretAccessKey()}
+                                        placeholder={backupProvider === 'backblaze' ? LL.settings.applicationKeyPlaceholder() : LL.settings.secretAccessKeyPlaceholder()}
+                                        value={backupConfig.secretAccessKey}
+                                        onChange={(e) => setBackupConfig({ ...backupConfig, secretAccessKey: e.target.value })}
+                                    />
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-slate-500">Bucket Name</label>
-                                            <input
-                                                type="text"
-                                                placeholder={backupProvider === 'backblaze' ? 'my-b2-bucket' : 'my-s3-bucket'}
-                                                value={backupConfig.bucketName}
-                                                onChange={(e) => setBackupConfig({ ...backupConfig, bucketName: e.target.value })}
-                                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-slate-500">Region</label>
-                                            <input
-                                                type="text"
-                                                placeholder={backupProvider === 'backblaze' ? 'us-west-004' : 'us-east-1'}
-                                                value={backupConfig.region}
-                                                onChange={(e) => setBackupConfig({ ...backupConfig, region: e.target.value })}
-                                                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-500">Endpoint URL</label>
-                                        <input
+                                        <Input
                                             type="text"
-                                            placeholder={backupProvider === 'backblaze' ? 'https://s3.us-west-004.backblazeb2.com' : 'https://s3.amazonaws.com'}
-                                            value={backupConfig.endpoint}
-                                            onChange={(e) => setBackupConfig({ ...backupConfig, endpoint: e.target.value })}
-                                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all"
+                                            label="Bucket Name"
+                                            placeholder={backupProvider === 'backblaze' ? 'my-b2-bucket' : 'my-s3-bucket'}
+                                            value={backupConfig.bucketName}
+                                            onChange={(e) => setBackupConfig({ ...backupConfig, bucketName: e.target.value })}
+                                        />
+                                        <Input
+                                            type="text"
+                                            label="Region"
+                                            placeholder={backupProvider === 'backblaze' ? 'us-west-004' : 'us-east-1'}
+                                            value={backupConfig.region}
+                                            onChange={(e) => setBackupConfig({ ...backupConfig, region: e.target.value })}
                                         />
                                     </div>
+                                    <Input
+                                        type="text"
+                                        label="Endpoint URL"
+                                        placeholder={backupProvider === 'backblaze' ? 'https://s3.us-west-004.backblazeb2.com' : 'https://s3.amazonaws.com'}
+                                        value={backupConfig.endpoint}
+                                        onChange={(e) => setBackupConfig({ ...backupConfig, endpoint: e.target.value })}
+                                    />
                                 </div>
                             )}
                         </div>
 
                         <div className="space-y-6">
-                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Snapshot Policy</h4>
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+                            <h4 className="text-sm font-bold text-textPrimary uppercase tracking-wide">Snapshot Policy</h4>
+                            <div className="bg-background border border-border rounded-xl p-5 space-y-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-slate-700">Automated Backups</span>
                                     <div className="relative inline-block w-10 h-6 bg-green-500 rounded-full cursor-pointer">
@@ -543,25 +530,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                 <GitBranch className="text-slate-500" size={18} />
                                 <h3 className="font-semibold text-slate-700">GitOps & Version Control</h3>
                             </div>
-                            <button
+                            <Button
                                 onClick={() => setShowGitForm(true)}
-                                className="flex items-center gap-1.5 text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors shadow-sm"
+                                variant="primary"
+                                size="sm"
                             >
-                                <Plus size={14} /> Connect Provider
-                            </button>
+                                <Plus size={14} strokeWidth={1.5} /> Connect Provider
+                            </Button>
                         </div>
 
                         {showGitForm && (
-                            <div className="bg-slate-50 p-6 border-b border-slate-100 flex gap-4 animate-in slide-in-from-top-2">
+                            <div className="bg-background p-6 border-b border-border flex gap-4 animate-in slide-in-from-top-2">
                                 <div className="flex-1 space-y-4">
-                                    <h4 className="text-sm font-bold text-slate-800">Add New Provider</h4>
+                                    <h4 className="text-sm font-bold text-textPrimary">Add New Provider</h4>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <input type="text" placeholder="Provider Name (e.g. My Github)" className="border border-slate-300 rounded px-3 py-2 text-sm" />
-                                        <input type="text" placeholder="Personal Access Token" className="border border-slate-300 rounded px-3 py-2 text-sm" />
+                                        <Input type="text" placeholder="Provider Name (e.g. My Github)" />
+                                        <Input type="text" placeholder="Personal Access Token" />
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={() => void handleAddGitToken()} className="bg-primary text-white text-xs px-4 py-2 rounded font-medium">Connect Account</button>
-                                        <button onClick={() => setShowGitForm(false)} className="text-slate-500 text-xs px-4 py-2 hover:bg-slate-200 rounded font-medium">Cancel</button>
+                                        <Button onClick={() => void handleAddGitToken()} variant="primary" size="sm">Connect Account</Button>
+                                        <Button onClick={() => setShowGitForm(false)} variant="outline" size="sm">Cancel</Button>
                                     </div>
                                 </div>
                             </div>

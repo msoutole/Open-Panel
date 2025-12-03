@@ -3,6 +3,9 @@ import { Settings, Key, Lock, Check, AlertCircle, Loader2, ExternalLink, ShieldC
 import toast, { Toaster } from 'react-hot-toast';
 import { useTranslations } from '../src/i18n/i18n-react';
 import { LanguageSelector } from '../components/LanguageSelector';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
+import { Select } from '../components/ui/Select';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -295,7 +298,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex-1" />
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-lg">
-                <Settings size={24} strokeWidth={2} className="text-white" />
+                <Settings size={24} strokeWidth={1.5} className="text-white" />
               </div>
               <div className="flex-1 flex justify-end">
                 <LanguageSelector variant="dropdown" showLabel={false} />
@@ -312,7 +315,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
                   step >= s ? 'bg-primary text-white' : 'bg-background border-2 border-border text-textSecondary'
                 } font-semibold text-sm transition-all duration-200`}>
-                  {step > s ? <Check size={16} strokeWidth={2} /> : s}
+                  {step > s ? <Check size={16} strokeWidth={1.5} /> : s}
                 </div>
                 {s < 3 && <div className={`w-12 md:w-16 h-0.5 ${step > s ? 'bg-primary' : 'bg-border'} transition-all duration-200`} />}
               </React.Fragment>
@@ -366,12 +369,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                   </button>
                 </div>
               </div>
-              <button
+              <Button
                 onClick={() => setStep(2)}
-                className="w-full py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
+                variant="primary"
+                className="w-full"
               >
                 {LL.common.next()}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -400,13 +404,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                           </div>
                         </div>
                         {selectedProviders[provider.id]?.validated && (
-                          <Check size={20} className="text-success" strokeWidth={2} />
+                          <Check size={20} className="text-success" strokeWidth={1.5} />
                         )}
                       </div>
 
                       {provider.requiresApiKey && (
-                        <div className="mt-3 space-y-2">
-                          <input
+                        <div className="mt-4 space-y-3">
+                          <Input
                             type="password"
                             placeholder={LL.onboarding.step2.apiKeyPlaceholder()}
                             value={selectedProviders[provider.id]?.apiKey || ''}
@@ -414,22 +418,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                               ...prev,
                               [provider.id]: { ...prev[provider.id], apiKey: e.target.value, validated: false },
                             }))}
-                            className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
                           />
                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                            <button
+                            <Button
                               onClick={() => validateProvider(provider.id)}
                               disabled={!selectedProviders[provider.id]?.apiKey || validating === provider.id}
-                              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
+                              isLoading={validating === provider.id}
+                              size="sm"
                             >
-                              {validating === provider.id && <Loader2 size={16} strokeWidth={2} className="animate-spin" />}
                               {LL.onboarding.step2.validate()}
-                            </button>
+                            </Button>
                             <a
                               href={provider.helpUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-primary hover:underline flex items-center gap-1 font-medium"
+                              className="text-sm text-primary hover:text-primaryHover flex items-center gap-1 font-medium transition-colors duration-200"
                             >
                               {provider.helpText} <ExternalLink size={14} strokeWidth={1.5} />
                             </a>
@@ -438,8 +441,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                       )}
 
                       {provider.requiresUrl && (
-                        <div className="mt-3 space-y-2">
-                          <input
+                        <div className="mt-4 space-y-3">
+                          <Input
                             type="url"
                             placeholder={LL.onboarding.step2.urlPlaceholder()}
                             value={selectedProviders[provider.id]?.apiUrl || 'http://localhost:11434'}
@@ -447,36 +450,32 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                               ...prev,
                               [provider.id]: { ...prev[provider.id], apiUrl: e.target.value, validated: false },
                             }))}
-                            className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
                           />
-                          <button
+                          <Button
                             onClick={() => validateProvider(provider.id)}
                             disabled={validating === provider.id}
-                            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover active:bg-primaryActive shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/10"
+                            isLoading={validating === provider.id}
+                            size="sm"
                           >
-                            {validating === provider.id && <Loader2 size={16} className="animate-spin" />}
                             {LL.onboarding.step2.validateConnection()}
-                          </button>
+                          </Button>
                           <p className="text-xs text-textSecondary bg-background p-2 rounded border border-border" dangerouslySetInnerHTML={{ __html: LL.onboarding.step2.ollamaNote() }} />
                         </div>
                       )}
 
                       {provider.optionalApiKey && (
-                        <div className="mt-3 space-y-2 pt-3 border-t border-border">
-                          <label className="block text-sm font-medium text-textPrimary mb-1">
-                            {LL.onboarding.step2.apiKeyPlaceholder()} (opcional)
-                          </label>
-                          <input
+                        <div className="mt-4 space-y-2 pt-4 border-t border-border">
+                          <Input
                             type="password"
+                            label={`${LL.onboarding.step2.apiKeyPlaceholder()} (opcional)`}
                             placeholder={LL.onboarding.step2.apiKeyPlaceholder()}
                             value={selectedProviders[provider.id]?.apiKey || ''}
                             onChange={(e) => setSelectedProviders(prev => ({
                               ...prev,
                               [provider.id]: { ...prev[provider.id], apiKey: e.target.value, validated: false },
                             }))}
-                            className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                            helperText="Deixe em branco para usar localmente, ou adicione a API key se usar um serviço em nuvem"
                           />
-                          <p className="text-xs text-textSecondary">Deixe em branco para usar localmente, ou adicione a API key se usar um serviço em nuvem</p>
                         </div>
                       )}
                     </div>
@@ -484,42 +483,41 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 </div>
 
                 {Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length > 0 && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-textPrimary mb-2">
-                      {LL.onboarding.step2.defaultProvider()} *
-                    </label>
-                    <select
+                  <div className="mt-6">
+                    <Select
+                      label={`${LL.onboarding.step2.defaultProvider()} *`}
                       value={defaultProvider}
                       onChange={(e) => setDefaultProvider(e.target.value)}
-                      className="w-full px-4 py-2 border border-border rounded-lg text-sm bg-card text-textPrimary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
-                    >
-                      <option value="">{LL.onboarding.step2.selectDefault()}</option>
-                      {Object.keys(selectedProviders)
-                        .filter(k => selectedProviders[k]?.validated)
-                        .map(k => (
-                          <option key={k} value={k}>
-                            {AI_PROVIDERS.find(p => p.id === k)?.name}
-                          </option>
-                        ))}
-                    </select>
+                      options={[
+                        { value: '', label: LL.onboarding.step2.selectDefault() },
+                        ...Object.keys(selectedProviders)
+                          .filter(k => selectedProviders[k]?.validated)
+                          .map(k => ({
+                            value: k,
+                            label: AI_PROVIDERS.find(p => p.id === k)?.name || k
+                          }))
+                      ]}
+                    />
                   </div>
                 )}
               </div>
 
               <div className="flex gap-4">
-                <button
+                <Button
                   onClick={() => setStep(1)}
-                  className="flex-1 py-2.5 border-2 border-border text-textSecondary font-medium rounded-lg hover:bg-background transition-all"
+                  variant="outline"
+                  className="flex-1"
                 >
                   {LL.common.back()}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setStep(3)}
                   disabled={Object.keys(selectedProviders).filter(k => selectedProviders[k]?.validated).length === 0 || !defaultProvider}
-                  className="flex-1 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  variant="primary"
+                  className="flex-1"
                 >
                   {LL.common.next()}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -536,32 +534,23 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 </p>
 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-textPrimary mb-1.5">
-                      {LL.onboarding.step3.newPassword()} *
-                    </label>
-                    <input
-                      type="password"
-                      placeholder={LL.onboarding.step3.newPasswordPlaceholder()}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-textPrimary mb-1.5">
-                      {LL.onboarding.step3.confirmPassword()} *
-                    </label>
-                    <input
-                      type="password"
-                      placeholder={LL.onboarding.step3.confirmPasswordPlaceholder()}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
-                      required
-                    />
-                  </div>
+                  <Input
+                    type="password"
+                    label={`${LL.onboarding.step3.newPassword()} *`}
+                    placeholder={LL.onboarding.step3.newPasswordPlaceholder()}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+                  <Input
+                    type="password"
+                    label={`${LL.onboarding.step3.confirmPassword()} *`}
+                    placeholder={LL.onboarding.step3.confirmPasswordPlaceholder()}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    error={confirmPassword && newPassword !== confirmPassword ? LL.onboarding.errors.passwordMismatch() : undefined}
+                    required
+                  />
 
                   {/* Password Strength Indicator */}
                   {newPassword && (
@@ -595,23 +584,23 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                       {/* Requirements Checklist */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                         <div className={`flex items-center gap-2 ${newPassword.length >= 8 ? 'text-success' : 'text-textSecondary'}`}>
-                          {newPassword.length >= 8 ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          {newPassword.length >= 8 ? <Check size={14} strokeWidth={1.5} /> : <AlertCircle size={14} strokeWidth={1.5} />}
                           <span>{LL.onboarding.step3.requirements.minLength()}</span>
                         </div>
                         <div className={`flex items-center gap-2 ${/[A-Z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                          {/[A-Z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          {/[A-Z]/.test(newPassword) ? <Check size={14} strokeWidth={1.5} /> : <AlertCircle size={14} strokeWidth={1.5} />}
                           <span>{LL.onboarding.step3.requirements.uppercase()}</span>
                         </div>
                         <div className={`flex items-center gap-2 ${/[a-z]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                          {/[a-z]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          {/[a-z]/.test(newPassword) ? <Check size={14} strokeWidth={1.5} /> : <AlertCircle size={14} strokeWidth={1.5} />}
                           <span>{LL.onboarding.step3.requirements.lowercase()}</span>
                         </div>
                         <div className={`flex items-center gap-2 ${/[0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                          {/[0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          {/[0-9]/.test(newPassword) ? <Check size={14} strokeWidth={1.5} /> : <AlertCircle size={14} strokeWidth={1.5} />}
                           <span>{LL.onboarding.step3.requirements.number()}</span>
                         </div>
                         <div className={`flex items-center gap-2 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-success' : 'text-textSecondary'}`}>
-                          {/[^A-Za-z0-9]/.test(newPassword) ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                          {/[^A-Za-z0-9]/.test(newPassword) ? <Check size={14} strokeWidth={1.5} /> : <AlertCircle size={14} strokeWidth={1.5} />}
                           <span>{LL.onboarding.step3.requirements.special()}</span>
                         </div>
                       </div>
@@ -625,29 +614,23 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </div>
 
               <div className="flex gap-4">
-                <button
+                <Button
                   onClick={() => setStep(2)}
-                  className="flex-1 py-2.5 border-2 border-border text-textSecondary font-medium rounded-lg hover:bg-background transition-all"
+                  variant="outline"
+                  className="flex-1"
                 >
                   {LL.common.back()}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleComplete}
                   disabled={isLoading || !isFormValid}
-                  className="flex-1 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/10"
+                  isLoading={isLoading}
+                  variant="primary"
+                  className="flex-1"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={18} strokeWidth={2} className="animate-spin" />
-                      {LL.onboarding.completing()}
-                    </>
-                  ) : (
-                    <>
-                      <Check size={18} strokeWidth={2} />
-                      {LL.onboarding.complete()}
-                    </>
-                  )}
-                </button>
+                  {!isLoading && <Check size={18} strokeWidth={1.5} />}
+                  {isLoading ? LL.onboarding.completing() : LL.onboarding.complete()}
+                </Button>
               </div>
             </div>
           )}

@@ -144,6 +144,7 @@ const en = {
     noProjectsMatching: 'No projects found matching "{search}".',
     createFirstProject: 'No projects found. Create your first project to get started.',
     addMonitoringCard: 'Add Monitoring Card',
+    monitoringCardsView: 'Monitoring Cards View',
     hostCpuLoad: 'HOST CPU LOAD',
     hostRam: 'HOST RAM',
     storage: 'STORAGE',
@@ -152,6 +153,39 @@ const en = {
     free: 'Free',
     avg: 'avg',
     noDataAvailable: 'No data available',
+    // Empty State
+    welcomeTitle: 'Welcome to Open Panel! 🚀',
+    welcomeSubtitle: 'Start by creating your first project and deploy your applications in minutes.',
+    emptyStateTitle: 'No projects yet',
+    emptyStateDescription: 'Create your first project to start managing your applications and services.',
+    emptyStateAction: 'Create First Project',
+    emptyStateHelp: 'Need help?',
+    emptyStateDocs: 'View Documentation',
+    // Quick Actions
+    quickActions: 'Quick Actions',
+    quickActionCreateProject: 'Create Project',
+    quickActionCreateService: 'Create Service',
+    quickActionViewDocs: 'Documentation',
+    quickActionViewMetrics: 'System Metrics',
+    // Getting Started
+    gettingStarted: 'Getting Started',
+    gettingStartedDescription: 'Complete these steps to get started',
+    gettingStartedCreateProject: 'Create your first project',
+    gettingStartedDeployService: 'Deploy a service',
+    gettingStartedConfigureDomain: 'Configure custom domain',
+    gettingStartedInviteTeam: 'Invite team members',
+    gettingStartedCompleted: 'Completed',
+    gettingStartedPending: 'Pending',
+    // Welcome Banner
+    welcomeBannerTitle: 'Welcome to Open Panel! 👋',
+    welcomeBannerDescription: 'Set up your first project in less than 2 minutes.',
+    welcomeBannerDismiss: 'Dismiss',
+    welcomeBannerGetStarted: 'Get Started',
+    // System Metrics (optional section)
+    systemMetrics: 'System Metrics',
+    systemMetricsDescription: 'Real-time monitoring of your host',
+    showMetrics: 'Show Metrics',
+    hideMetrics: 'Hide Metrics',
   },
 
   // Projects

@@ -3,6 +3,9 @@ import { X, Loader2, Box, Database, Globe, Server, AlertCircle } from 'lucide-re
 import { createProject } from '../services/api';
 import { Project } from '../types';
 import { useTranslations } from '../src/i18n/i18n-react';
+import { Input } from './ui/Input';
+import { Textarea } from './ui/Textarea';
+import { Button } from './ui/Button';
 
 interface CreateProjectModalProps {
     isOpen: boolean;
@@ -67,45 +70,37 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {error && (
                         <div className="bg-error/10 text-error text-sm p-3 rounded-lg border border-error/20 flex items-center gap-2 animate-in slide-in-from-top-2 duration-200">
-                            <AlertCircle size={16} strokeWidth={2} className="flex-shrink-0" />
+                            <AlertCircle size={16} strokeWidth={1.5} className="flex-shrink-0" />
                             <span>{error}</span>
                         </div>
                     )}
 
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.projectName()}</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-') })}
-                                placeholder="e.g. My Awesome App"
-                                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 hover:border-primary/50"
-                            />
-                        </div>
+                        <Input
+                            type="text"
+                            label={LL.projects.projectName()}
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-') })}
+                            placeholder="e.g. My Awesome App"
+                        />
 
-                        <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.slug()}</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.slug}
-                                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm font-mono text-textSecondary bg-background focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
-                            />
-                        </div>
+                        <Input
+                            type="text"
+                            label={LL.projects.slug()}
+                            required
+                            value={formData.slug}
+                            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                            className="font-mono text-textSecondary"
+                        />
 
-                        <div>
-                            <label className="block text-sm font-medium text-textPrimary mb-1.5">{LL.projects.description()}</label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder={LL.projects.whatProjectDoes()}
-                                rows={2}
-                                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 resize-none"
-                            />
-                        </div>
+                        <Textarea
+                            label={LL.projects.description()}
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            placeholder={LL.projects.whatProjectDoes()}
+                            rows={2}
+                        />
 
                         <div>
                             <label className="block text-sm font-medium text-textPrimary mb-3">{LL.projects.projectType()}</label>
@@ -135,21 +130,23 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                     </div>
 
                     <div className="pt-2 flex gap-3">
-                        <button
+                        <Button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2.5 border-2 border-border text-border rounded-xl text-sm font-medium hover:bg-background transition-all duration-200"
+                            variant="outline"
+                            className="flex-1"
                         >
                             {LL.common.cancel()}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-4 py-2.5 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            isLoading={loading}
+                            variant="primary"
+                            className="flex-1"
                         >
-                            {loading ? <Loader2 size={16} strokeWidth={1.5} className="animate-spin" /> : null}
                             {LL.projects.createProject()}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

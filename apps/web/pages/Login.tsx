@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, AlertCircle, Loader2, Shield, Key } from 'lucide-react';
 import { useTranslations } from '../src/i18n/i18n-react';
+import { Input } from '../components/ui/Input';
+import { Checkbox } from '../components/ui/Checkbox';
+import { Button } from '../components/ui/Button';
 
 interface LoginProps {
   onLogin: () => void;
@@ -124,7 +127,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-primary p-2 rounded-lg text-white">
-              <Box size={24} strokeWidth={2} />
+              <Box size={24} strokeWidth={1.5} />
             </div>
             <div className="text-left">
               <h1 className="text-2xl font-bold text-textPrimary tracking-tight leading-none">Open Panel</h1>
@@ -135,108 +138,90 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <p className="text-center text-sm text-textSecondary">{LL.auth.loginSubtitle()}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="p-3 bg-error/10 border border-error/20 rounded-lg flex items-center gap-2 text-error text-sm animate-in fade-in duration-200">
-              <AlertCircle size={16} strokeWidth={2} className="shrink-0" />
+            <div className="p-4 bg-error/10 border border-error/20 rounded-lg flex items-center gap-2 text-error text-sm animate-in fade-in duration-200">
+              <AlertCircle size={16} strokeWidth={1.5} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-textPrimary mb-1.5">
-              {LL.common.email()}
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={LL.auth.emailPlaceholder()}
-              required
-              className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
-            />
-          </div>
+          <Input
+            type="email"
+            name="email"
+            label={LL.common.email()}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={LL.auth.emailPlaceholder()}
+            required
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-textPrimary mb-1.5">
-              {LL.common.password()}
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={LL.auth.passwordPlaceholder()}
-              required
-              className="w-full px-4 py-2.5 border border-border rounded-lg text-sm bg-card text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all"
-            />
-          </div>
+          <Input
+            type="password"
+            name="password"
+            label={LL.common.password()}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={LL.auth.passwordPlaceholder()}
+            required
+          />
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded text-primary border-border focus:ring-2 focus:ring-primary/20"
-              />
-              <span className="text-textSecondary text-sm">{LL.auth.rememberMe()}</span>
-            </label>
+          <div className="flex items-center justify-between">
+            <Checkbox
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              label={LL.auth.rememberMe()}
+            />
           </div>
 
           {/* 2FA Code Input */}
           {requires2FA && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-3">
-                <Shield size={18} className="text-blue-600" />
-                <span className="font-medium text-blue-900">Autenticação de Dois Fatores</span>
+            <div className="p-4 bg-primaryLight border border-primary/20 rounded-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <Shield size={18} strokeWidth={1.5} className="text-primary" />
+                <span className="font-medium text-textPrimary">Autenticação de Dois Fatores</span>
               </div>
               
               {!useBackupCode ? (
-                <div>
-                  <label className="block text-sm font-medium text-blue-900 mb-1.5">
-                    Código do Autenticador
-                  </label>
-                  <input
+                <div className="space-y-3">
+                  <Input
                     type="text"
+                    label="Código do Autenticador"
                     value={twoFactorCode}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                       setTwoFactorCode(value);
                     }}
                     placeholder="000000"
-                    className="w-full px-4 py-2.5 border border-blue-300 rounded-lg text-sm bg-white text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition-all text-center font-mono text-lg tracking-widest"
+                    className="text-center font-mono text-lg tracking-widest"
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={() => setUseBackupCode(true)}
-                    className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    className="text-sm text-primary hover:text-primaryHover flex items-center gap-2 transition-colors duration-200"
                   >
-                    <Key size={14} />
+                    <Key size={14} strokeWidth={1.5} />
                     Usar código de backup
                   </button>
                 </div>
               ) : (
-                <div>
-                  <label className="block text-sm font-medium text-blue-900 mb-1.5">
-                    Código de Backup
-                  </label>
-                  <input
+                <div className="space-y-3">
+                  <Input
                     type="text"
+                    label="Código de Backup"
                     value={backupCode}
                     onChange={(e) => setBackupCode(e.target.value)}
                     placeholder="12345678"
-                    className="w-full px-4 py-2.5 border border-blue-300 rounded-lg text-sm bg-white text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition-all text-center font-mono text-lg tracking-widest"
+                    className="text-center font-mono text-lg tracking-widest"
                     autoFocus
                   />
                   <button
                     type="button"
                     onClick={() => setUseBackupCode(false)}
-                    className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    className="text-sm text-primary hover:text-primaryHover flex items-center gap-2 transition-colors duration-200"
                   >
-                    <Shield size={14} />
+                    <Shield size={14} strokeWidth={1.5} />
                     Usar código do autenticador
                   </button>
                 </div>
@@ -244,20 +229,15 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={isLoading}
-            className="w-full bg-primary hover:bg-primaryHover active:bg-primaryActive text-white font-medium py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-primary/10"
+            isLoading={isLoading}
+            className="w-full"
           >
-            {isLoading ? (
-              <>
-                <Loader2 size={18} strokeWidth={2} className="animate-spin" />
-                {LL.common.loading()}
-              </>
-            ) : (
-              LL.auth.login()
-            )}
-          </button>
+            {LL.auth.login()}
+          </Button>
         </form>
 
         {/* Footer */}

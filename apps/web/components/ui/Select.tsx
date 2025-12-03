@@ -26,13 +26,13 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             ref={ref}
             id={selectId}
-            className={`w-full px-4 py-3 border rounded-lg text-textPrimary bg-white
-              focus:outline-none transition-all duration-200 appearance-none cursor-pointer
+            className={`w-full px-4 py-2.5 border rounded-lg text-textPrimary bg-inputBg
+              focus:outline-none transition-colors duration-200 appearance-none cursor-pointer
               ${error
                 ? 'border-error focus:border-error focus:ring-4 focus:ring-error/10'
                 : 'border-border focus:border-primary focus:ring-4 focus:ring-primary/10'
               }
-              disabled:bg-[#f1f5f9] disabled:text-[#94a3b8] disabled:cursor-not-allowed
+              disabled:bg-inputDisabled disabled:text-textSecondary disabled:cursor-not-allowed disabled:border-border
               ${className}`}
             {...props}
           >
@@ -48,7 +48,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         </div>
         {error && (
           <div className="flex items-center gap-1 mt-1">
-            <AlertCircle size={14} strokeWidth={2} className="text-error" />
+            <AlertCircle size={14} strokeWidth={1.5} className="text-error" />
             <p className="text-xs text-error">{error}</p>
           </div>
         )}

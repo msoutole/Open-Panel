@@ -74,20 +74,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <div className={sidebarClasses}>
         {/* Logo e Branding */}
-        <div className={`p-4 sm:p-6 flex items-center gap-3 border-b border-border ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className="bg-primary p-2 rounded-xl text-white shadow-sm flex-shrink-0">
-            <Box size={24} strokeWidth={2} />
+        <button
+          onClick={() => onChangeView('dashboard')}
+          className={`flex items-center gap-3 border-b border-border w-full ${isCollapsed ? 'justify-center p-4' : 'p-4 sm:p-6'} hover:bg-background transition-colors duration-200`}
+        >
+          <div className={`bg-primary text-white shadow-sm flex-shrink-0 transition-all duration-200 ${isCollapsed ? 'p-2.5 rounded-xl' : 'p-2 rounded-xl'} hover:bg-primaryHover`}>
+            <Box size={isCollapsed ? 28 : 24} strokeWidth={1.5} />
           </div>
           {!isCollapsed && (
-            <div className="min-w-0">
+            <div className="min-w-0 text-left">
               <span className="font-bold text-xl text-textPrimary tracking-tight block leading-none">Open Panel</span>
               <span className="text-xs text-textSecondary font-medium">by Soullabs</span>
             </div>
           )}
-        </div>
+        </button>
 
         {/* Botão Toggle */}
-        <div className={`px-4 pt-4 ${isCollapsed ? 'px-2' : ''}`}>
+        <div className={`pt-4 ${isCollapsed ? 'px-3' : 'px-4'}`}>
           <button
             onClick={onToggle}
             className={`
@@ -96,8 +99,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               items-center 
               justify-center
               gap-2
-              px-3 
-              py-2 
               rounded-lg 
               text-sm 
               font-medium 
@@ -106,12 +107,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               hover:text-textPrimary 
               transition-all 
               duration-200
-              ${isCollapsed ? 'px-2' : 'justify-between'}
+              ${isCollapsed ? 'px-0 py-2.5 min-h-[44px]' : 'px-3 py-2 justify-between'}
             `}
             aria-label={isCollapsed ? LL.sidebar.expandSidebar() : LL.sidebar.collapseSidebar()}
           >
             {isCollapsed ? (
-              <Menu size={20} strokeWidth={1.5} />
+              <Menu size={22} strokeWidth={1.5} />
             ) : (
               <>
                 <span className="text-xs font-medium text-textSecondary uppercase tracking-wider">{LL.sidebar.menu()}</span>
@@ -128,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        <nav className={`flex-1 px-2 sm:px-4 space-y-1 overflow-y-auto ${isCollapsed ? 'px-2' : ''}`}>
+        <nav className={`flex-1 px-2 sm:px-4 overflow-y-auto ${isCollapsed ? 'px-3 py-2 space-y-2' : 'space-y-1'}`}>
           {menuItems.map((item) => {
             const isActive = currentView === item.view || (currentView === 'project_details' && item.view === 'dashboard');
             const isHovered = hoveredItem === item.id;
@@ -147,35 +148,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     flex 
                     items-center 
                     gap-3 
-                    px-4 
-                    py-3 
                     rounded-lg 
                     text-sm 
                     font-medium 
                     transition-all 
                     duration-200 
-                    mb-1
-                    min-h-[44px]
-                    ${isCollapsed ? 'justify-center px-2' : ''}
+                    relative
+                    ${isCollapsed ? 'justify-center px-0 py-3 min-h-[52px]' : 'px-4 py-3 min-h-[44px] mb-1'}
                     ${
                       isActive
-                        ? 'bg-primary text-white shadow-sm'
+                        ? isCollapsed 
+                          ? 'text-primary' 
+                          : 'bg-primary text-white shadow-sm'
                         : 'text-textSecondary hover:bg-background hover:text-textPrimary'
                     }
                   `}
                   aria-label={isCollapsed ? item.label : undefined}
                 >
+                  {/* Indicador lateral quando colapsado e ativo */}
+                  {isCollapsed && isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full"></div>
+                  )}
+                  
                   {React.createElement(item.icon, {
-                    size: 20,
+                    size: isCollapsed ? 24 : 20,
                     strokeWidth: 1.5,
-                    className: `flex-shrink-0 ${isActive ? 'text-white' : 'text-textSecondary'}`
+                    className: `flex-shrink-0 transition-all duration-200 ${
+                      isActive 
+                        ? isCollapsed 
+                          ? 'text-primary' 
+                          : 'text-white'
+                        : 'text-textSecondary'
+                    }`
                   })}
                   {!isCollapsed && <span className="truncate">{item.label}</span>}
                 </button>
 
                 {/* Tooltip quando colapsado */}
                 {isCollapsed && isHovered && (
-                  <div className="absolute left-full ml-2 px-3 py-2 bg-card border border-border rounded-lg shadow-lg z-50 whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-200">
+                  <div className="absolute left-full ml-3 px-3 py-2 bg-card border border-border rounded-lg shadow-xl z-50 whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-200 pointer-events-none">
                     <span className="text-sm font-medium text-textPrimary">{item.label}</span>
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-card border-l border-b border-border rotate-45"></div>
                   </div>
