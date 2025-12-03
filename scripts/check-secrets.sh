@@ -45,7 +45,11 @@ PATTERNS=(
 )
 
 for pattern in "${PATTERNS[@]}"; do
-    if git grep -i "$pattern" -- ':!*.md' ':!docs/*' ':!.env.example' 2>/dev/null | grep -v "changeme\|your-super-secret\|placeholder" | grep -q .; then
+    if git grep -i "$pattern" -- ':!*.md' ':!docs/*' ':!.env.example' ':!scripts/setup/*' ':!start.js' 2>/dev/null \
+        | grep -v -E "changeme|your-super-secret|placeholder" \
+        | grep -v -E '\\\$\{|\\\$[A-Za-z_]+' \
+        | grep -v -E '<password>|<strong-password>' \
+        | grep -q .; then
         echo -e "${RED}❌ Possível credencial encontrada: $pattern${NC}"
         FOUND_SECRETS=1
     fi

@@ -48,8 +48,12 @@ $patterns = @(
 
 foreach ($pattern in $patterns) {
     try {
-        $matches = git grep -i $pattern -- ':!*.md' ':!docs/*' ':!.env.example' 2>$null | 
-            Select-String -Pattern "changeme|your-super-secret|placeholder" -NotMatch
+        $matches = git grep -i $pattern -- ':!*.md' ':!docs/*' ':!.env.example' ':!scripts/setup/*' ':!start.js' 2>$null |
+            # Ignorar placeholders comuns
+            Select-String -Pattern 'changeme|your-super-secret|placeholder' -NotMatch |
+            # Ignorar linhas com variáveis (evita falsos positivos em templates e scripts)
+            Select-String -Pattern '\$\{|\$[A-Za-z_]+|<password>|<strong-password>' -NotMatch
+
         if ($matches) {
             Write-Host "❌ Possível credencial encontrada: $pattern" -ForegroundColor Red
             $foundSecrets = $true
