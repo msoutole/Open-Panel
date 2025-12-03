@@ -9,6 +9,9 @@ import type { LocaleTranslationFunctions, TranslateByString } from 'typesafe-i18
 import { detectLocale as detectLocaleFn } from 'typesafe-i18n/detectors'
 import { initExtendDictionary } from 'typesafe-i18n/utils'
 import type { Formatters, Locales, Translations, TranslationFunctions } from './i18n-types'
+import en from './en'
+import pt_BR from './pt-BR'
+import { initFormatters } from './formatters'
 
 export const baseLocale: Locales = 'pt-BR'
 
@@ -38,3 +41,23 @@ export const i18n = (): LocaleTranslationFunctions<Locales, Translations, Transl
 	initI18n<Locales, Translations, TranslationFunctions, Formatters>(loadedLocales, loadedFormatters)
 
 export const detectLocale = (...detectors: LocaleDetector[]): Locales => detectLocaleFn<Locales>(baseLocale, locales, ...detectors)
+
+// Load locale functions (synchronous)
+const localeTranslations = {
+	en,
+	'pt-BR': pt_BR,
+}
+
+export const loadLocale = (locale: Locales): void => {
+	if (loadedLocales[locale] && Object.keys(loadedLocales[locale]).length > 0) return
+
+	loadedLocales[locale] = localeTranslations[locale] as unknown as Translations
+	loadFormatters(locale)
+}
+
+export const loadFormatters = (locale: Locales): void =>
+	void (loadedFormatters[locale] = initFormatters(locale))
+
+export const isLocaleLoaded = (locale: Locales): boolean => {
+	return locale in loadedLocales && Object.keys(loadedLocales[locale]).length > 0
+}
