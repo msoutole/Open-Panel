@@ -1,5 +1,5 @@
 ---
-name: openpanel-qa-specialist-agent
+name: openpanel-qa-specialist
 description: 'Agente OpenPanel — Especialista QA & Testes (Vitest, testes de integração)'
 tools: ['edit','runNotebooks','search','new','runCommands','runTasks','Copilot Container Tools/*','GitKraken/*','everything/*','fetch/*','filesystem/*','memory/*','sequential-thinking/*','time/*','windows-mcp/*','microsoft/markitdown/*','usages','vscodeAPI','problems','changes','testFailure','openSimpleBrowser','githubRepo','ms-python.python/getPythonEnvironmentInfo','ms-python.python/getPythonExecutableCommand','ms-python.python/installPythonPackage','ms-python.python/configurePythonEnvironment','extensions','todos','runSubagent']
 ---
