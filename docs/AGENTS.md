@@ -2,6 +2,8 @@
 
 Este documento define papéis e responsabilidades para agentes de IA trabalhando neste monorepo. O objetivo é acelerar a execução com um Gestor que delega para especialistas, alinhados aos padrões reais do projeto.
 
+**IMPORTANTE**: Todos os agentes respondem EXCLUSIVAMENTE em português brasileiro.
+
 ## Papéis principais
 
 -### 1) Gestor (Orquestrador)
@@ -72,15 +74,96 @@ Este documento define papéis e responsabilidades para agentes de IA trabalhando
 - Manter `docs/**` atualizados (Quick Start, Setup, Integration, Troubleshooting).
 - Criar exemplos em `docs/architecture/**` quando necessário.
 
-## Fluxo de delegação sugerido
+## Fluxo de Delegação Multi-Agentes
 
-1. Gestor cria checklist, valida ambiente e define metas.
-2. Backend implementa serviços/rotas e (se preciso) migrações Prisma.
-3. Frontend integra chamadas e UI, com cache/backoff e tempo real.
-4. Testes cobrem cenários críticos e gateways.
-5. DevOps verifica Compose, Traefik e variáveis.
-6. Segurança revisa erros, CORS, rate limit e logs.
-7. Docs consolidam o conhecimento.
+Este fluxo garante que cada especialista trabalhe em sua área de expertise, mantendo qualidade e conformidade arquitetural:
+
+### 1. Planejamento e Preparação (Gestor/Orchestrator)
+
+**Responsável**: `.claude/agents/openpanel-orchestrator.md`
+
+- Cria checklist estruturada no todo list interno
+- Valida ambiente de desenvolvimento (Docker, Node, dependências)
+- Define metas e critérios de aceitação
+- Decompõe a tarefa em subtarefas atribuíveis a especialistas
+- Coordena todos os demais agentes
+
+### 2. Implementação Backend (Backend Specialist)
+
+**Responsável**: `.claude/agents/openpanel-backend-specialist.md`
+
+- Implementa serviços em `apps/api/src/services/`
+- Cria rotas em `apps/api/src/routes/`
+- Adiciona middlewares se necessário
+- Se houver mudanças de schema: coordena com Database Architect para migrations Prisma
+- Garante uso de `HTTPException`, `errorHandler`, logging estruturado
+
+### 3. Integração Frontend (Frontend Specialist)
+
+**Responsável**: `.claude/agents/openpanel-frontend-specialist.md`
+
+- Implementa chamadas HTTP via `services/api.ts`
+- Cria componentes e páginas necessários
+- Implementa cache e backoff para resiliência (`utils/retry.ts`, `utils/cache.ts`)
+- Configura WebSocket para recursos em tempo real
+- Garante uso correto de variáveis `VITE_*`
+
+### 4. Cobertura de Testes (QA Specialist)
+
+**Responsável**: `.claude/agents/openpanel-qa-specialist.md`
+
+- Cria testes unitários e de integração em `apps/api/src/__tests__/`
+- Cobre cenários críticos e casos de erro
+- Testa gateways WebSocket (autenticação e rate limit)
+- Valida type-check em toda workspace (`npm run type-check`)
+- Garante >80% de cobertura em código crítico
+
+### 5. Validação DevOps (DevOps Specialist)
+
+**Responsável**: `.claude/agents/openpanel-devops-infra-specialist.md`
+
+- Verifica configuração Docker Compose
+- Valida configurações Traefik se aplicável
+- Confirma variáveis de ambiente documentadas
+- Testa inicialização e conectividade de serviços
+- Resolve problemas de socket Docker (especialmente Windows)
+
+### 6. Auditoria de Segurança (Security Auditor)
+
+**Responsável**: `.claude/agents/openpanel-security-compliance-auditor.md`
+
+- Revisa tratamento de erros e logging
+- Valida configurações CORS e rate limiting
+- Confirma uso correto de `lib/env.ts` (nunca `process.env` direto)
+- Verifica sanitização de logs (sem exposição de credenciais)
+- Audita conformidade com `docs/SECURITY.md`
+
+### 7. Documentação (Docs Maintainer)
+
+**Responsável**: `.claude/agents/openpanel-docs-ux-maintainer.md`
+
+- Atualiza `docs/` com novas features
+- Documenta endpoints em `docs/API.md`
+- Atualiza guias de setup/troubleshooting
+- Cria documentação de arquitetura em `docs/architecture/**` se necessário
+- Mantém consistência e clareza em português brasileiro
+
+### 8. Arquitetura de Dados (Database Architect - Opcional)
+
+**Responsável**: `.claude/agents/openpanel-database-architect.md`
+
+- Modifica schemas Prisma (`apps/api/prisma/schema.prisma`)
+- Cria e executa migrations seguras
+- Otimiza queries e adiciona índices
+- Integra cache Redis e filas BullMQ
+- Implementa extensões PostgreSQL como `pgvector`
+
+## Princípios de Coordenação
+
+- **Paralelização**: Backend e Frontend podem trabalhar simultaneamente quando não há dependência
+- **Validação por Etapa**: Testes devem passar antes de documentar; type-check antes de aprovar PR
+- **Comunicação de Blockers**: Qualquer impedimento deve ser comunicado imediatamente ao usuário
+- **Checklist Sempre Atualizada**: O Gestor mantém o progresso real visível para o usuário
 
 ## Comandos úteis (PowerShell)
 
@@ -102,7 +185,22 @@ npm run test -w apps/api
 npm run type-check
 ```
 
-## Referências rápidas
+## Referências Rápidas
 
-- Arquitetura: `.github/copilot-instructions.md`, `docs/README.md`, `docs/QUICK_START.md`, `docs/SETUP_GUIDE.md`, `docs/INTEGRATION.md`.
-- Exemplos: `apps/api/src/routes/containers/index.ts`, `apps/api/src/services/container.service.ts`, `apps/web/services/api.ts`.
+### Documentação
+
+- Arquitetura: `.github/copilot-instructions.md`, `docs/README.md`, `docs/QUICK_START.md`, `docs/SETUP_GUIDE.md`, `docs/INTEGRATION.md`
+- Exemplos de código: `apps/api/src/routes/containers/index.ts`, `apps/api/src/services/container.service.ts`, `apps/web/services/api.ts`
+
+### Agentes Especializados
+
+Todos os agentes estão em `.claude/agents/` e respondem **exclusivamente em português brasileiro**:
+
+1. `openpanel-orchestrator.md` - Gestor e coordenador principal
+2. `openpanel-backend-specialist.md` - Especialista em Hono + Prisma
+3. `openpanel-frontend-specialist.md` - Especialista em React + Vite
+4. `openpanel-qa-specialist.md` - Especialista em testes (Vitest)
+5. `openpanel-devops-infra-specialist.md` - Especialista em Docker/Infraestrutura
+6. `openpanel-security-compliance-auditor.md` - Auditor de segurança
+7. `openpanel-docs-ux-maintainer.md` - Mantenedor de documentação
+8. `openpanel-database-architect.md` - Arquiteto de dados (Prisma/PostgreSQL)
