@@ -57,6 +57,8 @@ function validateAgentFile(filePath) {
   }
 
   const agentName = parseName(yaml);
+  const fileName = path.basename(filePath, '.md'); // Get filename without extension
+  
   if (!agentName) {
     results.ok = false;
     results.errors.push('Missing "name" field in front matter');
@@ -71,6 +73,10 @@ function validateAgentFile(filePath) {
     if (agentName.endsWith('-agent')) {
       results.errors.push(`Invalid "name" field: '${agentName}' should not end with '-agent' suffix`);
       results.ok = false;
+    }
+    // Ensure filename matches the name field
+    if (agentName !== fileName) {
+      results.warnings.push(`Name field '${agentName}' doesn't match filename '${fileName}.md'. Consider keeping them consistent.`);
     }
   }
 
@@ -102,7 +108,7 @@ function main() {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(AGENTS_DIR).filter((f) => f.endsWith('.md'));
+  const files = fs.readdirSync(AGENTS_DIR).filter((f) => f.endsWith('.md') && f.startsWith('openpanel-'));
   const summary = { total: files.length, passed: 0, failed: 0, warnings: 0 };
   const results = [];
   for (const f of files) {
