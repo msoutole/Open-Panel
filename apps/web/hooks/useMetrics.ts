@@ -44,7 +44,7 @@ export const useMetrics = (options: UseMetricsOptions = {}): UseMetricsReturn =>
       
       setHistory((prev) => {
         // Prevent duplicate entries
-        if (prev.length > 0 && prev[0].timestamp === metricsData.timestamp) {
+        if (prev.length > 0 && prev[0]?.timestamp === metricsData.timestamp) {
           return prev;
         }
         const newHistory = [metricsData, ...prev];

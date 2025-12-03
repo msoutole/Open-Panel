@@ -395,7 +395,7 @@ auth.post('/2fa/disable', zValidator('json', disable2FASchema), async (c) => {
       data: {
         twoFactorEnabled: false,
         twoFactorSecret: null,
-        twoFactorBackupCodes: null,
+        twoFactorBackupCodes: undefined,
       },
     })
 

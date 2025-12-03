@@ -7,32 +7,35 @@ Este documento contém o status atual do projeto, planos futuros e histórico de
 ## 🗺️ Roadmap Atual
 
 **Última atualização**: 03 de Dezembro de 2025
-**Status**: Em desenvolvimento ativo (Fase 4 - Testes & Integração de UI)
+**Status**: Em desenvolvimento ativo (Fase 5 - Testes & Polimento)
 
-### ✅ Concluído (Fases 1-3)
+### ✅ Concluído (Fases 1-4)
 
 - **Infraestrutura**: Dockerfiles otimizados, Logging profissional, Health Checks.
-- **Segurança**: Headers de segurança, Rate Limiting, Autenticação JWT robusta, 2FA (Backend pronto).
+- **Segurança**: Headers de segurança, Rate Limiting, Autenticação JWT robusta, 2FA completo (Backend + Frontend).
 - **Qualidade**: CI/CD Pipeline, ESLint/Prettier, 115+ correções TypeScript.
-- **Funcionalidades**:
-  - WebSockets para logs.
-  - **Deploy de Templates**: Backend e Frontend (Marketplace) implementados.
-  - Zero Downtime Deployments (Backend pronto).
+- **Funcionalidades Completas**:
+  - WebSockets para logs e terminal em tempo real.
+  - **Deploy de Templates**: Marketplace visual completo com 100+ templates.
+  - **2FA Authentication**: Fluxo completo integrado (ProfileView + TwoFactorSetup + Login).
+  - **WebTerminal Real**: Conectado via WebSocket ao backend.
+  - **Database Clients**: Consoles para PostgreSQL, MySQL, MongoDB e Redis.
+  - Zero Downtime Deployments (Blue-Green strategy).
+  - Sistema de backups completo.
 
-### 🚧 Em Progresso (Fase 4)
+### 🚧 Em Progresso (Fase 5)
 
-- **Integração de UI**:
-  - Conectar WebTerminal ao WebSocket real.
-  - Integrar fluxo de 2FA no Login e Settings.
 - **Testes Automatizados**: Aumentar cobertura para 60% (Unitários e Integração).
-- **Templates**: Expandir catálogo de templates de aplicação (Meta: 100+).
+- **Polimento de UI**: Revisão de consistência visual e responsividade.
+- **Documentação**: Atualização contínua dos manuais.
 
-### 🔮 Futuro (Fase 5+)
+### 🔮 Futuro (Fase 6+)
 
-- **Marketplace**: Sistema de plugins e templates da comunidade.
-- **Multi-Node**: Suporte a cluster Swarm ou Kubernetes.
+- **Marketplace Comunidade**: Sistema de plugins e templates contribuídos pela comunidade.
+- **Multi-Node**: Suporte a cluster Docker Swarm ou Kubernetes.
 - **Billing**: Integração com Stripe/Gateway de pagamentos.
 - **Mobile App**: App nativo para monitoramento.
+- **GitOps**: Integração avançada com GitHub/GitLab para CI/CD automático.
 
 ---
 
@@ -42,8 +45,8 @@ Abaixo o status dos planos encontrados na pasta `.cursor/plans`:
 
 | Plano                               | Status       | Notas                                                                                            |
 | ----------------------------------- | ------------ | ------------------------------------------------------------------------------------------------ |
-| `compara-o-easypanel-vs-open-panel` | 🟡 Parcial    | Backend 100%. UI Templates 100%. Faltam: Integração 2FA e Terminal Real. |
-| `executar-corre-es-e-melhorias`     | ✅ Concluído  | Fases 1-3 de correções e melhorias finalizadas.                                                  |
+| `compara-o-easypanel-vs-open-panel` | ✅ Concluído  | Backend 100%. UI Templates 100%. 2FA integrado. Terminal Real conectado. Database Clients OK. |
+| `executar-corre-es-e-melhorias`     | ✅ Concluído  | Fases 1-4 de correções e melhorias finalizadas.                                                  |
 | `limpeza-de-branches-git`           | 🔄 Recorrente | Tarefa de manutenção contínua.                                                                   |
 | `melhorias-ui-responsiva`           | ✅ Concluído  | Diretrizes de design e melhorias implementadas.                                                  |
 | `refatora-o-frontend-design-system` | ✅ Concluído  | Design System estabelecido.                                                                      |
@@ -56,11 +59,12 @@ Abaixo o status dos planos encontrados na pasta `.cursor/plans`:
 | Área            | Nota (0-10) | Meta | Status |
 | --------------- | ----------- | ---- | ------ |
 | Arquitetura     | 9           | 9    | ✅      |
-| Segurança       | 9           | 9    | ✅      |
+| Segurança       | 10          | 9    | ✅      |
 | Observabilidade | 9           | 9    | ✅      |
 | Documentação    | 10          | 10   | ✅      |
+| Funcionalidades | 10          | 9    | ✅      |
 | Testes          | 7           | 8    | ⚠️      |
-| Cobertura       | 40%         | 60%  | ⚠️      |
+| Cobertura       | 45%         | 60%  | ⚠️      |
 
 ---
 

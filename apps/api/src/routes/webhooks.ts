@@ -84,11 +84,11 @@ webhooks.post('/github', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments.map((d: any) => ({
+      deployments: result.deployments?.map((d: any) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
-      })),
+      })) ?? [],
     })
   } catch (error: unknown) {
     logError('GitHub webhook error', error)
@@ -140,11 +140,11 @@ webhooks.post('/gitlab', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments.map((d: any) => ({
+      deployments: result.deployments?.map((d: any) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
-      })),
+      })) ?? [],
     })
   } catch (error: unknown) {
     logError('GitLab webhook error', error)
@@ -189,11 +189,11 @@ webhooks.post('/bitbucket', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments.map((d: any) => ({
+      deployments: result.deployments?.map((d: any) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
-      })),
+      })) ?? [],
     })
   } catch (error: unknown) {
     logError('Bitbucket webhook error', error)

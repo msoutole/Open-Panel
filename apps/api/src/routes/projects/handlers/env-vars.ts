@@ -7,7 +7,6 @@
  */
 
 import { Hono, Context } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import { prisma } from '../../../lib/prisma'
 import { createEnvVarSchema } from '@openpanel/shared'
@@ -88,12 +87,15 @@ envVars.get('/', async (c: Context<{ Variables: Variables }>) => {
  * @throws {HTTPException} 403 - Usuário não tem acesso
  * @throws {HTTPException} 404 - Projeto não encontrado
  */
-envVars.post('/', zValidator('json', createEnvVarSchema), async (c: Context<{ Variables: Variables }>) => {
+envVars.post('/', async (c: Context<{ Variables: Variables }>) => {
   const projectId = c.req.param('projectId') ?? ''
   const user = c.get('user')
-  const data = c.req.valid('json')
 
   try {
+    // Validação manual do body
+    const body = await c.req.json()
+    const data = createEnvVarSchema.parse(body)
+
     // Verificar acesso ao projeto
     await ProjectService.findById(projectId, user.userId)
 
@@ -157,11 +159,14 @@ envVars.post('/', zValidator('json', createEnvVarSchema), async (c: Context<{ Va
  * @throws {HTTPException} 403 - Usuário não tem acesso
  * @throws {HTTPException} 404 - Projeto ou variável não encontrada
  */
-envVars.put('/:envVarId', zValidator('json', createEnvVarSchema), async (c: Context<{ Variables: Variables }>) => {
+envVars.put('/:envVarId', async (c: Context<{ Variables: Variables }>) => {
   const projectId = c.req.param('projectId') ?? ''
   const envVarId = c.req.param('envVarId') ?? ''
   const user = c.get('user')
-  const data = c.req.valid('json')
+
+  // Validação manual do body
+  const body = await c.req.json()
+  const data = createEnvVarSchema.parse(body)
 
   try {
     // Verificar acesso ao projeto

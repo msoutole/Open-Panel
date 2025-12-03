@@ -1,6 +1,20 @@
 export type ServiceType = 'app' | 'db' | 'redis' | 'worker' | 'sidecar';
 export type ServiceStatus = 'Running' | 'Stopped' | 'Building' | 'Error' | 'Backing Up';
 
+export interface BlueGreenStatus {
+  activeColor: 'blue' | 'green';
+  blue: {
+    version: string;
+    status: ServiceStatus;
+    createdAt: string;
+  };
+  green: {
+    version: string;
+    status: ServiceStatus;
+    createdAt: string;
+  };
+}
+
 export interface TraefikConfig {
   domain?: string;
   https: boolean;
@@ -75,6 +89,8 @@ export interface Service {
   cpu: number; // percentage
   memory: string;
   port: number;
+  deploymentStrategy?: 'rolling' | 'blue-green';
+  blueGreenStatus?: BlueGreenStatus;
   traefik?: TraefikConfig;
   deploymentToken?: string;
   command?: string;
@@ -175,7 +191,16 @@ export interface GitToken {
   status: 'active' | 'error' | 'expired';
 }
 
-export type ViewState = 'login' | 'dashboard' | 'project_details' | 'settings' | 'users' | 'backups' | 'security' | 'monitor' | 'profile';
+export type ViewState =
+  | 'login'
+  | 'dashboard'
+  | 'project_details'
+  | 'settings'
+  | 'users'
+  | 'backups'
+  | 'security'
+  | 'monitor'
+  | 'profile';
 
 // --- AI Agent & MCP Types ---
 
@@ -191,7 +216,6 @@ export interface AgentConfig {
   responseStyle: AgentResponseStyle;
 }
 
-
 export interface MCPTool {
   name: string;
   description: string;
@@ -206,6 +230,7 @@ export type DatabaseType = 'postgres' | 'mysql' | 'mongodb' | 'redis';
 export interface CreateServiceData {
   name: string;
   type: ServiceType;
+  deploymentStrategy?: 'rolling' | 'blue-green';
   source?: {
     type: SourceType;
     image?: string;

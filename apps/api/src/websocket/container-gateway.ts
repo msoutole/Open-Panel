@@ -279,6 +279,13 @@ export class ContainerWebSocketGateway {
         })
       }
 
+      if (!container.project) {
+        return this.sendToClient(client, {
+          type: 'error',
+          message: 'Container has no associated project',
+        })
+      }
+
       // Check if user is owner or team member
       const isOwner = container.project.ownerId === client.userId
       const isTeamMember = container.project.team?.members.some(

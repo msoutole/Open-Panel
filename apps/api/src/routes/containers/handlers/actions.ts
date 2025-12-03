@@ -5,7 +5,6 @@
  */
 
 import { Hono, Context } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../../../types'
 import { ContainerService } from '../../../services/container.service'
@@ -42,10 +41,10 @@ actions.post('/start', async (c: Context<{ Variables: Variables }>) => {
 
 /**
  * Para um container.
- * 
+ *
  * POST /containers/:id/stop
  */
-actions.post('/stop', zValidator('json', containerActionSchema), async (c: Context<{ Variables: Variables }>) => {
+actions.post('/stop', async (c: Context<{ Variables: Variables }>) => {
   try {
     const user = c.get('user')
     if (!user) {
@@ -53,7 +52,12 @@ actions.post('/stop', zValidator('json', containerActionSchema), async (c: Conte
     }
 
     const { id } = c.req.param()
-    const { timeout } = c.req.valid('json')
+
+    // Validação manual do body
+    const body = await c.req.json()
+    const validated = containerActionSchema.parse(body)
+    const { timeout } = validated
+
     const result = await ContainerService.stopContainer(id, timeout)
 
     return c.json({
@@ -70,10 +74,10 @@ actions.post('/stop', zValidator('json', containerActionSchema), async (c: Conte
 
 /**
  * Reinicia um container.
- * 
+ *
  * POST /containers/:id/restart
  */
-actions.post('/restart', zValidator('json', containerActionSchema), async (c: Context<{ Variables: Variables }>) => {
+actions.post('/restart', async (c: Context<{ Variables: Variables }>) => {
   try {
     const user = c.get('user')
     if (!user) {
@@ -81,7 +85,12 @@ actions.post('/restart', zValidator('json', containerActionSchema), async (c: Co
     }
 
     const { id } = c.req.param()
-    const { timeout } = c.req.valid('json')
+
+    // Validação manual do body
+    const body = await c.req.json()
+    const validated = containerActionSchema.parse(body)
+    const { timeout } = validated
+
     const result = await ContainerService.restartContainer(id, timeout)
 
     return c.json({

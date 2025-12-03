@@ -110,7 +110,7 @@ export class ProjectService {
     }
 
     // Membro do team tem acesso
-    if (project.teamId && project.team?.members.length > 0) {
+    if (project.teamId && (project.team?.members?.length ?? 0) > 0) {
       return true
     }
 

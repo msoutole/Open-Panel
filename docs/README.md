@@ -2,6 +2,8 @@
 
 Bem-vindo à documentação oficial do OpenPanel.
 
+**Última atualização**: 03 de Dezembro de 2025
+
 A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropriado para você:
 
 ## 🚀 Manuais Principais
@@ -10,16 +12,18 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 **Para quem:** Usuários finais e administradores do sistema.
 **Conteúdo:**
 - Instalação e Início Rápido (`npm start`)
-- Configuração de 2FA
+- Autenticação de Dois Fatores (2FA)
+- Templates e Marketplace
+- Terminal Web e Consoles de Banco
 - Solução de Problemas (Troubleshooting)
-- Operação do Painel
 
 ### [🛠️ Manual Técnico](./MANUAL_TECNICO.md)
 **Para quem:** Arquitetos e desenvolvedores que precisam entender o funcionamento interno.
 **Conteúdo:**
-- Arquitetura do Sistema e Microserviços
-- Referência da API e WebSockets
-- Banco de Dados e Segurança
+- Arquitetura do Sistema (Monorepo)
+- Referência da API REST e WebSockets
+- Banco de Dados (Prisma + PostgreSQL)
+- Segurança (JWT, 2FA, RBAC)
 - Design System e Performance
 
 ### [👨‍💻 Guia de Desenvolvimento](./GUIA_DE_DESENVOLVIMENTO.md)
@@ -29,14 +33,36 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 - Papéis de Agentes de IA
 - Checklist de Testes
 - Como criar Templates
+- Comandos Úteis
 
 ### [📅 Projeto e Roadmap](./PROJETO.md)
 **Para quem:** Todos interessados no futuro do projeto.
 **Conteúdo:**
-- Status atual e Métricas
+- Status atual (Fase 5)
 - Roadmap e Próximos Passos
+- Métricas de Qualidade
 - Histórico de Decisões
 
 ---
 
-> *Documentação consolidada em Janeiro de 2025.*
+## 📋 Documentos de Referência
+
+| Documento | Descrição |
+| --------- | --------- |
+| [PLANO.md](./PLANO.md) | Plano de implementação consolidado (EasyPanel vs OpenPanel) |
+| [ERRORS_FOUND.md](./ERRORS_FOUND.md) | Relatório de erros encontrados e status de correção |
+| [TYPESCRIPT_FIXES.md](./TYPESCRIPT_FIXES.md) | Detalhes das correções TypeScript no frontend |
+
+---
+
+## 🆕 Novidades (Dezembro 2025)
+
+- ✅ **2FA Completo**: Autenticação de dois fatores integrada (Backend + Frontend)
+- ✅ **Terminal Real**: WebTerminal conectado via WebSocket
+- ✅ **Database Clients**: Consoles para PostgreSQL, MySQL, MongoDB e Redis
+- ✅ **Template Marketplace**: UI completa para deploy de templates
+- ✅ **Zero Downtime**: Estratégia Blue-Green para deploys sem interrupção
+
+---
+
+> *Documentação consolidada em Dezembro de 2025.*

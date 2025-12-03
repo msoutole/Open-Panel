@@ -33,7 +33,10 @@
       "Bash(findstr:*)",
       "Bash(npm run db:generate:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npx typesafe-i18n:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,7 @@
 import { DockerService } from './docker'
 import { TraefikService } from './traefik'
 import { prisma } from '../lib/prisma'
+import { ContainerStatus } from '@prisma/client'
 import { logInfo, logError, logWarn } from '../lib/logger'
 
 const dockerService = DockerService.getInstance()
@@ -168,7 +169,7 @@ export class DeploymentStrategyService {
             dockerId: oldContainerId,
           },
           data: {
-            status: 'STOPPED',
+            status: ContainerStatus.EXITED,
           },
         })
 
@@ -177,7 +178,7 @@ export class DeploymentStrategyService {
             id: greenContainer.id,
           },
           data: {
-            status: 'RUNNING',
+            status: ContainerStatus.RUNNING,
           },
         })
       }
@@ -274,7 +275,7 @@ export class DeploymentStrategyService {
         await dockerService.stopContainer(currentContainer.dockerId)
         await prisma.container.update({
           where: { id: currentContainer.id },
-          data: { status: 'STOPPED' },
+          data: { status: ContainerStatus.EXITED },
         })
       }
 

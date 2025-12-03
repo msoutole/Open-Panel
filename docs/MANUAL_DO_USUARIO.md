@@ -50,16 +50,76 @@ Após a instalação, acesse:
 Para aumentar a segurança da sua conta, recomendamos ativar a Autenticação de Dois Fatores.
 
 ### Como Ativar
-1. Acesse **Configurações de Perfil** no menu do usuário.
-2. Clique na aba **Segurança**.
-3. Clique em **Ativar 2FA**.
-4. Escaneie o QR Code com seu aplicativo autenticador (Google Authenticator, Authy, etc.).
+1. Clique no seu avatar no canto superior direito.
+2. Selecione **Perfil**.
+3. Na seção **Segurança**, clique em **Ativar 2FA**.
+4. Escaneie o QR Code com seu aplicativo autenticador (Google Authenticator, Authy, Microsoft Authenticator, etc.).
 5. Digite o código de 6 dígitos gerado pelo app para confirmar.
 
-### Recuperação
+### Códigos de Recuperação
 Ao ativar o 2FA, você receberá **Códigos de Backup**.
 - **Guarde-os em local seguro!**
 - Se perder acesso ao seu celular, estes códigos são a única forma de recuperar sua conta.
+- Cada código pode ser usado apenas uma vez.
+
+### Desativar 2FA
+1. Acesse **Perfil** > **Segurança**.
+2. Clique em **Desativar 2FA**.
+3. Confirme com seu código atual ou um código de backup.
+
+---
+
+## 📦 Templates de Aplicação
+
+O OpenPanel oferece um marketplace de templates para deploy rápido de aplicações populares.
+
+### Como Usar
+1. No menu lateral, clique em **Templates** ou **Marketplace**.
+2. Navegue pelas categorias (CMS, Databases, DevTools, etc.).
+3. Clique em **Deploy** no template desejado.
+4. Siga o wizard de configuração (nome, variáveis de ambiente, etc.).
+5. Aguarde o deploy ser concluído.
+
+### Templates Disponíveis
+- **CMS**: WordPress, Ghost, Strapi, Directus
+- **Databases**: PostgreSQL, MySQL, MongoDB, Redis
+- **DevTools**: GitLab, Gitea, Jenkins, SonarQube
+- **Monitoring**: Grafana, Prometheus, Uptime Kuma
+- **E muito mais!**
+
+---
+
+## 🖥️ Terminal Web
+
+Acesse o terminal de qualquer container diretamente pelo navegador.
+
+### Como Usar
+1. Navegue até o serviço desejado.
+2. Clique na aba **Terminal**.
+3. O terminal será conectado automaticamente ao container.
+4. Execute comandos como se estivesse via SSH.
+
+### Atalhos
+- `Ctrl+C`: Interromper comando
+- `Ctrl+L` ou `clear`: Limpar tela
+- `Ctrl+D`: Fechar sessão
+
+---
+
+## 💾 Consoles de Banco de Dados
+
+Execute queries diretamente nos seus bancos de dados.
+
+### Bancos Suportados
+- **PostgreSQL**: Console SQL completo
+- **MySQL/MariaDB**: Console SQL completo
+- **MongoDB**: Shell interativo
+- **Redis**: CLI Redis
+
+### Como Usar
+1. Navegue até o serviço de banco de dados.
+2. Clique na aba **Console** ou **Query**.
+3. Digite sua query e pressione **Execute** ou `Ctrl+Enter`.
 
 ---
 
@@ -69,15 +129,15 @@ Ao ativar o 2FA, você receberá **Códigos de Backup**.
 
 O OpenPanel suporta atualizações sem interrupção de serviço (Zero Downtime) para suas aplicações.
 
-**Como funciona:**
-1. O sistema sobe o novo container da aplicação.
-2. Aguarda o "Health Check" confirmar que a nova versão está saudável.
-3. O Traefik (Proxy) redireciona o tráfego para o novo container.
-4. O container antigo é desligado graciosamente.
+**Como funciona (Blue-Green):**
+1. O sistema sobe o novo container (versão "Green").
+2. Aguarda o Health Check confirmar que a nova versão está saudável.
+3. O Traefik redireciona o tráfego para o novo container.
+4. O container antigo ("Blue") é desligado graciosamente.
 
 **Requisitos:**
 - Sua aplicação deve ter uma rota de health check (ex: `/health`).
-- Configure o `HealthCheck` no `docker-compose.yml` ou nas configurações do serviço.
+- Configure o HealthCheck nas configurações do serviço.
 
 ---
 
@@ -103,8 +163,12 @@ O OpenPanel suporta atualizações sem interrupção de serviço (Zero Downtime)
 - Se acabou de instalar, use `admin@admin.com.br` / `admin123`.
 - Se alterou a senha e esqueceu, você precisará resetar via banco de dados (veja Manual Técnico).
 
+**"Código 2FA Inválido"**
+- Verifique se o horário do seu celular está sincronizado.
+- Use um código de backup se necessário.
+
 **"Erro ao conectar com o servidor"**
-- Verifique se a API está rodando (`npm run logs:api`).
+- Verifique se a API está rodando (`npm run dev:api`).
 - Verifique se o banco de dados está rodando (`docker ps`).
 
 ### Logs
@@ -112,10 +176,10 @@ Para ver os logs detalhados em caso de erro:
 
 ```bash
 # Logs da API
-npm run logs:api
+npm run dev:api
 
 # Logs do Frontend
-npm run logs:web
+npm run dev:web
 
 # Logs do Banco de Dados
 docker logs openpanel-postgres-1

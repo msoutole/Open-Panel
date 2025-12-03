@@ -80,14 +80,20 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
   const nextStep = () => {
     const stepIndex = steps.findIndex((s) => s.key === currentStep);
     if (stepIndex < steps.length - 1) {
-      setCurrentStep(steps[stepIndex + 1].key);
+      const nextStepData = steps[stepIndex + 1];
+      if (nextStepData) {
+        setCurrentStep(nextStepData.key);
+      }
     }
   };
 
   const prevStep = () => {
     const stepIndex = steps.findIndex((s) => s.key === currentStep);
     if (stepIndex > 0) {
-      setCurrentStep(steps[stepIndex - 1].key);
+      const prevStepData = steps[stepIndex - 1];
+      if (prevStepData) {
+        setCurrentStep(prevStepData.key);
+      }
     }
   };
 

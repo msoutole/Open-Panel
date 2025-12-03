@@ -670,7 +670,7 @@ export class BuildService {
     gitCommitHash?: string | null
     gitUrl?: string | null
     gitBranch?: string | null
-    startedAt: Date
+    startedAt: Date | null
   }> {
     const { projectId, gitCommitHash, gitUrl, gitBranch } = options
 

@@ -33,6 +33,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
     const [formData, setFormData] = useState<CreateServiceData>({
         name: '',
         type: 'app',
+        deploymentStrategy: 'rolling',
     });
 
     const resetModal = () => {
@@ -379,6 +380,18 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                             />
                                         </div>
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-textPrimary mb-2">Deployment Strategy</label>
+                                        <select
+                                            value={formData.deploymentStrategy}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, deploymentStrategy: e.target.value as 'rolling' | 'blue-green' }))}
+                                            className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
+                                            disabled={isSubmitting || success}
+                                        >
+                                            <option value="rolling">Rolling</option>
+                                            <option value="blue-green">Blue-Green</option>
+                                        </select>
+                                    </div>
                                 </>
                             )}
 
@@ -425,6 +438,18 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                                             className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
                                             disabled={isSubmitting || success}
                                         />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-textPrimary mb-2">Deployment Strategy</label>
+                                        <select
+                                            value={formData.deploymentStrategy}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, deploymentStrategy: e.target.value as 'rolling' | 'blue-green' }))}
+                                            className="w-full px-4 py-2.5 border border-border rounded-lg bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
+                                            disabled={isSubmitting || success}
+                                        >
+                                            <option value="rolling">Rolling</option>
+                                            <option value="blue-green">Blue-Green</option>
+                                        </select>
                                     </div>
                                 </>
                             )}

@@ -266,6 +266,14 @@ export class TerminalWebSocketGateway {
         return
       }
 
+      if (!container.project) {
+        this.sendToClient(client, {
+          type: 'error',
+          message: 'Container has no associated project',
+        })
+        return
+      }
+
       // Check permissions
       const hasAccess =
         container.project.ownerId === client.userId ||

@@ -43,17 +43,23 @@ export const RedisConsole: React.FC<RedisConsoleProps> = ({ containerId }) => {
       
       setHistory(prev => {
         const newHistory = [...prev];
-        newHistory[newHistory.length - 1].result = response;
+        const lastEntry = newHistory[newHistory.length - 1];
+        if (lastEntry) {
+          lastEntry.result = response;
+        }
         return newHistory;
       });
     } catch (error) {
       setHistory(prev => {
         const newHistory = [...prev];
-        newHistory[newHistory.length - 1].result = {
-          success: false,
-          data: [],
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
+        const lastEntry = newHistory[newHistory.length - 1];
+        if (lastEntry) {
+          lastEntry.result = {
+            success: false,
+            data: [],
+            error: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
         return newHistory;
       });
     } finally {

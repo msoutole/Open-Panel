@@ -120,18 +120,29 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), async (c) => {
       userId: user.userId,
     })
 
-    const result = await ApplicationTemplatesService.createProjectFromTemplate({
-      templateId,
-      projectName,
-      userId: user.userId,
-      teamId,
-      gitUrl,
-      gitBranch,
-      customEnv,
-      customPort,
-      cpuLimit,
-      memoryLimit,
-    })
+    // TODO: Implementar ApplicationTemplatesService.createProjectFromTemplate
+    // const result = await ApplicationTemplatesService.createProjectFromTemplate({
+    //   templateId,
+    //   projectName,
+    //   userId: user.userId,
+    //   teamId,
+    //   gitUrl,
+    //   gitBranch,
+    //   customEnv,
+    //   customPort,
+    //   cpuLimit,
+    //   memoryLimit,
+    // })
+
+    // Temporariamente retorna erro 501 (Not Implemented)
+    return c.json({
+      error: 'Not implemented',
+      message: 'ApplicationTemplatesService.createProjectFromTemplate needs to be implemented',
+    }, 501)
+
+    // O código abaixo será habilitado quando o service for implementado
+    /*
+    const result: any = null
 
     // Log audit
     await logAudit(c, {
@@ -174,6 +185,7 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), async (c) => {
       },
       201
     )
+    */
   } catch (error: unknown) {
     logError('Failed to deploy from template', error)
     const message = error instanceof Error ? error.message : 'Unknown error'

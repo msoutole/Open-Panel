@@ -61,7 +61,7 @@ export const useLogs = (options: UseLogsOptions = {}): UseLogsReturn => {
       
       setLogs((prev) => {
         // Prevent duplicate entries
-        if (prev.length > 0 && prev[0].id === logEntry.id) {
+        if (prev.length > 0 && prev[0]?.id === logEntry.id) {
           return prev;
         }
         const newLogs = [logEntry, ...prev];

@@ -106,6 +106,7 @@ export const AuditActions = {
   
   // Database
   DATABASE_QUERY: 'DATABASE_QUERY' as AuditAction,
+  BACKUP_CREATED: 'BACKUP_CREATED' as AuditAction,
 } as const
 
 /**
