@@ -275,9 +275,9 @@ export class MetricsService {
         throw new Error('Container not found')
       }
 
-      const dockerContainer = await dockerService.getContainer(container.dockerId)
+      const dockerContainer = await dockerService.getContainer(container.dockerId ?? '')
 
-      if (!dockerContainer || !dockerContainer.State.Running) {
+      if (!dockerContainer || !dockerContainer.State?.Running) {
         return {
           id: container.id,
           dockerId: container.dockerId,
@@ -312,23 +312,23 @@ export class MetricsService {
         dockerId: container.dockerId,
         name: container.name,
         cpu: {
-          usage: stats.cpuPercent || 0,
-          cores: dockerContainer.HostConfig?.CpuCount || 0,
+          usage: stats.cpuPercent ?? 0,
+          cores: dockerContainer.HostConfig?.CpuCount ?? 0,
         },
         memory: {
-          used: stats.memoryUsage || 0,
-          limit: stats.memoryLimit || 0,
-          usage: stats.memoryPercent || 0,
+          used: stats.memoryUsage ?? 0,
+          limit: stats.memoryLimit ?? 0,
+          usage: stats.memoryPercent ?? 0,
         },
         network: {
-          rx: stats.networkRx || 0,
-          tx: stats.networkTx || 0,
+          rx: stats.networkRx ?? 0,
+          tx: stats.networkTx ?? 0,
           rxRate: 0, // Would need previous measurement
           txRate: 0, // Would need previous measurement
         },
         blockIO: {
-          read: stats.blockRead || 0,
-          write: stats.blockWrite || 0,
+          read: stats.blockRead ?? 0,
+          write: stats.blockWrite ?? 0,
         },
         timestamp: new Date().toISOString(),
       }
@@ -358,6 +358,90 @@ export class MetricsService {
       return metrics
     } catch (error) {
       logError('Failed to get all containers metrics', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get historical metrics for a container
+   * Note: This is a simplified version. In production, you'd want to store metrics in a time-series database
+   */
+  static async getContainerHistoricalMetrics(
+    containerId: string,
+    hours: number = 24,
+    intervalSeconds: number = 300
+  ): Promise<ContainerMetrics[]> {
+    try {
+      // In a real implementation, this would query a time-series database
+      // For now, we'll return current metrics as a placeholder
+      // The frontend can implement client-side aggregation
+
+      const currentMetrics = await this.getContainerMetrics(containerId)
+
+      // Return array with single data point (current)
+      // Frontend can implement proper time-series visualization
+      return [currentMetrics]
+    } catch (error) {
+      logError('Failed to get container historical metrics', error)
+      throw error
+    }
+  }
+
+  /**
+   * Export metrics data
+   */
+  static async exportMetrics(type: string, format: string = 'json'): Promise<any> {
+    try {
+      let data: any
+
+      if (type === 'containers') {
+        data = await this.getAllContainersMetrics()
+      } else if (type === 'system') {
+        data = await this.getSystemMetrics()
+      } else {
+        throw new Error(`Unknown export type: ${type}`)
+      }
+
+      if (format === 'csv') {
+        // Convert to CSV
+        if (Array.isArray(data)) {
+          if (data.length === 0) {
+            return ''
+          }
+
+          // Get headers from first object
+          const headers = Object.keys(data[0]).join(',')
+          const rows = data.map((item) =>
+            Object.values(item)
+              .map((val) => {
+                if (typeof val === 'object') {
+                  return JSON.stringify(val)
+                }
+                return String(val)
+              })
+              .join(',')
+          )
+
+          return [headers, ...rows].join('\n')
+        } else {
+          // Single object
+          const headers = Object.keys(data).join(',')
+          const row = Object.values(data)
+            .map((val) => {
+              if (typeof val === 'object') {
+                return JSON.stringify(val)
+              }
+              return String(val)
+            })
+            .join(',')
+
+          return [headers, row].join('\n')
+        }
+      }
+
+      return data
+    } catch (error) {
+      logError('Failed to export metrics', error)
       throw error
     }
   }

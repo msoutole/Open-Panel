@@ -36,7 +36,7 @@ const envVars = new Hono<{ Variables: Variables }>()
  * @throws {HTTPException} 404 - Projeto não encontrado
  */
 envVars.get('/', async (c: Context<{ Variables: Variables }>) => {
-  const { projectId } = c.req.param()
+  const projectId = c.req.param('projectId') ?? ''
   const user = c.get('user')
 
   try {
@@ -88,8 +88,8 @@ envVars.get('/', async (c: Context<{ Variables: Variables }>) => {
  * @throws {HTTPException} 403 - Usuário não tem acesso
  * @throws {HTTPException} 404 - Projeto não encontrado
  */
-envVars.post('/', zValidator('json', createEnvVarSchema), async (c) => {
-  const { projectId } = c.req.param()
+envVars.post('/', zValidator('json', createEnvVarSchema), async (c: Context<{ Variables: Variables }>) => {
+  const projectId = c.req.param('projectId') ?? ''
   const user = c.get('user')
   const data = c.req.valid('json')
 
@@ -157,8 +157,9 @@ envVars.post('/', zValidator('json', createEnvVarSchema), async (c) => {
  * @throws {HTTPException} 403 - Usuário não tem acesso
  * @throws {HTTPException} 404 - Projeto ou variável não encontrada
  */
-envVars.put('/:envVarId', zValidator('json', createEnvVarSchema), async (c) => {
-  const { projectId, envVarId } = c.req.param()
+envVars.put('/:envVarId', zValidator('json', createEnvVarSchema), async (c: Context<{ Variables: Variables }>) => {
+  const projectId = c.req.param('projectId') ?? ''
+  const envVarId = c.req.param('envVarId') ?? ''
   const user = c.get('user')
   const data = c.req.valid('json')
 
@@ -209,8 +210,9 @@ envVars.put('/:envVarId', zValidator('json', createEnvVarSchema), async (c) => {
  * @throws {HTTPException} 403 - Usuário não tem acesso
  * @throws {HTTPException} 404 - Projeto ou variável não encontrada
  */
-envVars.delete('/:envVarId', async (c) => {
-  const { projectId, envVarId } = c.req.param()
+envVars.delete('/:envVarId', async (c: Context<{ Variables: Variables }>) => {
+  const projectId = c.req.param('projectId') ?? ''
+  const envVarId = c.req.param('envVarId') ?? ''
   const user = c.get('user')
 
   try {

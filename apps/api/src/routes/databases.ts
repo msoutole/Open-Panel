@@ -5,8 +5,12 @@ import { logInfo, logError } from '../lib/logger'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 import { logAudit, AuditActions } from '../middlewares/audit'
+import queryRoutes from './databases/query'
 
 const databases = new Hono<{ Variables: Variables }>()
+
+// Database query routes
+databases.route('/', queryRoutes)
 
 /**
  * List all database templates

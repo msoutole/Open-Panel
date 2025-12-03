@@ -38,15 +38,36 @@
     "create:admin": "tsx scripts/create-admin.ts",
     "preview": "npm run preview -w apps/web",
     "type-check": "npm run type-check -w apps/api && npm run type-check -w apps/web && npm run type-check -w packages/shared",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "check-secrets": "bash scripts/check-secrets.sh",
     "check-secrets:win": "powershell scripts/check-secrets.ps1",
     "rotate-credentials": "bash scripts/rotate-credentials.sh",
     "validate:agents": "node scripts/validate-agents-frontmatter.js",
     "validate:agents:win": "powershell scripts/validate-agents-frontmatter.ps1",
-    "remove-secrets-from-history": "bash scripts/remove-secrets-from-history.sh"
+    "remove-secrets-from-history": "bash scripts/remove-secrets-from-history.sh",
+    "prepare": "husky install"
   },
   "devDependencies": {
-    "npm-run-all": "^4.1.5"
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.3.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "engines": {
     "node": ">=18.0.0",

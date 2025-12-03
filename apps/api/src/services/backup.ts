@@ -9,11 +9,115 @@ import { env } from '../lib/env'
 const execAsync = promisify(exec)
 
 /**
- * Backup Service
- * Handles automated backups for databases, containers, and configurations
+ * BackupService - Gerencia backups automatizados de databases, containers e configurações
+ * 
+ * **Tipos de Backup**:
+ * - Database: Backup completo do PostgreSQL usando pg_dump
+ * - Container: Export de container Docker
+ * - Configuration: Backup de arquivos de configuração
+ * - Full: Backup completo do sistema
+ * 
+ * **Funcionalidades**:
+ * - Criação de backups sob demanda
+ * - Restauração de backups
+ * - Limpeza automática de backups antigos
+ * - Compressão automática (gzip)
  */
+export class BackupService {
+  private backupDir: string
+  private static instance: BackupService
 
-export interface BackupConfig {
+  private constructor() {
+    this.backupDir = process.env.BACKUP_PATH || '/var/lib/openpanel/backups'
+  }
+
+  /**
+   * Obtém instância singleton do BackupService
+   * 
+   * @returns Instância singleton do BackupService
+   * 
+   * @example
+   * ```typescript
+   * const backupService = BackupService.getInstance()
+   * ```
+   */
+  public static getInstance(): BackupService {
+    if (!BackupService.instance) {
+      BackupService.instance = new BackupService()
+    }
+    return BackupService.instance
+  }
+
+  /**
+   * Inicializa diretórios de backup
+   * 
+   * **Fluxo de Execução**:
+   * 1. Cria diretório principal de backups
+   * 2. Cria subdiretórios para cada tipo de backup
+   * 3. Registra inicialização no log
+   * 
+   * **Diretórios Criados**:
+   * - `database/` - Backups de banco de dados
+   * - `containers/` - Backups de containers
+   * - `config/` - Backups de configuração
+   * - `full/` - Backups completos
+   * 
+   * @returns Promise que resolve quando inicialização completa
+   * 
+   * @throws {Error} Se não conseguir criar diretórios
+   * 
+   * @example
+   * ```typescript
+   * await backupService.initialize()
+   * ```
+   */
+  async initialize(): Promise<void> {
+    try {
+      await fs.mkdir(this.backupDir, { recursive: true })
+      await fs.mkdir(path.join(this.backupDir, 'database'), { recursive: true })
+      await fs.mkdir(path.join(this.backupDir, 'containers'), { recursive: true })
+      await fs.mkdir(path.join(this.backupDir, 'config'), { recursive: true })
+      await fs.mkdir(path.join(this.backupDir, 'full'), { recursive: true })
+
+      logInfo('Backup service initialized', { backupDir: this.backupDir })
+    } catch (error) {
+      logError('Failed to initialize backup service', error)
+      throw error
+    }
+  }
+
+  /**
+   * Cria backup do banco de dados PostgreSQL
+   * 
+   * **Fluxo de Execução**:
+   * 1. Extrai credenciais do DATABASE_URL
+   * 2. Executa pg_dump para criar dump SQL
+   * 3. Comprime dump com gzip
+   * 4. Salva em diretório de backups
+   * 5. Retorna informações do backup criado
+   * 
+   * **Formato do Backup**:
+   * - Arquivo: `{name}.sql.gz`
+   * - Compressão: gzip
+   * - Formato: SQL dump do PostgreSQL
+   * 
+   * @param name - Nome do backup (opcional, gera automático se não fornecido)
+   * @returns Promise que resolve para objeto Backup com informações do backup
+   * 
+   * @throws {Error} Se DATABASE_URL for inválido
+   * @throws {Error} Se pg_dump não estiver disponível
+   * @throws {Error} Se houver erro ao criar backup
+   * 
+   * @example
+   * ```typescript
+   * // Backup com nome automático
+   * const backup = await backupService.backupDatabase()
+   * 
+   * // Backup com nome customizado
+   * const backup = await backupService.backupDatabase('pre-deploy-backup')
+   * ```
+   */
+  async backupDatabase(name?: string): Promise<Backup> {
   enabled: boolean
   schedule: string // cron format
   retention: {
@@ -128,7 +232,29 @@ export class BackupService {
   }
 
   /**
-   * Restore database backup
+   * Restaura backup do banco de dados PostgreSQL
+   * 
+   * **Fluxo de Execução**:
+   * 1. Verifica se backup existe
+   * 2. Extrai credenciais do DATABASE_URL
+   * 3. Descomprime backup (gunzip)
+   * 4. Restaura usando psql
+   * 5. Registra restauração no log
+   * 
+   * **Atenção**: Esta operação sobrescreve dados existentes no banco!
+   * 
+   * @param backupId - ID do backup a restaurar (nome sem extensão)
+   * @returns Promise que resolve quando restauração completa
+   * 
+   * @throws {Error} Se backup não existir
+   * @throws {Error} Se DATABASE_URL for inválido
+   * @throws {Error} Se psql não estiver disponível
+   * @throws {Error} Se houver erro ao restaurar
+   * 
+   * @example
+   * ```typescript
+   * await backupService.restoreDatabase('pre-deploy-backup')
+   * ```
    */
   async restoreDatabase(backupId: string): Promise<void> {
     try {
@@ -162,7 +288,35 @@ export class BackupService {
   }
 
   /**
-   * Create container volume backup
+   * Cria backup de um container Docker
+   * 
+   * **Fluxo de Execução**:
+   * 1. Busca container no banco de dados
+   * 2. Exporta container usando docker export
+   * 3. Comprime export com gzip
+   * 4. Salva em diretório de backups
+   * 5. Retorna informações do backup criado
+   * 
+   * **Formato do Backup**:
+   * - Arquivo: `{container-name}-{timestamp}.tar.gz`
+   * - Compressão: gzip
+   * - Formato: TAR export do Docker
+   * 
+   * **Conteúdo**:
+   * - Sistema de arquivos completo do container
+   * - Não inclui volumes montados externamente
+   * 
+   * @param containerId - ID do container no banco de dados
+   * @returns Promise que resolve para objeto Backup com informações do backup
+   * 
+   * @throws {Error} Se container não existir
+   * @throws {Error} Se docker não estiver disponível
+   * @throws {Error} Se houver erro ao criar backup
+   * 
+   * @example
+   * ```typescript
+   * const backup = await backupService.backupContainer('container_123')
+   * ```
    */
   async backupContainer(containerId: string): Promise<Backup> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')

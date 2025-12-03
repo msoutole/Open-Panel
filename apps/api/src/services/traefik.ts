@@ -47,7 +47,19 @@ interface TraefikServiceConfig {
 }
 
 /**
- * TraefikService - Manages Traefik reverse proxy configuration
+ * TraefikService - Gerencia configuração do Traefik reverse proxy
+ * 
+ * **Funcionalidades**:
+ * - Configuração estática do Traefik
+ * - Gerenciamento dinâmico de rotas
+ * - Configuração de SSL/TLS automático (Let's Encrypt)
+ * - Integração com Docker
+ * - Load balancing
+ * 
+ * **Configuração**:
+ * - Static config: Configuração base do Traefik
+ * - Dynamic config: Rotas e serviços gerenciados dinamicamente
+ * - Suporta desenvolvimento (config local) e produção (/etc/traefik)
  */
 export class TraefikService {
   private static instance: TraefikService
@@ -81,6 +93,16 @@ export class TraefikService {
     }
   }
 
+  /**
+   * Obtém instância singleton do TraefikService
+   * 
+   * @returns Instância singleton do TraefikService
+   * 
+   * @example
+   * ```typescript
+   * const traefikService = TraefikService.getInstance()
+   * ```
+   */
   public static getInstance(): TraefikService {
     if (!TraefikService.instance) {
       TraefikService.instance = new TraefikService()
@@ -89,7 +111,29 @@ export class TraefikService {
   }
 
   /**
-   * Initialize Traefik static configuration
+   * Inicializa configuração estática do Traefik
+   * 
+   * **Fluxo de Execução**:
+   * 1. Cria configuração estática com entrypoints, certificados, providers
+   * 2. Configura redirecionamento HTTP → HTTPS
+   * 3. Configura Let's Encrypt para SSL automático
+   * 4. Configura providers (file, docker)
+   * 5. Salva configuração em arquivo YAML
+   * 
+   * **Configurações Incluídas**:
+   * - EntryPoints: web (80) e websecure (443)
+   * - Certificates: Let's Encrypt resolver
+   * - Providers: File (dynamic) e Docker
+   * - Logging: Configuração de logs
+   * 
+   * @returns Promise que resolve quando configuração inicializada
+   * 
+   * @throws {Error} Se não conseguir escrever arquivo de configuração
+   * 
+   * @example
+   * ```typescript
+   * await traefikService.initializeStaticConfig()
+   * ```
    */
   async initializeStaticConfig(): Promise<void> {
     const staticConfig = {
@@ -160,7 +204,42 @@ export class TraefikService {
   }
 
   /**
-   * Add route for a container/project
+   * Adiciona rota no Traefik para um container/projeto
+   * 
+   * **Fluxo de Execução**:
+   * 1. Carrega configuração dinâmica atual
+   * 2. Cria router com regra de host
+   * 3. Cria service apontando para container
+   * 4. Configura SSL se habilitado
+   * 5. Salva configuração dinâmica atualizada
+   * 
+   * **Comportamento**:
+   * - Router usa regra `Host(\`domain\`)`
+   * - Service aponta para `http://containerName:containerPort`
+   * - SSL automático via Let's Encrypt se habilitado
+   * - Traefik recarrega configuração automaticamente (watch)
+   * 
+   * @param options - Opções da rota
+   * @param options.projectId - ID do projeto
+   * @param options.domain - Domínio para a rota (ex: 'app.example.com')
+   * @param options.containerName - Nome do container Docker
+   * @param options.containerPort - Porta do container
+   * @param options.enableSSL - Se true, habilita SSL automático (padrão: true)
+   * @returns Promise que resolve quando rota adicionada
+   * 
+   * @throws {Error} Se não conseguir carregar configuração dinâmica
+   * @throws {Error} Se não conseguir salvar configuração
+   * 
+   * @example
+   * ```typescript
+   * await traefikService.addRoute({
+   *   projectId: 'proj_123',
+   *   domain: 'myapp.example.com',
+   *   containerName: 'myapp-container',
+   *   containerPort: 3000,
+   *   enableSSL: true
+   * })
+   * ```
    */
   async addRoute(options: {
     projectId: string

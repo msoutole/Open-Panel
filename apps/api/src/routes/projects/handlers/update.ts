@@ -65,7 +65,7 @@ export const updateProjectHandler = zValidator(
   'json',
   updateProjectSchema,
   async (c: Context<{ Variables: Variables }>) => {
-    const { projectId } = c.req.param()
+    const projectId = c.req.param('projectId') ?? ''
     const user = c.get('user')
     const data = c.req.valid('json')
 

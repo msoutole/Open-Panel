@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import authRoutes from '../../routes/auth'
 import { prisma } from '../../lib/prisma'
 import bcrypt from 'bcryptjs'
+import type { AuthResponse, RegisterResponse, LoginResponse, RefreshTokenResponse } from '../../types/responses'
 
 /**
  * Integration tests for authentication flow
@@ -55,7 +56,7 @@ describe('Auth Integration Tests', () => {
       })
 
       expect(registerRes.status).toBe(201)
-      const registerJson = await registerRes.json()
+      const registerJson = (await registerRes.json()) as RegisterResponse
       expect(registerJson.user.email).toBe(testUser.email)
       expect(registerJson.token).toBeDefined()
 
@@ -72,7 +73,7 @@ describe('Auth Integration Tests', () => {
       })
 
       expect(loginRes.status).toBe(200)
-      const loginJson = await loginRes.json()
+      const loginJson = (await loginRes.json()) as LoginResponse
       expect(loginJson.token).toBeDefined()
       expect(loginJson.user.email).toBe(testUser.email)
 
@@ -84,7 +85,7 @@ describe('Auth Integration Tests', () => {
       })
 
       expect(protectedRes.status).toBe(200)
-      const meJson = await protectedRes.json()
+      const meJson = (await protectedRes.json()) as { user: { email: string } }
       expect(meJson.user.email).toBe(testUser.email)
 
       // Step 4: Logout
@@ -116,7 +117,7 @@ describe('Auth Integration Tests', () => {
       })
 
       expect(secondRes.status).toBe(409)
-      const json = await secondRes.json()
+      const json = (await secondRes.json()) as { error: string }
       expect(json.error).toContain('already exists')
     })
 
@@ -207,7 +208,9 @@ describe('Auth Integration Tests', () => {
         body: JSON.stringify(testUser),
       })
 
-      const { token: initialToken, refreshToken } = await registerRes.json()
+      const registerData = (await registerRes.json()) as RegisterResponse
+      const initialToken = registerData.token
+      const refreshToken = registerData.refreshToken
 
       expect(initialToken).toBeDefined()
       expect(refreshToken).toBeDefined()
@@ -225,7 +228,8 @@ describe('Auth Integration Tests', () => {
       })
 
       expect(refreshRes.status).toBe(200)
-      const { token: newToken } = await refreshRes.json()
+      const refreshData = (await refreshRes.json()) as RefreshTokenResponse
+      const newToken = refreshData.token
       expect(newToken).toBeDefined()
       expect(newToken).not.toBe(initialToken)
     })
@@ -261,7 +265,7 @@ describe('Auth Integration Tests', () => {
 
       // Should either reject or sanitize
       if (res.status === 201) {
-        const json = await res.json()
+        const json = (await res.json()) as RegisterResponse
         expect(json.user.name).not.toContain('<script>')
         expect(json.user.name).not.toContain('<img')
       }

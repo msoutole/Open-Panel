@@ -38,6 +38,11 @@ model User {
   mustChangePassword Boolean @default(false)
   role          UserRole    @default(MEMBER)
 
+  // 2FA (Two-Factor Authentication)
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String? @db.Text // TOTP secret (encrypted)
+  twoFactorBackupCodes Json? // Backup codes (encrypted, array of strings)
+
   // Metadata
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

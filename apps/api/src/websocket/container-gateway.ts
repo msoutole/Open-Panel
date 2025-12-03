@@ -262,7 +262,11 @@ export class ContainerWebSocketGateway {
           project: {
             include: {
               owner: true,
-              teamMembers: true,
+              team: {
+                include: {
+                  members: true,
+                },
+              },
             },
           },
         },
@@ -277,9 +281,9 @@ export class ContainerWebSocketGateway {
 
       // Check if user is owner or team member
       const isOwner = container.project.ownerId === client.userId
-      const isTeamMember = container.project.teamMembers.some(
-        (member: any) => member.userId === client.userId
-      )
+      const isTeamMember = container.project.team?.members.some(
+        (member) => member.userId === client.userId
+      ) ?? false
 
       if (!isOwner && !isTeamMember) {
         logWarn('Unauthorized container access attempt', {
@@ -446,7 +450,7 @@ export class ContainerWebSocketGateway {
     // Create interval to send stats
     const statsInterval = setInterval(async () => {
       try {
-        const stats = await dockerService.getContainerStats(container.dockerId)
+        const stats = await dockerService.getContainerStats(container.dockerId ?? '')
 
         this.sendToClient(client, {
           type: 'stats',

@@ -84,5 +84,76 @@ metrics.get('/containers/:id', async (c) => {
   }
 })
 
+/**
+ * GET /api/metrics/containers/:id/history
+ * Get historical metrics for a container
+ */
+metrics.get('/containers/:id/history', async (c) => {
+  try {
+    const user = c.get('user')
+    if (!user) {
+      throw new HTTPException(401, { message: 'Unauthorized' })
+    }
+
+    const { id } = c.req.param()
+    const hours = parseInt(c.req.query('hours') || '24')
+    const interval = parseInt(c.req.query('interval') || '300') // 5 minutes default
+
+    const historicalMetrics = await MetricsService.getContainerHistoricalMetrics(
+      id,
+      hours,
+      interval
+    )
+
+    return c.json({
+      metrics: historicalMetrics,
+      hours,
+      interval,
+    })
+  } catch (error: unknown) {
+    logError('Failed to get container historical metrics', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    if (error instanceof HTTPException) throw error
+    throw new HTTPException(500, {
+      message: `Failed to get historical metrics: ${message}`,
+    })
+  }
+})
+
+/**
+ * GET /api/metrics/export
+ * Export metrics data (CSV format)
+ */
+metrics.get('/export', async (c) => {
+  try {
+    const user = c.get('user')
+    if (!user) {
+      throw new HTTPException(401, { message: 'Unauthorized' })
+    }
+
+    const type = c.req.query('type') || 'containers' // containers, system
+    const format = c.req.query('format') || 'json' // json, csv
+
+    const exportData = await MetricsService.exportMetrics(type, format)
+
+    if (format === 'csv') {
+      c.header('Content-Type', 'text/csv')
+      c.header('Content-Disposition', `attachment; filename="metrics-${type}-${Date.now()}.csv"`)
+      return c.text(exportData as string)
+    }
+
+    return c.json({
+      data: exportData,
+      type,
+      format,
+    })
+  } catch (error: unknown) {
+    logError('Failed to export metrics', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    if (error instanceof HTTPException) throw error
+    throw new HTTPException(500, { message: `Failed to export metrics: ${message}` })
+  }
+})
+
 export default metrics
 

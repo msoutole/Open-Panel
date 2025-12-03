@@ -11,44 +11,84 @@ jobs:
     name: Test & Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: 'npm'
+      
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+      
       - name: Generate Prisma Client
         run: npm run db:generate -w apps/api
+      
       - name: Validate agents' front matter
         run: npm run validate:agents
+      
       - name: Type Check
         run: npm run type-check
+        continue-on-error: false
+      
       - name: Run Tests
         run: npm run test -w apps/api
-  lint:
-    name: Lint
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-with-at-least-32-characters-long-for-testing
+          NODE_ENV: test
+
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    needs: test
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: 'npm'
+      
       - name: Install dependencies
-        run: npm install
-      - name: Run ESLint
-        run: npm run lint
+        run: npm ci
+      
+      - name: Generate Prisma Client
+        run: npm run db:generate -w apps/api
+      
+      - name: Build API
+        run: npm run build:api
+      
+      - name: Build Web
+        run: npm run build:web
+
   security:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: 'npm'
+      
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+      
       - name: Run npm audit
         run: npm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Check for vulnerabilities
+        run: |
+          if npm audit --audit-level=high 2>&1 | grep -q "found"; then
+            echo "⚠️ Vulnerabilities found. Please review and update dependencies."
+            exit 1
+          else
+            echo "✅ No high-severity vulnerabilities found."
+          fi

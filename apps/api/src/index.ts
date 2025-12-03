@@ -14,6 +14,7 @@ import type { Variables } from './types'
 import { ContainerWebSocketGateway } from './websocket/container-gateway'
 import { LogsWebSocketGateway } from './websocket/logs-gateway'
 import { MetricsWebSocketGateway } from './websocket/metrics-gateway'
+import { TerminalWebSocketGateway } from './websocket/terminal-gateway'
 
 // Import routes
 import auth from './routes/auth'
@@ -33,12 +34,14 @@ import onboarding from './routes/onboarding'
 import metrics from './routes/metrics'
 import audit from './routes/audit'
 import stats from './routes/stats'
+import templates from './routes/templates'
 
 // Import middlewares
 import { authMiddleware } from './middlewares/auth'
 import { errorHandler } from './middlewares/error-handler'
 import { loggerMiddleware } from './middlewares/logger'
 import { apiRateLimiter, publicRateLimiter } from './middlewares/rate-limit'
+import { securityHeaders } from './middlewares/security'
 
 // Import logger
 import { logger, logInfo, logError } from './lib/logger'
@@ -60,6 +63,9 @@ app.onError(errorHandler)
 
 // Structured logger with request ID
 app.use('*', loggerMiddleware)
+
+// Security headers (early in the chain)
+app.use('*', securityHeaders)
 
 // Pretty JSON
 app.use('*', prettyJSON())
@@ -146,6 +152,7 @@ app.route('/api/onboarding', onboarding)
 app.route('/api/metrics', metrics)
 app.route('/api/audit', audit)
 app.route('/api/stats', stats)
+app.route('/api/templates', templates)
 
 app.get('/api/protected', (c) => {
   const user = c.get('user')
@@ -252,9 +259,10 @@ const server = createServer(async (req, res) => {
 const containerWsGateway = new ContainerWebSocketGateway(server)
 const logsWsGateway = new LogsWebSocketGateway(server)
 const metricsWsGateway = new MetricsWebSocketGateway(server)
+const terminalWsGateway = new TerminalWebSocketGateway(server)
 
 // Export gateways for use in other modules
-export { containerWsGateway, logsWsGateway, metricsWsGateway }
+export { containerWsGateway, logsWsGateway, metricsWsGateway, terminalWsGateway }
 
 // Start server
 server.listen(port, () => {
@@ -262,6 +270,7 @@ server.listen(port, () => {
   logInfo(`Container WebSocket gateway: ws://localhost:${port}/ws/containers`)
   logInfo(`Logs WebSocket gateway: ws://localhost:${port}/ws/logs`)
   logInfo(`Metrics WebSocket gateway: ws://localhost:${port}/ws/metrics`)
+  logInfo(`Terminal WebSocket gateway: ws://localhost:${port}/ws/terminal`)
   logInfo(`Environment: ${env.NODE_ENV}`, { environment: env.NODE_ENV })
 
   // Initialize backup service
@@ -280,6 +289,7 @@ process.on('SIGINT', () => {
   containerWsGateway.close()
   logsWsGateway.close()
   metricsWsGateway.close()
+  terminalWsGateway.close()
   server.close(() => {
     logInfo('Server closed')
     process.exit(0)

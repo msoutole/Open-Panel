@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { Hono } from 'hono'
+import type { Variables } from '../../types'
 import { logAudit, AuditActions } from '../../middlewares/audit'
 
 // Mock audit queue
@@ -11,10 +12,10 @@ vi.mock('../../queues/audit-queue', () => ({
 import { queueAuditLog, createAuditLogSync } from '../../queues/audit-queue'
 
 describe('Audit Middleware', () => {
-  let app: Hono
+  let app: Hono<{ Variables: Variables }>
 
   beforeEach(() => {
-    app = new Hono()
+    app = new Hono<{ Variables: Variables }>()
     vi.clearAllMocks()
   })
 
@@ -25,7 +26,7 @@ describe('Audit Middleware', () => {
   describe('logAudit', () => {
     it('should log audit event asynchronously by default', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'user-123' })
+        c.set('user', { userId: 'user-123', email: 'test@test.com' })
         await next()
       })
 
@@ -60,7 +61,7 @@ describe('Audit Middleware', () => {
 
     it('should log audit event synchronously when sync flag is true', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'user-123' })
+        c.set('user', { userId: 'user-123', email: 'test@test.com' })
         await next()
       })
 
@@ -130,7 +131,7 @@ describe('Audit Middleware', () => {
 
     it('should extract IP address from headers', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'user-123' })
+        c.set('user', { userId: 'user-123', email: 'test@test.com' })
         await next()
       })
 
@@ -159,7 +160,7 @@ describe('Audit Middleware', () => {
 
     it('should extract IP address from x-real-ip header', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'user-123' })
+        c.set('user', { userId: 'user-123', email: 'test@test.com' })
         await next()
       })
 
@@ -187,7 +188,7 @@ describe('Audit Middleware', () => {
 
     it('should include user agent in audit log', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'user-123' })
+        c.set('user', { userId: 'user-123', email: 'test@test.com' })
         await next()
       })
 
@@ -215,7 +216,7 @@ describe('Audit Middleware', () => {
 
     it('should include metadata in audit log', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'user-123' })
+        c.set('user', { userId: 'user-123', email: 'test@test.com' })
         await next()
       })
 
@@ -302,7 +303,7 @@ describe('Audit Middleware', () => {
 
     it('should audit container lifecycle', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'user-123' })
+        c.set('user', { userId: 'user-123', email: 'test@test.com' })
         await next()
       })
 
@@ -347,7 +348,7 @@ describe('Audit Middleware', () => {
 
     it('should audit team member operations', async () => {
       app.use('*', async (c, next) => {
-        c.set('user', { userId: 'owner-123' })
+        c.set('user', { userId: 'owner-123', email: 'owner@test.com' })
         await next()
       })
 

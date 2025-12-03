@@ -13,6 +13,7 @@ import { createBuildHandler } from './handlers/create'
 import { readBuildHandler } from './handlers/read'
 import { listBuildsHandler } from './handlers/list'
 import { detectProjectTypeHandler } from './handlers/detect'
+import { blueGreenDeployHandler, rollbackHandler } from './handlers/blue-green'
 
 const builds = new Hono<{ Variables: Variables }>()
 
@@ -29,8 +30,13 @@ builds.get('/:id', readBuildHandler)
 // POST /api/builds/detect - Detectar tipo de projeto
 builds.post('/detect', detectProjectTypeHandler)
 
-// TODO: Adicionar handlers para rollback e webhooks quando necessário
-// POST /api/builds/:id/rollback - Rollback para deployment anterior
+// POST /api/builds/blue-green - Blue-green deployment (zero-downtime)
+builds.post('/blue-green', blueGreenDeployHandler)
+
+// POST /api/builds/rollback - Rollback to previous container
+builds.post('/rollback', rollbackHandler)
+
+// TODO: Adicionar handlers para webhooks quando necessário
 // POST /api/builds/webhooks/github - Webhook do GitHub
 // POST /api/builds/webhooks/gitlab - Webhook do GitLab
 // POST /api/builds/webhooks/bitbucket - Webhook do Bitbucket

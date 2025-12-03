@@ -38,6 +38,11 @@ docs/
 ├── INTEGRATION.md              # 🆕 Guia de integração frontend-backend
 ├── NEXT_STEPS.md               # Roadmap e próximos passos
 ├── TESTING_CHECKLIST.md        # Checklist de testes
+├── TEMPLATES.md                # 🆕 Templates de aplicações (20+ templates)
+├── ZERO_DOWNTIME_DEPLOYMENTS.md # 🆕 Deployments sem downtime (blue-green)
+├── 2FA.md                      # 🆕 Autenticação de dois fatores
+├── TERMINAL.md                 # 🆕 Terminal interativo no navegador
+└── DATABASE_CLIENTS.md          # 🆕 Clientes de banco de dados no navegador
 │
 ├── domains/                    # Documentação por domínio
 │   ├── INDEX.md               # Índice de todos os domínios
@@ -73,10 +78,25 @@ docs/
 - **[REFACTORING_EXAMPLE.md](./REFACTORING_EXAMPLE.md)** - Exemplo prático de refatoração
 - **[LLM_OPTIMIZATION_SUMMARY.md](./LLM_OPTIMIZATION_SUMMARY.md)** - Resumo executivo e recomendações
 
+**Status da Refatoração Modular**:
+- ✅ **Projects** - Modularizado em `apps/api/src/routes/projects/`
+- ✅ **Containers** - Modularizado em `apps/api/src/routes/containers/`
+- ✅ **Builds** - Modularizado em `apps/api/src/routes/builds/`
+- ✅ **Services** - Documentação JSDoc completa adicionada
+- ✅ **CONTEXT.md** - Arquivos de contexto criados para cada módulo
+
 ### 📡 API e Desenvolvimento
 
 - **[API.md](./API.md)** - Documentação completa da API REST
 - **[TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md)** - Checklist de testes
+
+### 🆕 Novas Funcionalidades
+
+- **[TEMPLATES.md](./TEMPLATES.md)** - Sistema completo de templates de aplicações (20+ templates)
+- **[ZERO_DOWNTIME_DEPLOYMENTS.md](./ZERO_DOWNTIME_DEPLOYMENTS.md)** - Deployments sem downtime (blue-green)
+- **[2FA.md](./2FA.md)** - Autenticação de dois fatores (TOTP)
+- **[TERMINAL.md](./TERMINAL.md)** - Terminal interativo no navegador via WebSocket
+- **[DATABASE_CLIENTS.md](./DATABASE_CLIENTS.md)** - Clientes web para PostgreSQL, MySQL, MongoDB, Redis
 
 ---
 
@@ -128,10 +148,15 @@ A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um �
 
 | Aspecto | Status |
 |---------|--------|
-| Core Features | ✅ 85% |
+| Core Features | ✅ 95% |
+| Templates de Aplicações | ✅ 20+ templates implementados |
+| Zero-Downtime Deployments | ✅ Blue-green implementado |
+| 2FA Authentication | ✅ Backend completo |
+| Terminal no Navegador | ✅ Backend completo |
+| Database Clients | ✅ Backend completo |
 | Documentação | ✅ Atualizada |
 | Testes | 🔄 Em progresso |
-| Produção-Ready | ⚠️ 80% |
+| Produção-Ready | ⚠️ 85% |
 
 ---
 

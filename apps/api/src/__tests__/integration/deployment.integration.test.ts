@@ -46,7 +46,7 @@ describe('Deployment Integration Tests', () => {
 
     // Mock JWT verification
     vi.mocked(jwt.verifyToken).mockReturnValue({
-      id: 'user-1',
+      userId: 'user-1',
       email: 'test@test.com',
     })
   })
@@ -149,9 +149,10 @@ describe('Deployment Integration Tests', () => {
         }
 
         // Create and start container
+        const imageTag = buildResult.imageTag ?? `${project.slug}:latest`
         const container = await dockerService.createContainer({
           name: `${project.slug}-${Date.now()}`,
-          image: buildResult.imageTag!,
+          image: imageTag,
           tag: 'latest',
           projectId: project.id,
           env: project.envVars.reduce(
@@ -185,7 +186,10 @@ describe('Deployment Integration Tests', () => {
       // Assertions
       expect(res.status).toBe(200)
 
-      const json = await res.json()
+      const json = (await res.json()) as {
+        deployment: { status: string }
+        container: unknown
+      }
       expect(json.deployment.status).toBe('SUCCESS')
       expect(json.container).toBeDefined()
 
@@ -285,7 +289,7 @@ describe('Deployment Integration Tests', () => {
 
       expect(res.status).toBe(500)
 
-      const json = await res.json()
+      const json = (await res.json()) as { error: string; logs: string }
       expect(json.error).toBe('Build failed')
       expect(json.logs).toContain('Dockerfile not found')
     })
@@ -358,6 +362,9 @@ describe('Deployment Integration Tests', () => {
         })
 
         const previousDeployment = deployments[1]
+        if (!previousDeployment) {
+          return c.json({ error: 'No previous deployment found' }, 404)
+        }
 
         if (!previousDeployment) {
           return c.json({ error: 'No previous deployment found' }, 404)
@@ -374,9 +381,10 @@ describe('Deployment Integration Tests', () => {
         }
 
         // Start container with previous image
+        const imageTag = previousDeployment.imageTag ?? 'latest'
         const container = await dockerService.createContainer({
           name: `${projectId}-rollback`,
-          image: previousDeployment.imageTag!,
+          image: imageTag,
           tag: 'latest',
           projectId,
         })
@@ -404,7 +412,7 @@ describe('Deployment Integration Tests', () => {
 
       expect(res.status).toBe(200)
 
-      const json = await res.json()
+      const json = (await res.json()) as { rolledBackTo: string }
       expect(json.rolledBackTo).toBe('v1')
       expect(dockerService.stopContainer).toHaveBeenCalled()
       expect(dockerService.createContainer).toHaveBeenCalled()
@@ -483,7 +491,7 @@ describe('Deployment Integration Tests', () => {
 
       expect(res.status).toBe(200)
 
-      const json = await res.json()
+      const json = (await res.json()) as { triggered: number }
       expect(json.triggered).toBe(1)
       expect(gitService.handleWebhookEvent).toHaveBeenCalled()
     })

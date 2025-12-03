@@ -2,8 +2,83 @@ import { Hono } from 'hono'
 import type { Variables } from '../types'
 import { HealthService } from '../services/health'
 import { logError } from '../lib/logger'
+import { prisma } from '../lib/prisma'
+import { redis } from '../lib/redis'
 
 const health = new Hono<{ Variables: Variables }>()
+
+/**
+ * Basic health check
+ * GET /health
+ */
+health.get('/', (c) => {
+  return c.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  })
+})
+
+/**
+ * Detailed health check with database and Redis connectivity
+ * GET /health/detailed
+ */
+health.get('/detailed', async (c) => {
+  const checks = {
+    api: true,
+    database: false,
+    redis: false,
+  }
+
+  // Check database
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    checks.database = true
+  } catch (error) {
+    logError('Database health check failed', error)
+  }
+
+  // Check Redis
+  try {
+    await redis.ping()
+    checks.redis = true
+  } catch (error) {
+    logError('Redis health check failed', error)
+  }
+
+  const allHealthy = Object.values(checks).every(Boolean)
+
+  return c.json(
+    {
+      status: allHealthy ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString(),
+      checks,
+    },
+    allHealthy ? 200 : 503
+  )
+})
+
+/**
+ * Readiness probe (for Kubernetes)
+ * GET /health/ready
+ */
+health.get('/ready', async (c) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return c.json({ ready: true })
+  } catch (error) {
+    logError('Readiness check failed', error)
+    return c.json({ ready: false }, 503)
+  }
+})
+
+/**
+ * Liveness probe (for Kubernetes)
+ * GET /health/live
+ */
+health.get('/live', (c) => {
+  return c.json({ alive: true })
+})
 
 /**
  * Get system health status
