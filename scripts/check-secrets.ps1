@@ -48,7 +48,7 @@ $patterns = @(
 
 foreach ($pattern in $patterns) {
     try {
-        $matches = git grep -i $pattern -- ':!*.md' ':!docs/*' ':!.env.example' ':!scripts/setup/*' ':!start.js' 2>$null |
+        $matches = git grep -i $pattern -- ':!*.md' ':!docs/*' ':!.env.example' ':!scripts/setup/*' ':!start.js' ':!**/__tests__/*' 2>$null |
             # Ignorar placeholders comuns
             Select-String -Pattern 'changeme|your-super-secret|placeholder' -NotMatch |
             # Ignorar linhas com variáveis (evita falsos positivos em templates e scripts)

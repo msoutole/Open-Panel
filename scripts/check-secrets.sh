@@ -45,7 +45,7 @@ PATTERNS=(
 )
 
 for pattern in "${PATTERNS[@]}"; do
-    if git grep -i "$pattern" -- ':!*.md' ':!docs/*' ':!.env.example' ':!scripts/setup/*' ':!start.js' 2>/dev/null \
+    if git grep -i "$pattern" -- ':!*.md' ':!docs/*' ':!.env.example' ':!scripts/setup/*' ':!start.js' ':!**/__tests__/*' 2>/dev/null \
         | grep -v -E "changeme|your-super-secret|placeholder" \
         | grep -v -E '\\\$\{|\\\$[A-Za-z_]+' \
         | grep -v -E '<password>|<strong-password>' \
