@@ -61,10 +61,15 @@ function validateAgentFile(filePath) {
     results.ok = false;
     results.errors.push('Missing "name" field in front matter');
   } else {
-    // Validate name pattern openpanel-<role>-agent
-    const nameRe = /^openpanel-[a-z0-9-]+-agent$/;
+    // Validate name pattern openpanel-<role> (without -agent suffix)
+    const nameRe = /^openpanel-[a-z0-9-]+$/;
     if (!nameRe.test(agentName)) {
-      results.errors.push(`Invalid "name" field: '${agentName}'. Expected pattern: openpanel-<role>-agent`);
+      results.errors.push(`Invalid "name" field: '${agentName}'. Expected pattern: openpanel-<role>`);
+      results.ok = false;
+    }
+    // Ensure it doesn't end with -agent
+    if (agentName.endsWith('-agent')) {
+      results.errors.push(`Invalid "name" field: '${agentName}' should not end with '-agent' suffix`);
       results.ok = false;
     }
   }
@@ -97,7 +102,7 @@ function main() {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(AGENTS_DIR).filter((f) => f.endsWith('.agent.md'));
+  const files = fs.readdirSync(AGENTS_DIR).filter((f) => f.endsWith('.md'));
   const summary = { total: files.length, passed: 0, failed: 0, warnings: 0 };
   const results = [];
   for (const f of files) {
