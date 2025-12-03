@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, Loader2, GitBranch, Cpu, Settings, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { ApplicationTemplate, deployTemplate, TemplateDeployOptions } from '../services/templates';
+import { ProgressBar } from './ui/ProgressBar';
+import { RetryButton } from './ui/RetryButton';
 
 interface TemplateDeployModalProps {
   template: ApplicationTemplate;
@@ -18,6 +20,7 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
   const [currentStep, setCurrentStep] = useState<Step>('config');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deployProgress, setDeployProgress] = useState(0);
 
   // Form state
   const [projectName, setProjectName] = useState('');
@@ -34,6 +37,8 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
     { key: 'review', label: 'Revisão', icon: <CheckCircle size={16} /> },
   ];
 
+  const [retryCount, setRetryCount] = useState(0);
+
   const handleDeploy = async () => {
     if (!projectName.trim()) {
       setError('Nome do projeto é obrigatório');
@@ -43,6 +48,18 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
     try {
       setLoading(true);
       setError(null);
+      setDeployProgress(0);
+
+      // Simular progresso durante o deploy
+      const progressInterval = setInterval(() => {
+        setDeployProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 500);
 
       const options: TemplateDeployOptions = {
         projectName: projectName.trim(),
@@ -54,9 +71,16 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
       };
 
       const result = await deployTemplate(template.id, options);
-      onSuccess(result);
+      clearInterval(progressInterval);
+      setDeployProgress(100);
+      
+      // Aguardar um pouco para mostrar 100%
+      setTimeout(() => {
+        onSuccess(result);
+      }, 500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao criar projeto');
+      setRetryCount((prev) => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -98,8 +122,8 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-3">
@@ -124,10 +148,10 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
               <button
                 onClick={() => setCurrentStep(step.key)}
                 className={`
-                  flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                  flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform
                   ${currentStep === step.key
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    ? 'bg-blue-100 text-blue-700 scale-105 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 hover:scale-102'
                   }
                 `}
               >
@@ -144,7 +168,7 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-700">
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-700 animate-in slide-in-from-top-2 duration-200">
               <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium">Erro</p>
@@ -155,6 +179,7 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
 
           {/* Step: Config */}
           {currentStep === 'config' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -230,7 +255,7 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
 
           {/* Step: Resources */}
           {currentStep === 'resources' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Limite de CPU
@@ -274,10 +299,32 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
 
           {/* Step: Review */}
           {currentStep === 'review' && (
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">Resumo da Configuração</h4>
+            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+              {loading && (
+                <ProgressBar
+                  progress={deployProgress}
+                  label="Deploy em andamento"
+                  showPercentage={true}
+                  status="loading"
+                  estimatedTime={deployProgress < 50 ? "~2 minutos" : deployProgress < 90 ? "~30 segundos" : "Finalizando..."}
+                />
+              )}
               
-              <div className="border rounded-lg divide-y">
+              {error && (
+                <RetryButton
+                  onRetry={handleDeploy}
+                  error={error}
+                  isLoading={loading}
+                  retryCount={retryCount}
+                  variant="inline"
+                />
+              )}
+              
+              {!loading && !error && (
+                <>
+                  <h4 className="font-medium text-gray-900">Resumo da Configuração</h4>
+                  
+                  <div className="border rounded-lg divide-y">
                 <div className="p-4 grid grid-cols-2 gap-2">
                   <div className="text-gray-500">Nome do Projeto:</div>
                   <div className="text-gray-900 font-medium">{projectName || '-'}</div>
@@ -302,11 +349,13 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
                 </div>
               </div>
 
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-700">
-                  ✓ Tudo pronto! Clique em "Criar Projeto" para iniciar o deploy.
-                </p>
-              </div>
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-700">
+                      ✓ Tudo pronto! Clique em "Criar Projeto" para iniciar o deploy.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

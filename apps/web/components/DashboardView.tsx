@@ -9,6 +9,7 @@ import { useToast } from '../hooks/useToast';
 import { debounce } from '../utils/debounce';
 import { SkeletonWidget } from './SkeletonLoader';
 import { useTranslations } from '../src/i18n/i18n-react';
+import { WebSocketIndicator } from './ui/WebSocketIndicator';
 import { AreaChart, Area, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Layers, Activity, Search, Plus, X, TrendingUp, TrendingDown, MoreHorizontal, LayoutGrid, List as ListIcon, ChevronRight, Clock, Users, Loader2, Edit2, Trash2 } from 'lucide-react';
 
@@ -265,7 +266,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
   const [metricsHistory, setMetricsHistory] = useState<MetricPoint[]>([]);
 
   // Use WebSocket for real-time metrics
-  const { metrics: realtimeMetrics, history: metricsHistoryData } = useMetrics({
+  const { metrics: realtimeMetrics, history: metricsHistoryData, isConnected: metricsConnected, error: metricsError } = useMetrics({
     autoConnect: true,
     interval: 2000,
     maxHistory: 50,
@@ -661,15 +662,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
               <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-1 mr-2 order-2 sm:order-1">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded transition-all duration-200 ${viewMode === 'grid' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
+                  className={`p-2 rounded transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center ${viewMode === 'grid' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
                   title={LL.dashboard.gridView()}
+                  aria-label={LL.dashboard.gridView()}
                 >
                   <LayoutGrid size={18} strokeWidth={1.5} />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded transition-all duration-200 ${viewMode === 'list' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
+                  className={`p-2 rounded transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center ${viewMode === 'list' ? 'bg-background text-textPrimary shadow-sm' : 'text-textSecondary hover:text-textPrimary'}`}
                   title={LL.dashboard.listView()}
+                  aria-label={LL.dashboard.listView()}
                 >
                   <ListIcon size={18} strokeWidth={1.5} />
                 </button>
@@ -690,7 +693,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
               </div>
               <button
                 onClick={handleCreateProject}
-                className="order-3 flex items-center justify-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+                className="order-3 flex items-center justify-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 min-h-[44px]"
               >
                 <Plus size={18} strokeWidth={1.5} /> <span className="whitespace-nowrap">{LL.dashboard.createProject()}</span>
               </button>

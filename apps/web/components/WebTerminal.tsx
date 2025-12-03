@@ -263,10 +263,10 @@ export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName =
   };
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isMaximized ? 'p-0' : 'bg-slate-900/50 backdrop-blur-sm'}`}>
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 ${isMaximized ? 'p-0' : 'bg-slate-900/50 backdrop-blur-sm'}`}>
       <div 
         className={`bg-[#1a1d21] rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 border border-slate-700 ${ 
-            isMaximized ? 'w-full h-full rounded-none' : 'w-[800px] h-[500px]' 
+            isMaximized ? 'w-full h-full rounded-none' : 'w-full h-full sm:w-[800px] sm:h-[500px] max-w-[calc(100vw-1rem)] max-h-[calc(100vh-2rem)]' 
         }`}
       >
         {/* Terminal Header */}
@@ -282,26 +282,29 @@ export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName =
                 </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
                 <button 
                     onClick={handleReconnect}
-                    className="p-1.5 text-slate-500 hover:text-white rounded transition-colors"
+                    className="p-2 sm:p-1.5 text-slate-500 hover:text-white rounded transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
                     title="Restart Session"
+                    aria-label="Restart Session"
                 >
-                    <Power size={14} />
+                    <Power size={16} className="sm:w-[14px] sm:h-[14px]" />
                 </button>
                 <button 
                     onClick={() => setIsMaximized(!isMaximized)}
-                    className="p-1.5 text-slate-500 hover:text-white rounded transition-colors"
+                    className="p-2 sm:p-1.5 text-slate-500 hover:text-white rounded transition-colors min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
                     title={isMaximized ? "Restore" : "Maximize"}
+                    aria-label={isMaximized ? "Restore" : "Maximize"}
                 >
-                    {isMaximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                    {isMaximized ? <Minimize2 size={16} className="sm:w-[14px] sm:h-[14px]" /> : <Maximize2 size={16} className="sm:w-[14px] sm:h-[14px]" />}
                 </button>
                 <button 
                     onClick={onClose}
-                    className="p-1.5 text-slate-500 hover:bg-red-500 hover:text-white rounded transition-colors ml-2"
+                    className="p-2 sm:p-1.5 text-slate-500 hover:bg-red-500 hover:text-white rounded transition-colors ml-1 sm:ml-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+                    aria-label="Close terminal"
                 >
-                    <X size={14} />
+                    <X size={16} className="sm:w-[14px] sm:h-[14px]" />
                 </button>
             </div>
         </div>
@@ -318,9 +321,9 @@ export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName =
                     <p className="text-sm mb-4">{errorMessage || 'Socket connection lost to remote host.'}</p>
                     <button 
                         onClick={handleReconnect} 
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors min-h-[44px]"
                     >
-                        <Play size={14} fill="currentColor" /> Reconnect
+                        <Play size={16} fill="currentColor" className="sm:w-[14px] sm:h-[14px]" /> Reconnect
                     </button>
                 </div>
             )}

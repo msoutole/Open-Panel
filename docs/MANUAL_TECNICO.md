@@ -46,6 +46,12 @@ Open-Panel/
 
 A API é construída com **Hono**, oferecendo alta performance e suporte a Edge Computing.
 
+### Documentação Completa
+
+- **[API REST - Documentação Completa](./API_REST.md)**: Referência completa de todos os endpoints REST
+- **[API WebSocket - Protocolos](./API_WEBSOCKET.md)**: Documentação dos protocolos WebSocket
+- **[Swagger UI](http://localhost:3001/api/docs)**: Interface interativa para explorar a API (disponível quando o servidor estiver rodando)
+
 ### Endpoints Principais
 
 | Método | Endpoint | Descrição |
@@ -75,12 +81,7 @@ Utilizamos WebSockets para comunicação em tempo real.
 | `ws://host/ws/metrics` | Métricas em tempo real |
 | `ws://host/ws/terminal` | Terminal interativo |
 
-**Protocolo do Terminal:**
-1. Conexão → `ws://host/ws/terminal`
-2. Autenticação → `{ type: "auth", token: "JWT..." }`
-3. Abertura → `{ type: "open_terminal", containerId: "..." }`
-4. Input → `{ type: "input", data: "comando\n" }`
-5. Resize → `{ type: "resize", cols: 80, rows: 24 }`
+Para detalhes completos sobre os protocolos WebSocket, consulte a [documentação WebSocket](./API_WEBSOCKET.md).
 
 ---
 
@@ -159,12 +160,48 @@ Layout Mobile-First com breakpoints TailwindCSS:
 - **Singleton Prisma**: Reutilização de conexões
 - **Redis Cache**: TTL curto para dados voláteis
 - **Streaming**: Logs e métricas via WebSocket
+- **Build Otimizado**: Minificação com esbuild, tree-shaking habilitado
+- **Source Maps**: Desabilitados em produção para reduzir tamanho
 
 ### Frontend
-- **Code Splitting**: Lazy loading de rotas
+- **Code Splitting**: Lazy loading de componentes pesados (DashboardView, ProjectDetails, SettingsView, etc.)
+- **Vendor Chunking**: Separação de dependências em chunks específicos:
+  - `vendor-react`: React e React DOM (~240KB)
+  - `vendor-terminal`: xterm e addons (~290KB)
+  - `vendor-charts`: recharts (~168KB)
+  - `vendor-ai`: @google/genai (~218KB)
+  - `vendor`: Outras dependências (~136KB)
+- **Component Chunking**: Componentes pesados em chunks próprios:
+  - `terminal`: WebTerminal
+  - `database-consoles`: Consoles de banco de dados
+  - `marketplace`: Template Marketplace
 - **Memoização**: `useMemo`/`useCallback` para cálculos pesados
 - **Debounce**: Em inputs de busca (300ms)
 - **Virtual Lists**: Para listas longas de logs
+- **Suspense**: Loading states durante lazy loading
+- **Bundle Analysis**: Script `npm run build:analyze` para análise de tamanho
+
+### Otimizações de Build
+
+#### Frontend (Vite)
+- **Target**: `esnext` para melhor tree-shaking
+- **Minificação**: esbuild (mais rápido que Terser)
+- **CSS Code Splitting**: CSS separado por chunk
+- **Chunk Size Warning**: Limite de 500KB por chunk
+- **Compressed Size Reporting**: Relatório de tamanho gzip
+
+#### Backend (tsup)
+- **Minificação**: Habilitada em produção
+- **Tree-shaking**: Automático
+- **Source Maps**: Desabilitados em produção
+- **Target**: ES2022 para compatibilidade moderna
+
+### Análise de Bundle
+Para analisar o tamanho dos bundles:
+```bash
+npm run build:analyze -w apps/web
+```
+Isso gera um relatório HTML em `apps/web/dist/stats.html` com visualização interativa dos chunks.
 
 ---
 

@@ -134,8 +134,16 @@ export class ContainerWebSocketGateway {
       client.isAlive = true
     })
 
-    client.on('message', (data) => {
-      this.handleMessage(client, data)
+    client.on('message', (data: Buffer | string | ArrayBuffer) => {
+      // Convert RawData to expected type
+      let messageData: Buffer | string | ArrayBuffer
+      if (Array.isArray(data)) {
+        // If it's an array of buffers, concatenate them
+        messageData = Buffer.concat(data)
+      } else {
+        messageData = data
+      }
+      this.handleMessage(client, messageData)
     })
 
     client.on('close', () => {
@@ -151,9 +159,20 @@ export class ContainerWebSocketGateway {
   /**
    * Handle incoming message from client
    */
-  private async handleMessage(client: WebSocketClient, data: Buffer | string) {
+  private async handleMessage(client: WebSocketClient, data: Buffer | string | ArrayBuffer) {
     try {
-      const message = JSON.parse(data.toString()) as WebSocketMessage
+      // Convert data to string safely
+      let dataStr: string
+      if (typeof data === 'string') {
+        dataStr = data
+      } else if (data instanceof Buffer) {
+        dataStr = data.toString('utf-8')
+      } else {
+        // ArrayBuffer - convert to Buffer via Uint8Array
+        const uint8Array = new Uint8Array(data)
+        dataStr = Buffer.from(uint8Array).toString('utf-8')
+      }
+      const message = JSON.parse(dataStr) as WebSocketMessage
 
       // Rate limiting: max 100 messages per minute
       const now = Date.now()
@@ -176,7 +195,7 @@ export class ContainerWebSocketGateway {
 
       switch (message.type) {
         case 'auth':
-          await this.handleAuth(client, message)
+          await this.handleAuth(client, message as AuthMessage)
           break
 
         case 'subscribe_logs':
@@ -186,7 +205,7 @@ export class ContainerWebSocketGateway {
               message: 'Authentication required before subscribing to logs',
             })
           }
-          await this.handleSubscribeLogs(client, message)
+          await this.handleSubscribeLogs(client, message as SubscribeLogsMessage)
           break
 
         case 'unsubscribe_logs':
@@ -196,7 +215,7 @@ export class ContainerWebSocketGateway {
               message: 'Authentication required',
             })
           }
-          await this.handleUnsubscribeLogs(client, message)
+          await this.handleUnsubscribeLogs(client, message as UnsubscribeLogsMessage)
           break
 
         case 'subscribe_stats':
@@ -206,7 +225,7 @@ export class ContainerWebSocketGateway {
               message: 'Authentication required before subscribing to stats',
             })
           }
-          await this.handleSubscribeStats(client, message)
+          await this.handleSubscribeStats(client, message as SubscribeStatsMessage)
           break
 
         case 'unsubscribe_stats':
@@ -216,7 +235,7 @@ export class ContainerWebSocketGateway {
               message: 'Authentication required',
             })
           }
-          await this.handleUnsubscribeStats(client, message)
+          await this.handleUnsubscribeStats(client, message as UnsubscribeStatsMessage)
           break
 
         case 'ping':
@@ -400,7 +419,7 @@ export class ContainerWebSocketGateway {
           }
         )
 
-        session.stream = stream
+        session.stream = stream as { destroy?: () => void }
         this.logStreams.set(containerId, session)
 
         logInfo('Started log stream for container', { containerId })
@@ -439,7 +458,7 @@ export class ContainerWebSocketGateway {
 
     // If no more clients, stop stream
     if (session.clients.size === 0) {
-      if (session.stream?.destroy) {
+      if (session.stream && 'destroy' in session.stream && typeof session.stream.destroy === 'function') {
         session.stream.destroy()
       }
       this.logStreams.delete(containerId)
@@ -557,7 +576,7 @@ export class ContainerWebSocketGateway {
 
         // If no more clients, stop stream
         if (session.clients.size === 0) {
-          if (session.stream?.destroy) {
+          if (session.stream && 'destroy' in session.stream && typeof session.stream.destroy === 'function') {
             session.stream.destroy()
           }
           this.logStreams.delete(client.containerId)

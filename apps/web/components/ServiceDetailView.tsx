@@ -38,6 +38,7 @@ import { DatabaseConsole } from './DatabaseConsole';
 import { useLogs, type LogEntry } from '../hooks/useLogs';
 import { useMetrics } from '../hooks/useMetrics';
 import { useToast } from '../hooks/useToast';
+import { WebSocketIndicator } from './ui/WebSocketIndicator';
 import { getErrorMessage } from '../src/utils/error';
 import { useTranslations } from '../src/i18n/i18n-react';
 import {
@@ -98,6 +99,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
   const {
     logs: serviceLogs,
     isConnected: logsConnected,
+    error: logsError,
     clearLogs,
   } = useLogs({
     containerId: service.id,
@@ -106,7 +108,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({
   });
 
   // Use WebSocket for real-time metrics
-  const { metrics: serviceMetrics, isConnected: metricsConnected } = useMetrics({
+  const { metrics: serviceMetrics, isConnected: metricsConnected, error: metricsError } = useMetrics({
     containerId: service.id,
     autoConnect: activeTab === 'metrics',
     interval: 2000,

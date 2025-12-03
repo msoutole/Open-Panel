@@ -55,8 +55,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
     ];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-card rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-background">
                     <h3 className="font-bold text-lg text-textPrimary">{LL.projects.createProject()}</h3>
                     <button onClick={onClose} className="text-textSecondary hover:text-textPrimary transition-colors duration-200">
@@ -66,9 +66,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {error && (
-                        <div className="bg-error/10 text-error text-sm p-3 rounded-lg border border-error/20 flex items-center gap-2">
-                            <AlertCircle size={16} strokeWidth={2} />
-                            {error}
+                        <div className="bg-error/10 text-error text-sm p-3 rounded-lg border border-error/20 flex items-center gap-2 animate-in slide-in-from-top-2 duration-200">
+                            <AlertCircle size={16} strokeWidth={2} className="flex-shrink-0" />
+                            <span>{error}</span>
                         </div>
                     )}
 
@@ -81,7 +81,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-') })}
                                 placeholder="e.g. My Awesome App"
-                                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
+                                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-white text-textPrimary placeholder-textSecondary focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 hover:border-primary/50"
                             />
                         </div>
 
@@ -115,9 +115,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                                         key={type.id}
                                         type="button"
                                         onClick={() => setFormData({ ...formData, type: type.id })}
-                                        className={`p-3 rounded-xl border text-left transition-all duration-200 ${formData.type === type.id
-                                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                                : 'border-border hover:border-primary/30 hover:bg-background'
+                                        className={`p-3 rounded-xl border text-left transition-all duration-200 transform ${formData.type === type.id
+                                                ? 'border-primary bg-primary/5 ring-2 ring-primary scale-[1.02]'
+                                                : 'border-border hover:border-primary/30 hover:bg-background hover:scale-[1.01]'
                                             }`}
                                     >
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${formData.type === type.id ? 'bg-primary text-white' : 'bg-background text-textSecondary'

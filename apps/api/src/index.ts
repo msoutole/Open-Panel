@@ -1,3 +1,37 @@
+// ============================================
+// LOAD ENVIRONMENT VARIABLES FROM ROOT .env
+// ============================================
+import { config } from 'dotenv'
+import { resolve } from 'path'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+import { existsSync } from 'fs'
+
+// Find root directory
+// In development: apps/api/src -> go up 3 levels to root
+// In production: dist/ -> go up 2 levels to apps/api, then 2 more to root
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+// Try to find root by looking for package.json or .env
+let rootDir = process.cwd()
+const possibleRoots = [
+  resolve(__dirname, '../../..'), // dev: apps/api/src -> root
+  resolve(__dirname, '../../../..'), // prod: dist/ -> root
+  process.cwd(), // fallback to current working directory
+]
+
+// Find root directory by checking for .env or package.json
+for (const possibleRoot of possibleRoots) {
+  if (existsSync(resolve(possibleRoot, '.env')) || existsSync(resolve(possibleRoot, 'package.json'))) {
+    rootDir = possibleRoot
+    break
+  }
+}
+
+// Load .env from root directory
+config({ path: resolve(rootDir, '.env') })
+
 import './instrumentation'
 
 // ============================================
@@ -10,6 +44,8 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { prettyJSON } from 'hono/pretty-json'
 import { HTTPException } from 'hono/http-exception'
+import { swaggerUI } from '@hono/swagger-ui'
+import { openAPISchema } from './lib/openapi'
 import type { Variables } from './types'
 import { ContainerWebSocketGateway } from './websocket/container-gateway'
 import { LogsWebSocketGateway } from './websocket/logs-gateway'
@@ -128,6 +164,14 @@ app.get('/health', (c) => {
     version: process.env.npm_package_version || '1.3.0',
   })
 })
+
+// API Documentation - OpenAPI Schema JSON
+app.get('/api/openapi.json', (c) => {
+  return c.json(openAPISchema)
+})
+
+// API Documentation - Swagger UI
+app.get('/api/docs', swaggerUI({ url: '/api/openapi.json' }))
 
 // Public routes
 app.route('/api/auth', auth)

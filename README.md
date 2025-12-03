@@ -30,17 +30,16 @@ npm start
 Isso é tudo! O script `start.js` faz automaticamente:
 - ✅ Verifica pré-requisitos (Node.js 18+, Docker)
 - ✅ Cria arquivo `.env` na raiz com valores seguros
-- ✅ Sincroniza configurações com subprojetos (API e Web)
 - ✅ Instala dependências npm
 - ✅ Inicia containers Docker (PostgreSQL, Redis, Traefik)
 - ✅ Configura banco de dados
 - ✅ Cria usuário administrador padrão
 - ✅ Inicia API e Web em modo desenvolvimento
 
-> 💡 **Configuração 100% centralizada**:  
+> 💡 **Configuração 100% centralizada e simplificada**:  
 > - ✅ **Um único arquivo**: Edite apenas o `.env` na raiz  
-> - ⚠️ **Não edite** `apps/api/.env` ou `apps/web/.env.local` - são gerados automaticamente  
-> - 🔄 **Sincronização automática** ao executar `npm start`
+> - ✅ **Sem sincronização**: API e Web leem diretamente do `.env` da raiz  
+> - ✅ **Setup simples**: Copie `.env.example` para `.env` e edite
 
 **Pré-requisitos:**
 - Node.js 18+ ([Download](https://nodejs.org/))

@@ -26,10 +26,8 @@ build/
 .credentials/
 .openpanel.state
 
-# Arquivos .env dos subprojetos são gerados automaticamente - NÃO editar!
-apps/api/.env
-apps/web/.env.local
-apps/web/.env
+# Arquivos .env dos subprojetos não são mais necessários
+# API e Web agora leem diretamente do .env da raiz
 
 # IDE
 .vscode/*

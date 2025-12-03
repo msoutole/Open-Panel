@@ -38,3 +38,10 @@ export const i18n = (): LocaleTranslationFunctions<Locales, Translations, Transl
 	initI18n<Locales, Translations, TranslationFunctions, Formatters>(loadedLocales, loadedFormatters)
 
 export const detectLocale = (...detectors: LocaleDetector[]): Locales => detectLocaleFn<Locales>(baseLocale, locales, ...detectors)
+
+// Re-export loadLocale and isLocaleLoaded from sync file
+export { loadLocale, loadAllLocales } from './i18n-util.sync'
+
+export const isLocaleLoaded = (locale: Locales): boolean => {
+	return !!loadedLocales[locale]
+}

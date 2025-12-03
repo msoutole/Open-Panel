@@ -1,20 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { DashboardView } from './components/DashboardView';
-import { ProjectDetails } from './components/ProjectDetails';
-import { SettingsView } from './components/SettingsView';
-import { SecurityView } from './components/SecurityView';
-import { ProfileView } from './components/ProfileView';
 import { Login } from './pages/Login';
-import { Onboarding } from './pages/Onboarding';
-import { GeminiChat } from './components/GeminiChat';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './hooks/useToast';
 import { useSidebar } from './hooks/useSidebar';
 import { useTranslations } from './src/i18n/i18n-react';
 import { ViewState, Project } from './types';
 import { I18nProvider } from './src/i18n/i18n-react';
+import { SkeletonLoader } from './components/SkeletonLoader';
+
+// Lazy load de componentes pesados para melhor code splitting
+const DashboardView = lazy(() => import('./components/DashboardView').then(m => ({ default: m.DashboardView })));
+const ProjectDetails = lazy(() => import('./components/ProjectDetails').then(m => ({ default: m.ProjectDetails })));
+const SettingsView = lazy(() => import('./components/SettingsView').then(m => ({ default: m.SettingsView })));
+const SecurityView = lazy(() => import('./components/SecurityView').then(m => ({ default: m.SecurityView })));
+const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
+const Onboarding = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.Onboarding })));
+const GeminiChat = lazy(() => import('./components/GeminiChat').then(m => ({ default: m.GeminiChat })));
 
 console.log('App.tsx loaded');
 
@@ -126,7 +129,11 @@ const AppContent: React.FC = () => {
   }
 
   if (showOnboarding) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+    return (
+      <Suspense fallback={<SkeletonLoader />}>
+        <Onboarding onComplete={handleOnboardingComplete} />
+      </Suspense>
+    );
   }
   
   const getPageTitle = (view: ViewState) => {
@@ -176,33 +183,45 @@ const AppContent: React.FC = () => {
 
         <main className="flex-1 overflow-y-auto bg-background">
           {(currentView === 'dashboard' || currentView === 'monitor') && (
-            <DashboardView
-              onProjectSelect={handleProjectSelect}
-              view={currentView}
-            />
+            <Suspense fallback={<SkeletonLoader />}>
+              <DashboardView
+                onProjectSelect={handleProjectSelect}
+                view={currentView}
+              />
+            </Suspense>
           )}
 
           {currentView === 'project_details' && selectedProject && (
-            <ProjectDetails
-              project={selectedProject}
-              onBack={() => handleViewChange('dashboard')}
-            />
+            <Suspense fallback={<SkeletonLoader />}>
+              <ProjectDetails
+                project={selectedProject}
+                onBack={() => handleViewChange('dashboard')}
+              />
+            </Suspense>
           )}
 
           {(currentView === 'settings' || currentView === 'users' || currentView === 'backups') && (
-            <SettingsView view={currentView} />
+            <Suspense fallback={<SkeletonLoader />}>
+              <SettingsView view={currentView} />
+            </Suspense>
           )}
 
           {currentView === 'security' && (
-             <SecurityView />
+            <Suspense fallback={<SkeletonLoader />}>
+              <SecurityView />
+            </Suspense>
           )}
 
           {currentView === 'profile' && (
-             <ProfileView />
+            <Suspense fallback={<SkeletonLoader />}>
+              <ProfileView />
+            </Suspense>
           )}
         </main>
 
-        <GeminiChat />
+        <Suspense fallback={null}>
+          <GeminiChat />
+        </Suspense>
       </div>
     </div>
   );

@@ -89,18 +89,36 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
         <h1 className="text-lg sm:text-xl font-semibold text-textPrimary truncate">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
-        {/* Search */}
-        <div className="relative hidden lg:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" size={18} strokeWidth={1.5} />
-          <input
-            type="text"
-            placeholder={LL.header.searchPlaceholder()}
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleSearch}
-            className="pl-10 pr-4 py-2 w-64 bg-white border border-border rounded-lg text-sm text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
-          />
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">
+        {/* Search - Mobile: Icon button, Desktop: Full input */}
+        <div className="relative">
+          {/* Mobile: Icon button */}
+          <button
+            onClick={() => {
+              // Em mobile, pode abrir um modal de busca ou expandir
+              const searchInput = document.getElementById('mobile-search-input');
+              if (searchInput) {
+                searchInput.focus();
+              }
+            }}
+            className="lg:hidden p-2 rounded-lg text-textSecondary hover:text-textPrimary hover:bg-background transition-colors duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label={LL.header.searchPlaceholder()}
+          >
+            <Search size={20} strokeWidth={1.5} />
+          </button>
+          
+          {/* Desktop: Full input */}
+          <div className="hidden lg:block relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" size={18} strokeWidth={1.5} />
+            <input
+              type="text"
+              placeholder={LL.header.searchPlaceholder()}
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={handleSearch}
+              className="pl-10 pr-4 py-2 w-64 bg-white border border-border rounded-lg text-sm text-textPrimary placeholder-textSecondary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
+            />
+          </div>
         </div>
 
         {/* Notifications */}
@@ -109,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
                 ref={notifRef}
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
                 aria-label={LL.header.notifications()}
-                className={`relative text-textSecondary hover:text-textPrimary transition-colors duration-200 p-2 rounded-lg hover:bg-background ${isNotifOpen ? 'text-primary bg-background' : ''}`}
+                className={`relative text-textSecondary hover:text-textPrimary transition-colors duration-200 p-2 rounded-lg hover:bg-background min-w-[44px] min-h-[44px] flex items-center justify-center ${isNotifOpen ? 'text-primary bg-background' : ''}`}
             >
                 <Bell size={20} strokeWidth={1.5} />
                 {unreadCount > 0 && (
@@ -181,9 +199,9 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center gap-2 sm:gap-3 pl-3 sm:pl-6 border-l border-border relative" ref={profileRef}>
+        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-6 border-l border-border relative" ref={profileRef}>
           <div
-            className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-[44px] min-h-[44px] px-2"
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             aria-label={LL.header.userMenu()}
             role="button"

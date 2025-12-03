@@ -20,14 +20,14 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2';
+  const baseStyles = 'font-medium rounded-lg transition-all duration-200 ease-in-out shadow-sm hover:shadow-md focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98]';
 
   const variantStyles = {
-    primary: 'bg-primary hover:bg-primaryHover active:bg-primaryActive active:scale-95 text-white focus:ring-primary/20',
-    secondary: 'bg-secondary hover:bg-[#5b8b5e] active:bg-[#4b7b4e] active:scale-95 text-white focus:ring-secondary/20',
-    success: 'bg-success hover:bg-successHover active:bg-[#15803d] active:scale-95 text-white focus:ring-success/20',
-    error: 'bg-error hover:bg-errorHover active:bg-[#b91c1c] active:scale-95 text-white focus:ring-error/20',
-    outline: 'border-2 border-primary text-primary bg-white hover:bg-primary hover:text-white active:bg-primaryHover active:border-primaryHover active:scale-95 focus:ring-primary/20',
+    primary: 'bg-primary hover:bg-primaryHover active:bg-primaryActive text-white focus:ring-primary/20',
+    secondary: 'bg-secondary hover:bg-[#5b8b5e] active:bg-[#4b7b4e] text-white focus:ring-secondary/20',
+    success: 'bg-success hover:bg-successHover active:bg-[#15803d] text-white focus:ring-success/20',
+    error: 'bg-error hover:bg-errorHover active:bg-[#b91c1c] text-white focus:ring-error/20',
+    outline: 'border-2 border-primary text-primary bg-white hover:bg-primary hover:text-white active:bg-primaryHover active:border-primaryHover focus:ring-primary/20 transition-colors duration-200',
   };
 
   const sizeStyles = {
@@ -42,8 +42,8 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled || isLoading}
       {...props}
     >
-      {isLoading && <Loader2 size={16} className="animate-spin" />}
-      {children}
+      {isLoading && <Loader2 size={size === 'sm' ? 14 : size === 'lg' ? 18 : 16} className="animate-spin" />}
+      <span className={isLoading ? 'opacity-70' : ''}>{children}</span>
     </button>
   );
 };

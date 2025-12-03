@@ -80,3 +80,17 @@ export const SkeletonWidget: React.FC = () => (
   </div>
 );
 
+// Componente de loading genérico para Suspense
+export const SkeletonLoader: React.FC = () => (
+  <div className="flex-1 overflow-y-auto bg-background p-6">
+    <div className="space-y-4">
+      <Skeleton variant="rectangular" height={48} width="100%" className="mb-6" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+

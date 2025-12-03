@@ -155,6 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     transition-all 
                     duration-200 
                     mb-1
+                    min-h-[44px]
                     ${isCollapsed ? 'justify-center px-2' : ''}
                     ${
                       isActive
