@@ -5,6 +5,11 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const AGENTS_DIR = path.join(ROOT, '.github', 'agents');
 
+// Constants for agent naming pattern
+const AGENT_NAME_PATTERN = /^openpanel-[a-z0-9]+(-[a-z0-9]+)*$/;
+const AGENT_FILE_PREFIX = 'openpanel-';
+const AGENT_FILE_EXTENSION = '.md';
+
 function error(msg) {
   console.error(`✖ ${msg}`);
 }
@@ -64,9 +69,9 @@ function validateAgentFile(filePath) {
     results.errors.push('Missing "name" field in front matter');
   } else {
     // Validate name pattern openpanel-<role> (without -agent suffix)
-    const nameRe = /^openpanel-[a-z0-9-]+$/;
-    if (!nameRe.test(agentName)) {
-      results.errors.push(`Invalid "name" field: '${agentName}'. Expected pattern: openpanel-<role>`);
+    // Pattern ensures proper hyphen separation (no consecutive hyphens)
+    if (!AGENT_NAME_PATTERN.test(agentName)) {
+      results.errors.push(`Invalid "name" field: '${agentName}'. Expected pattern: openpanel-<role> (lowercase, hyphens separate words, no consecutive hyphens)`);
       results.ok = false;
     }
     // Ensure it doesn't end with -agent
@@ -74,9 +79,10 @@ function validateAgentFile(filePath) {
       results.errors.push(`Invalid "name" field: '${agentName}' should not end with '-agent' suffix`);
       results.ok = false;
     }
-    // Ensure filename matches the name field
+    // Ensure filename matches the name field (consistency requirement)
     if (agentName !== fileName) {
-      results.warnings.push(`Name field '${agentName}' doesn't match filename '${fileName}.md'. Consider keeping them consistent.`);
+      results.errors.push(`Name field '${agentName}' must match filename '${fileName}.md' for consistency`);
+      results.ok = false;
     }
   }
 
@@ -108,7 +114,9 @@ function main() {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(AGENTS_DIR).filter((f) => f.endsWith('.md') && f.startsWith('openpanel-'));
+  const files = fs.readdirSync(AGENTS_DIR).filter((f) => 
+    f.endsWith(AGENT_FILE_EXTENSION) && f.startsWith(AGENT_FILE_PREFIX)
+  );
   const summary = { total: files.length, passed: 0, failed: 0, warnings: 0 };
   const results = [];
   for (const f of files) {
