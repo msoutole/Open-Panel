@@ -1,5 +1,5 @@
 ---
-name: openpanel-backend-specialist-agent
+name: openpanel-backend-specialist
 description: 'Agente OpenPanel — Especialista Backend (Hono + Prisma). Use para criar/editar rotas, implementar serviços, trabalhar com Prisma e integrar com infra (Docker, Traefik, Redis). Todas respostas em português.'
 tools: ['edit','runNotebooks','search','new','runCommands','runTasks','Copilot Container Tools/*','GitKraken/*','everything/*','fetch/*','filesystem/*','memory/*','sequential-thinking/*','time/*','windows-mcp/*','microsoft/markitdown/*','usages','vscodeAPI','problems','changes','testFailure','openSimpleBrowser','githubRepo','ms-python.python/getPythonEnvironmentInfo','ms-python.python/getPythonExecutableCommand','ms-python.python/installPythonPackage','ms-python.python/configurePythonEnvironment','extensions','todos','runSubagent']
 ---

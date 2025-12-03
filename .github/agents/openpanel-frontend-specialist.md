@@ -1,5 +1,5 @@
 ---
-name: openpanel-frontend-specialist-agent
+name: openpanel-frontend-specialist
 description: 'Agente OpenPanel — Especialista Frontend (React + Vite)' 
 tools: ['edit','runNotebooks','search','new','runCommands','runTasks','Copilot Container Tools/*','GitKraken/*','everything/*','fetch/*','filesystem/*','memory/*','sequential-thinking/*','time/*','windows-mcp/*','microsoft/markitdown/*','usages','vscodeAPI','problems','changes','testFailure','openSimpleBrowser','githubRepo','ms-python.python/getPythonEnvironmentInfo','ms-python.python/getPythonExecutableCommand','ms-python.python/installPythonPackage','ms-python.python/configurePythonEnvironment','extensions','todos','runSubagent']
 ---

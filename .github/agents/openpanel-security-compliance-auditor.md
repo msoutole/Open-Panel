@@ -1,5 +1,5 @@
 ---
-name: openpanel-security-compliance-auditor-agent
+name: openpanel-security-compliance-auditor
 description: 'Agente OpenPanel — Auditor de Segurança e Compliance (OWASP, env, logs)'
 tools: ['edit','runNotebooks','search','new','runCommands','runTasks','Copilot Container Tools/*','GitKraken/*','everything/*','fetch/*','filesystem/*','memory/*','sequential-thinking/*','time/*','windows-mcp/*','microsoft/markitdown/*','usages','vscodeAPI','problems','changes','testFailure','openSimpleBrowser','githubRepo','ms-python.python/getPythonEnvironmentInfo','ms-python.python/getPythonExecutableCommand','ms-python.python/installPythonPackage','ms-python.python/configurePythonEnvironment','extensions','todos','runSubagent']
 ---
