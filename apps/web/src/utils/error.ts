@@ -9,7 +9,7 @@ export function getErrorMessage(err: unknown): { message: string; code?: string 
     try {
       const anyErr = err as Record<string, unknown>;
       if (typeof anyErr.message === 'string') {
-        return { message: anyErr.message as string, code: typeof anyErr.code === 'string' ? (anyErr.code as string) : undefined };
+        return { message: anyErr.message, code: typeof anyErr.code === 'string' ? (anyErr.code) : undefined };
       }
     } catch {
       // ignore

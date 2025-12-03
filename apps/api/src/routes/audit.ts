@@ -5,6 +5,7 @@ import type { Variables } from '../types'
 import { prisma } from '../lib/prisma'
 import { logError } from '../lib/logger'
 import { HTTPException } from 'hono/http-exception'
+import type { Prisma } from '@prisma/client'
 
 const audit = new Hono<{ Variables: Variables }>()
 
@@ -17,8 +18,8 @@ const auditQuerySchema = z.object({
   status: z.enum(['SUCCESS', 'FAILURE']).optional(),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
-  page: z.string().transform((v) => parseInt(v) || 1).optional().default('1'),
-  limit: z.string().transform((v) => parseInt(v) || 20).optional().default('20'),
+  page: z.string().optional().default('1').transform((v) => parseInt(v) || 1),
+  limit: z.string().optional().default('20').transform((v) => parseInt(v) || 20),
 })
 
 /**
@@ -45,14 +46,14 @@ audit.get('/', zValidator('query', auditQuerySchema), async (c) => {
     } = c.req.valid('query')
 
     // Build where clause
-    const where: any = {}
+    const where: Prisma.AuditLogWhereInput = {}
 
     if (userId) {
       where.userId = userId
     }
 
     if (action) {
-      where.action = action
+      where.action = action as Prisma.AuditAction
     }
 
     if (resourceType) {
@@ -109,7 +110,7 @@ audit.get('/', zValidator('query', auditQuerySchema), async (c) => {
       userAgent: log.userAgent,
       metadata: log.metadata,
       timestamp: log.createdAt.toISOString(),
-      status: log.metadata?.status === 'FAILURE' ? 'Failure' : 'Success',
+      status: (log.metadata as { status?: string } | null)?.status === 'FAILURE' ? 'Failure' : 'Success',
     }))
 
     return c.json({
@@ -172,7 +173,7 @@ audit.get('/:id', async (c) => {
         userAgent: auditLog.userAgent,
         metadata: auditLog.metadata,
         timestamp: auditLog.createdAt.toISOString(),
-        status: auditLog.metadata?.status === 'FAILURE' ? 'Failure' : 'Success',
+        status: (auditLog.metadata as { status?: string } | null)?.status === 'FAILURE' ? 'Failure' : 'Success',
       },
     })
   } catch (error: unknown) {
@@ -245,7 +246,7 @@ audit.get('/stats', async (c) => {
     })
 
     const failedCount = allLogs.filter((log) => {
-      const metadata = log.metadata as any
+      const metadata = log.metadata as { status?: string } | null
       return metadata?.status === 'FAILURE'
     }).length
 

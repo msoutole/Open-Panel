@@ -28,7 +28,8 @@ const containers = new Hono<{ Variables: Variables }>()
 containers.get('/', listContainersHandler)
 
 // POST /api/containers - Criar novo container
-containers.post('/', createContainerHandler)
+// @ts-expect-error - zValidator type mismatch with Hono
+containers.post('/', ...createContainerHandler)
 
 // GET /api/containers/sync - Sincronizar containers do Docker
 containers.get('/sync', syncContainersHandler)
@@ -41,7 +42,8 @@ containers.get('/info/docker', getDockerInfoHandler)
 
 // Rotas específicas aninhadas em /:id devem vir antes da rota genérica /:id
 // GET /api/containers/:id/logs - Obter logs do container
-containers.get('/:id/logs', getContainerLogsHandler)
+// @ts-expect-error - zValidator type mismatch with Hono
+containers.get('/:id/logs', ...getContainerLogsHandler)
 
 // GET /api/containers/:id/stats - Obter estatísticas do container
 containers.get('/:id/stats', getContainerStatsHandler)

@@ -95,6 +95,8 @@ export interface Service {
   deploymentToken?: string;
   command?: string;
   exposedPort?: number;
+  projectId?: string;
+  createdAt?: string;
 
   // Enhanced Fields
   source?: ServiceSource;
@@ -219,7 +221,7 @@ export interface AgentConfig {
 export interface MCPTool {
   name: string;
   description: string;
-  inputSchema: Record<string, any>;
+  inputSchema: Record<string, unknown>;
 }
 
 // --- Service Creation Types ---

@@ -850,7 +850,7 @@ export class DockerService {
    */
   async pullImage(image: string, onProgress?: (progress: unknown) => void) {
     return new Promise((resolve, reject) => {
-      this.docker.pull(image, (err: unknown, stream: unknown) => {
+      this.docker.pull(image, (err: unknown, stream: NodeJS.ReadableStream) => {
         if (err) {
           reject(err)
           return
@@ -858,9 +858,9 @@ export class DockerService {
 
         this.docker.modem.followProgress(
           stream,
-          (err: unknown, output: unknown) => {
-            if (err) {
-              reject(err)
+          (progressErr: unknown, output: unknown) => {
+            if (progressErr) {
+              reject(progressErr)
             } else {
               resolve(output)
             }

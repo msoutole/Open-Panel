@@ -27,8 +27,8 @@ export const useErrorHandler = () => {
     console.error(`[Error Handler${context ? ` - ${context}` : ''}]:`, err);
 
     const extracted = getErrorMessage(err);
-    let message = extracted.message;
-    let code = extracted.code ?? 'UNKNOWN';
+    const message = extracted.message;
+    const code = extracted.code ?? 'UNKNOWN';
 
     setError({
       message,

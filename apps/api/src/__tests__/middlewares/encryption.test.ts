@@ -320,7 +320,7 @@ describe('Encryption Middleware', () => {
       }
 
       const encrypted = encryptProjectEnvVars(original)
-      const decrypted = decryptProjectEnvVars(encrypted!)
+      const decrypted = decryptProjectEnvVars(encrypted)
 
       expect(decrypted).toEqual(original)
     })

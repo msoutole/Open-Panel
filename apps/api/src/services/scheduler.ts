@@ -59,11 +59,11 @@ export class SchedulerService {
    */
   private scheduleHealthCheck(): void {
     // Run immediately on start
-    this.runHealthCheck()
+    void this.runHealthCheck()
 
     // Then run every 5 minutes
     const interval = setInterval(() => {
-      this.runHealthCheck()
+      void this.runHealthCheck()
     }, 5 * 60 * 1000) // 5 minutes
 
     this.intervals.push(interval)
@@ -99,11 +99,11 @@ export class SchedulerService {
 
     // Schedule first run at 2 AM
     setTimeout(() => {
-      this.runSSLRenewal()
+      void this.runSSLRenewal()
 
       // Then run daily
       const interval = setInterval(() => {
-        this.runSSLRenewal()
+        void this.runSSLRenewal()
       }, 24 * 60 * 60 * 1000) // 24 hours
 
       this.intervals.push(interval)
@@ -142,11 +142,11 @@ export class SchedulerService {
 
     // Schedule first run at 3 AM
     setTimeout(() => {
-      this.runBackup()
+      void this.runBackup()
 
       // Then run daily
       const interval = setInterval(() => {
-        this.runBackup()
+        void this.runBackup()
       }, 24 * 60 * 60 * 1000) // 24 hours
 
       this.intervals.push(interval)
@@ -193,11 +193,11 @@ export class SchedulerService {
 
     // Schedule first run
     setTimeout(() => {
-      this.runBackupCleanup()
+      void this.runBackupCleanup()
 
       // Then run weekly
       const interval = setInterval(() => {
-        this.runBackupCleanup()
+        void this.runBackupCleanup()
       }, 7 * 24 * 60 * 60 * 1000) // 7 days
 
       this.intervals.push(interval)

@@ -175,7 +175,7 @@ describe('Projects Routes', () => {
         return {
           ...args.data,
           id: 'new-id',
-        } as any
+        }
       })
 
       await app.request('/projects', {

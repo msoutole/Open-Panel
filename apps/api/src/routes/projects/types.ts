@@ -7,7 +7,7 @@
  * @module routes/projects/types
  */
 
-import type { Project, ProjectType } from '@prisma/client'
+import type { Project } from '@prisma/client'
 
 /**
  * Projeto com contadores de recursos relacionados

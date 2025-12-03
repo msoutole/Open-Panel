@@ -9,7 +9,7 @@
 
 import { prisma } from '../lib/prisma'
 import { HTTPException } from 'hono/http-exception'
-import type { Project, ProjectType } from '@prisma/client'
+import type { ProjectType } from '@prisma/client'
 
 /**
  * Dados necessários para criar um projeto
@@ -32,7 +32,7 @@ export interface CreateProjectData {
   /** Branch Git (opcional) */
   gitBranch?: string | null
   /** Número de réplicas (opcional) */
-  replicas?: number | null
+  replicas?: number
   /** Limite de CPU (opcional) */
   cpuLimit?: string | null
   /** Limite de memória (opcional) */
@@ -64,7 +64,7 @@ export interface UpdateProjectData {
   /** Branch Git (opcional) */
   gitBranch?: string | null
   /** Número de réplicas (opcional) */
-  replicas?: number | null
+  replicas?: number
   /** Limite de CPU (opcional) */
   cpuLimit?: string | null
   /** Limite de memória (opcional) */

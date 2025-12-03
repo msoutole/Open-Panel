@@ -17,7 +17,7 @@ export interface AuditOptions {
   /** Resource ID (optional) */
   resourceId?: string
   /** Additional metadata */
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>  
   /** Whether to log synchronously (default: false - async) */
   sync?: boolean
 }
@@ -28,8 +28,8 @@ export interface AuditOptions {
  * @param options - Audit options
  */
 export async function logAudit(c: Context, options: AuditOptions): Promise<void> {
-  const user = c.get('user')
-  const userId = options.userId || user?.userId
+  const user = c.get('user') as { userId?: string } | undefined
+  const userId = options.userId ?? user?.userId
 
   if (!userId) {
     // If no user, skip audit (public endpoints)

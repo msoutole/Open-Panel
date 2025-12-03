@@ -1,6 +1,3 @@
-import { prisma } from '../lib/prisma'
-import { logInfo, logError } from '../lib/logger'
-
 /**
  * Application Templates Service
  * Pre-configured application templates that can be deployed instantly

@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
-import { encrypt, decrypt } from '../lib/encryption'
+import { encrypt } from '../lib/encryption'
 import { hashPassword } from '../lib/hash'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../types'
@@ -254,9 +254,9 @@ async function validateGemini(apiKey: string) {
       return { valid: false, error: 'Invalid API key' }
     }
 
-    const data = await response.json()
+    const data = await response.json() as { models?: Array<{ name: string; displayName?: string }> }
     const models =
-      data.models?.map((m: any) => ({
+      data.models?.map((m) => ({
         id: m.name,
         name: m.displayName || m.name,
       })) || []
@@ -358,7 +358,7 @@ async function validateOllama(apiUrl: string) {
       return { valid: false, error: 'Cannot connect to Ollama' }
     }
 
-    const data = await response.json()
+    const data = await response.json() as { models?: Array<{ name: string }> }
 
     // Filtrar apenas modelos cloud gratuitos conforme especificação
     const cloudModelNames = [
@@ -385,8 +385,8 @@ async function validateOllama(apiUrl: string) {
         type: 'cloud',
       })),
       ...installedModels
-        .filter((m: any) => !cloudModelNames.includes(m.name))
-        .map((m: any) => ({
+        .filter((m) => !cloudModelNames.includes(m.name))
+        .map((m) => ({
           id: m.name,
           name: m.name,
           type: 'local',

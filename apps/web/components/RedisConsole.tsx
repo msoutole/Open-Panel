@@ -23,7 +23,7 @@ export const RedisConsole: React.FC<RedisConsoleProps> = ({ containerId }) => {
     }
   }, [history]);
 
-  const handleExecute = async (e?: React.FormEvent) => {
+  const handleExecute = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!command.trim()) return;
 
@@ -34,13 +34,11 @@ export const RedisConsole: React.FC<RedisConsoleProps> = ({ containerId }) => {
     // Optimistic update
     setHistory(prev => [...prev, { command: currentCmd }]);
 
-    try {
-      const response = await executeQuery({
-        containerId,
-        type: 'redis',
-        query: currentCmd
-      });
-      
+    executeQuery({
+      containerId,
+      type: 'redis',
+      query: currentCmd
+    }).then(response => {
       setHistory(prev => {
         const newHistory = [...prev];
         const lastEntry = newHistory[newHistory.length - 1];
@@ -49,7 +47,7 @@ export const RedisConsole: React.FC<RedisConsoleProps> = ({ containerId }) => {
         }
         return newHistory;
       });
-    } catch (error) {
+    }).catch((error: unknown) => {
       setHistory(prev => {
         const newHistory = [...prev];
         const lastEntry = newHistory[newHistory.length - 1];
@@ -62,9 +60,9 @@ export const RedisConsole: React.FC<RedisConsoleProps> = ({ containerId }) => {
         }
         return newHistory;
       });
-    } finally {
+    }).finally(() => {
       setIsLoading(false);
-    }
+    });
   };
 
   return (

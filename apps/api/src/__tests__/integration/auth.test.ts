@@ -29,7 +29,7 @@ describe('Auth Routes', () => {
 
       expect(res.status).toBe(201)
 
-      const data = await res.json() as any
+      const data = await res.json()
       expect(data.user).toBeDefined()
       expect(data.user.email).toBe(userData.email)
       expect(data.user.name).toBe(userData.name)
@@ -61,7 +61,7 @@ describe('Auth Routes', () => {
       })
 
       expect(res.status).toBe(400)
-      const data = await res.json() as any
+      const data = await res.json()
       expect(data.error).toBe('User already exists')
     })
 
@@ -132,7 +132,7 @@ describe('Auth Routes', () => {
 
       expect(res.status).toBe(200)
 
-      const data = await res.json() as any
+      const data = await res.json()
       expect(data.user).toBeDefined()
       expect(data.user.email).toBe('login@example.com')
       expect(data.accessToken).toBeDefined()
@@ -150,7 +150,7 @@ describe('Auth Routes', () => {
       })
 
       expect(res.status).toBe(401)
-      const data = await res.json() as any
+      const data = await res.json()
       expect(data.error).toBe('Invalid credentials')
     })
 
@@ -165,7 +165,7 @@ describe('Auth Routes', () => {
       })
 
       expect(res.status).toBe(401)
-      const data = await res.json() as any
+      const data = await res.json()
       expect(data.error).toBe('Invalid credentials')
     })
 

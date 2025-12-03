@@ -3,7 +3,7 @@ import type { Server } from 'http'
 import { dockerService } from '../services/docker'
 import { prisma } from '../lib/prisma'
 import { verifyToken } from '../lib/jwt'
-import { logger, logError, logInfo, logWarn } from '../lib/logger'
+import { logError, logInfo, logWarn } from '../lib/logger'
 
 interface WebSocketClient extends WebSocket {
   id: string
@@ -18,7 +18,7 @@ interface WebSocketClient extends WebSocket {
 interface StreamSession {
   containerId: string
   clients: Set<WebSocketClient>
-  stream?: any
+  stream?: { destroy?: () => void } | null
 }
 
 /**
@@ -400,7 +400,7 @@ export class ContainerWebSocketGateway {
 
     // If no more clients, stop stream
     if (session.clients.size === 0) {
-      if (session.stream) {
+      if (session.stream?.destroy) {
         session.stream.destroy()
       }
       this.logStreams.delete(containerId)
@@ -518,7 +518,7 @@ export class ContainerWebSocketGateway {
 
         // If no more clients, stop stream
         if (session.clients.size === 0) {
-          if (session.stream) {
+          if (session.stream?.destroy) {
             session.stream.destroy()
           }
           this.logStreams.delete(client.containerId)
@@ -590,7 +590,7 @@ export class ContainerWebSocketGateway {
 
     // Close all log streams
     this.logStreams.forEach((session) => {
-      if (session.stream) {
+      if (session.stream?.destroy) {
         session.stream.destroy()
       }
     })

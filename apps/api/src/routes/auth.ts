@@ -15,7 +15,6 @@ import {
   generateBackupCodes,
   verifyBackupCode,
   encryptTOTPSecret,
-  decryptTOTPSecret,
 } from '../services/totp'
 import { logInfo, logError } from '../lib/logger'
 import crypto from 'crypto'
@@ -182,17 +181,16 @@ auth.post('/login', authRateLimiter, zValidator('json', loginWith2FASchema), asy
 })
 
 // Refresh token - with strict rate limiting
-auth.post('/refresh', authRateLimiter, async (c) => {
-  try {
-    const body = await c.req.json()
-    const { refreshToken } = body
+const refreshTokenSchema = z.object({
+  refreshToken: z.string(),
+})
 
-    if (!refreshToken) {
-      return c.json({ error: 'Refresh token is required' }, 400)
-    }
+auth.post('/refresh', authRateLimiter, zValidator('json', refreshTokenSchema), (c) => {
+  try {
+    const { refreshToken } = c.req.valid('json')
 
     // Verify refresh token
-    const payload = verifyToken(refreshToken)
+    const payload = verifyToken(refreshToken) as { userId: string; email: string }
 
     // Generate new access token
     const newAccessToken = generateAccessToken({

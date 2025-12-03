@@ -122,7 +122,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ isOpen, onCl
                                     <button
                                         key={type.id}
                                         type="button"
-                                        onClick={() => setFormData({ ...formData, type: type.id })}
+                                        onClick={() => setFormData({ ...formData, type: type.id as 'WEB' | 'API' | 'DATABASE' | 'WORKER' })}
                                         className={`p-3 rounded-xl border text-left transition-all duration-200 ${formData.type === type.id
                                                 ? 'border-primary bg-primary/5 ring-1 ring-primary'
                                                 : 'border-border hover:border-primary/30 hover:bg-background'

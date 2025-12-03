@@ -54,7 +54,7 @@ actions.post('/stop', async (c: Context<{ Variables: Variables }>) => {
     const { id } = c.req.param()
 
     // Validação manual do body
-    const body = await c.req.json()
+    const body = await c.req.json() as unknown
     const validated = containerActionSchema.parse(body)
     const { timeout } = validated
 
@@ -87,7 +87,7 @@ actions.post('/restart', async (c: Context<{ Variables: Variables }>) => {
     const { id } = c.req.param()
 
     // Validação manual do body
-    const body = await c.req.json()
+    const body = await c.req.json() as unknown
     const validated = containerActionSchema.parse(body)
     const { timeout } = validated
 

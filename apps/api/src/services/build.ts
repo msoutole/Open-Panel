@@ -1,7 +1,7 @@
 import Docker from 'dockerode'
 import { prisma } from '../lib/prisma'
 import { dockerService } from './docker'
-import fs from 'fs'
+import fsp from 'fs/promises'
 import path from 'path'
 import { spawn } from 'child_process'
 import * as tar from 'tar-fs'
@@ -125,13 +125,13 @@ export class BuildService {
       }
 
       // Verify context exists
-      if (!fs.existsSync(context)) {
+      if (!await this.fileExists(context)) {
         throw new Error(`Build context not found: ${context}`)
       }
 
       // Verify Dockerfile exists
       const dockerfilePath = path.join(context, dockerfile)
-      if (!fs.existsSync(dockerfilePath)) {
+      if (!await this.fileExists(dockerfilePath)) {
         throw new Error(`Dockerfile not found: ${dockerfilePath}`)
       }
 
@@ -455,9 +455,10 @@ export class BuildService {
 
       logs = `Pulling image ${fullImageName}...\n`
 
-      await dockerService.pullImage(fullImageName, (progress) => {
-        if (progress.status) {
-          logs += `${progress.status}\n`
+      await dockerService.pullImage(fullImageName, (progress: unknown) => {
+        const progressData = progress as { status?: string }
+        if (progressData.status) {
+          logs += `${progressData.status}\n`
         }
       })
 
@@ -485,6 +486,15 @@ export class BuildService {
         duration,
         error: errorMessage,
       }
+    }
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fsp.access(filePath)
+      return true
+    } catch {
+      return false
     }
   }
 
@@ -522,47 +532,51 @@ export class BuildService {
     buildpack: 'dockerfile' | 'nixpacks' | 'paketo'
   }> {
     // Check for Dockerfile
-    if (fs.existsSync(path.join(context, 'Dockerfile'))) {
+    if (await this.fileExists(path.join(context, 'Dockerfile'))) {
       return { type: 'docker', buildpack: 'dockerfile' }
     }
 
     // Check for package.json (Node.js)
-    if (fs.existsSync(path.join(context, 'package.json'))) {
+    if (await this.fileExists(path.join(context, 'package.json'))) {
       return { type: 'nodejs', buildpack: 'nixpacks' }
     }
 
     // Check for requirements.txt (Python)
-    if (fs.existsSync(path.join(context, 'requirements.txt'))) {
+    if (await this.fileExists(path.join(context, 'requirements.txt'))) {
       return { type: 'python', buildpack: 'nixpacks' }
     }
 
     // Check for go.mod (Go)
-    if (fs.existsSync(path.join(context, 'go.mod'))) {
+    if (await this.fileExists(path.join(context, 'go.mod'))) {
       return { type: 'go', buildpack: 'nixpacks' }
     }
 
     // Check for Cargo.toml (Rust)
-    if (fs.existsSync(path.join(context, 'Cargo.toml'))) {
+    if (await this.fileExists(path.join(context, 'Cargo.toml'))) {
       return { type: 'rust', buildpack: 'nixpacks' }
     }
 
     // Check for composer.json (PHP)
-    if (fs.existsSync(path.join(context, 'composer.json'))) {
+    if (await this.fileExists(path.join(context, 'composer.json'))) {
       return { type: 'php', buildpack: 'nixpacks' }
     }
 
     // Check for pom.xml or build.gradle (Java)
     if (
-      fs.existsSync(path.join(context, 'pom.xml')) ||
-      fs.existsSync(path.join(context, 'build.gradle'))
+      (await this.fileExists(path.join(context, 'pom.xml'))) ||
+      (await this.fileExists(path.join(context, 'build.gradle')))
     ) {
       return { type: 'java', buildpack: 'paketo' }
     }
 
     // Check for .csproj (C#/.NET)
-    const files = fs.readdirSync(context)
-    if (files.some((file) => file.endsWith('.csproj'))) {
-      return { type: 'dotnet', buildpack: 'paketo' }
+    try {
+      const files = await fsp.readdir(context)
+      if (files.some((file) => file.endsWith('.csproj'))) {
+        return { type: 'dotnet', buildpack: 'paketo' }
+      }
+    } catch {
+      // Ignore error if directory doesn't exist
     }
 
     // Default to Nixpacks
@@ -799,7 +813,6 @@ export class BuildService {
         },
       })
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       logError(`Build execution error`, error, {
         deploymentId,
       })
@@ -823,7 +836,7 @@ export class BuildService {
     return new Promise((resolve, reject) => {
       let logs = ''
 
-      stream.on('data', (chunk) => {
+      stream.on('data', (chunk: Buffer | string) => {
         const data = chunk.toString()
         try {
           const json = JSON.parse(data)
@@ -841,7 +854,7 @@ export class BuildService {
         resolve(logs)
       })
 
-      stream.on('error', (error) => {
+      stream.on('error', (error: Error) => {
         reject(error)
       })
     })

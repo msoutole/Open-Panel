@@ -5,7 +5,6 @@
  */
 
 import { Context } from 'hono'
-import { zValidator } from '@hono/zod-validator'
 import { HTTPException } from 'hono/http-exception'
 import { buildService } from '../../../services/build'
 import { logError } from '../../../lib/logger'
@@ -37,7 +36,7 @@ export const detectProjectTypeHandler = async (c: Context<{ Variables: Variables
     }
 
     // Validação manual do body
-    const body = await c.req.json()
+    const body = await c.req.json() as unknown
     const validated = detectProjectTypeSchema.parse(body)
     const { context } = validated
 

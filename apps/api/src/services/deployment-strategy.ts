@@ -1,11 +1,9 @@
 import { DockerService } from './docker'
-import { TraefikService } from './traefik'
 import { prisma } from '../lib/prisma'
 import { ContainerStatus } from '@prisma/client'
 import { logInfo, logError, logWarn } from '../lib/logger'
 
 const dockerService = DockerService.getInstance()
-const traefikService = TraefikService.getInstance()
 
 /**
  * Deployment Strategy Service
@@ -94,6 +92,7 @@ export class DeploymentStrategyService {
             },
             take: 1,
           },
+          domains: true,
         },
       })
 

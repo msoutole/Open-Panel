@@ -69,7 +69,7 @@ export const createProjectHandler = async (c: Context<{ Variables: Variables }>)
 
   try {
     // Validação manual do body
-    const body = await c.req.json()
+    const body = await c.req.json() as unknown
     const data = createProjectSchema.parse(body)
 
     const project = await ProjectService.create({

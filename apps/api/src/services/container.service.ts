@@ -257,7 +257,7 @@ export class ContainerService {
    * 
    * @throws {HTTPException} 404 - Container não encontrado
    */
-  static async getContainerStats(containerId: string) {
+  static async getContainerStats(containerId: string): Promise<unknown> {
     const dbContainer = await prisma.container.findUnique({
       where: { id: containerId }
     })

@@ -1,8 +1,6 @@
 import { Context } from 'hono'
-import type { Variables } from '../../../types'
 import {
   DeploymentStrategyService,
-  BlueGreenDeploymentOptions,
 } from '../../../services/deployment-strategy'
 import { logInfo, logError } from '../../../lib/logger'
 import { z } from 'zod'
@@ -46,10 +44,10 @@ const blueGreenDeploySchema = z.object({
  */
 export const blueGreenDeployHandler = [
   zValidator('json', blueGreenDeploySchema),
-  async (c: Context<{ Variables: Variables }>) => {
+  async (c: Context) => {
     try {
-      const options = c.req.valid('json' as never) as z.infer<typeof blueGreenDeploySchema>
-      const user = c.get('user')
+      const options = (c.req as { valid: (type: string) => unknown }).valid('json') as z.infer<typeof blueGreenDeploySchema>
+      const user = c.get('user') as { userId?: string } | undefined
 
       if (!user?.userId) {
         return c.json({ error: 'Unauthorized' }, 401)
@@ -117,10 +115,10 @@ const rollbackSchema = z.object({
  */
 export const rollbackHandler = [
   zValidator('json', rollbackSchema),
-  async (c: Context<{ Variables: Variables }>) => {
+  async (c: Context) => {
     try {
-      const { projectId, oldContainerId } = c.req.valid('json' as never) as z.infer<typeof rollbackSchema>
-      const user = c.get('user')
+      const { projectId, oldContainerId } = (c.req as { valid: (type: string) => unknown }).valid('json') as z.infer<typeof rollbackSchema>
+      const user = c.get('user') as { userId?: string } | undefined
 
       if (!user?.userId) {
         return c.json({ error: 'Unauthorized' }, 401)
@@ -146,7 +144,7 @@ export const rollbackHandler = [
 
       // Log audit
       await logAudit(c, {
-        action: 'DEPLOYMENT_ROLLBACK' as any,
+        action: 'DEPLOYMENT_ROLLBACK',
         resourceType: 'deployment',
         resourceId: oldContainerId,
         metadata: {

@@ -54,7 +54,7 @@ describe('JWT Utilities', () => {
       const accessDecoded = verifyToken(accessToken)
       const refreshDecoded = verifyToken(refreshToken)
 
-      expect((refreshDecoded as any).exp).toBeGreaterThan((accessDecoded as any).exp!)
+      expect((refreshDecoded as any).exp).toBeGreaterThan((accessDecoded as any).exp)
     })
   })
 

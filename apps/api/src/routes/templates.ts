@@ -8,7 +8,6 @@ import {
 import { logInfo, logError } from '../lib/logger'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
-import { logAudit, AuditActions } from '../middlewares/audit'
 
 const templates = new Hono<{ Variables: Variables }>()
 
@@ -16,7 +15,7 @@ const templates = new Hono<{ Variables: Variables }>()
  * List all application templates
  * GET /templates
  */
-templates.get('/', async (c) => {
+templates.get('/', (c) => {
   try {
     const category = c.req.query('category') as TemplateCategory | undefined
     const language = c.req.query('language')
@@ -62,7 +61,7 @@ templates.get('/', async (c) => {
  * Get specific template by ID
  * GET /templates/:id
  */
-templates.get('/:id', async (c) => {
+templates.get('/:id', (c) => {
   try {
     const id = c.req.param('id')
 
@@ -95,19 +94,10 @@ const deploySchema = z.object({
   teamId: z.string().optional(),
 })
 
-templates.post('/:id/deploy', zValidator('json', deploySchema), async (c) => {
+templates.post('/:id/deploy', zValidator('json', deploySchema), (c) => {
   try {
     const templateId = c.req.param('id')
-    const {
-      projectName,
-      gitUrl,
-      gitBranch,
-      customEnv,
-      customPort,
-      cpuLimit,
-      memoryLimit,
-      teamId,
-    } = c.req.valid('json')
+    const { projectName } = c.req.valid('json')
     const user = c.get('user')
 
     if (!user?.userId) {
@@ -121,19 +111,6 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), async (c) => {
     })
 
     // TODO: Implementar ApplicationTemplatesService.createProjectFromTemplate
-    // const result = await ApplicationTemplatesService.createProjectFromTemplate({
-    //   templateId,
-    //   projectName,
-    //   userId: user.userId,
-    //   teamId,
-    //   gitUrl,
-    //   gitBranch,
-    //   customEnv,
-    //   customPort,
-    //   cpuLimit,
-    //   memoryLimit,
-    // })
-
     // Temporariamente retorna erro 501 (Not Implemented)
     return c.json({
       error: 'Not implemented',
@@ -197,7 +174,7 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), async (c) => {
  * Get templates by category
  * GET /templates/category/:category
  */
-templates.get('/category/:category', async (c) => {
+templates.get('/category/:category', (c) => {
   try {
     const category = c.req.param('category') as TemplateCategory
 
@@ -219,7 +196,7 @@ templates.get('/category/:category', async (c) => {
  * Get templates by language
  * GET /templates/language/:language
  */
-templates.get('/language/:language', async (c) => {
+templates.get('/language/:language', (c) => {
   try {
     const language = c.req.param('language')
 

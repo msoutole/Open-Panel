@@ -93,7 +93,7 @@ envVars.post('/', async (c: Context<{ Variables: Variables }>) => {
 
   try {
     // Validação manual do body
-    const body = await c.req.json()
+    const body: unknown = await c.req.json()
     const data = createEnvVarSchema.parse(body)
 
     // Verificar acesso ao projeto
@@ -165,7 +165,7 @@ envVars.put('/:envVarId', async (c: Context<{ Variables: Variables }>) => {
   const user = c.get('user')
 
   // Validação manual do body
-  const body = await c.req.json()
+  const body: unknown = await c.req.json()
   const data = createEnvVarSchema.parse(body)
 
   try {

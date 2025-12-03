@@ -4,7 +4,7 @@ import { MongoClient } from 'mongodb'
 import Redis from 'ioredis'
 import { prisma } from '../lib/prisma'
 import { logInfo, logError, logWarn } from '../lib/logger'
-import { DatabaseTemplatesService, DatabaseType } from './database-templates'
+import { DatabaseType } from './database-templates'
 
 /**
  * Database Client Service
@@ -248,6 +248,7 @@ export class DatabaseClientService {
       })
 
       // Execute command
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       const result = await (redis as any)[cmd.toLowerCase()](...args)
       const executionTime = Date.now() - startTime
 
@@ -355,7 +356,8 @@ export class DatabaseClientService {
       const envVars: Record<string, string> = {}
       if (container.envVars) {
         // Use container's specific env vars first
-        ;(container.envVars as any[]).forEach((env: any) => {
+        const vars = container.envVars as unknown as Array<{ key: string; value: string }>
+        vars.forEach((env) => {
           envVars[env.key] = env.value
         })
       }
@@ -453,7 +455,7 @@ export class DatabaseClientService {
   /**
    * Validate MongoDB query safety
    */
-  private static isSafeMongoQuery(query: any): boolean {
+  private static isSafeMongoQuery(query: { operation: string }): boolean {
     // Only allow find and aggregate operations (read-only)
     const allowedOperations = ['find', 'aggregate']
     return allowedOperations.includes(query.operation)

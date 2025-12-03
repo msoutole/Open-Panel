@@ -8,7 +8,7 @@ export interface ErrorResponse {
   error: string
   code: string
   message: string
-  details?: any
+  details?: Record<string, unknown>
   timestamp: string
   requestId?: string
 }
@@ -54,7 +54,7 @@ export class AppError extends Error {
     public message: string,
     public statusCode: number = 500,
     public code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message)
     this.name = 'AppError'
@@ -98,27 +98,29 @@ export function errorHandler(error: Error, c: Context) {
 
   // Log error with context
   if (statusCode >= 500) {
+    const user = c.get('user') as { id?: string } | undefined
     logError('Server error occurred', error, {
       url: c.req.url,
       method: c.req.method,
-      userId: c.get('user')?.id,
-      requestId: c.get('requestId'),
+      userId: user?.id,
+      requestId: c.get('requestId') as string | undefined,
       userAgent: c.req.header('user-agent'),
     })
   } else if (statusCode >= 400) {
+    const user = c.get('user') as { id?: string } | undefined
     logger.warn('Client error occurred', {
       message: error.message,
       code: isAppError ? error.code : ErrorCode.BAD_REQUEST,
       url: c.req.url,
       method: c.req.method,
-      userId: c.get('user')?.id,
-      requestId: c.get('requestId'),
+      userId: user?.id,
+      requestId: c.get('requestId') as string | undefined,
     })
   }
 
   // Return standardized error response
   const response = createErrorResponse(error, c)
-  return c.json(response, statusCode)
+  return c.json(response, statusCode as 400 | 401 | 403 | 404 | 500)
 }
 
 /**
@@ -149,7 +151,7 @@ export const throwNotFound = (resource: string) => {
   throw new AppError(`${resource} not found`, 404, ErrorCode.NOT_FOUND)
 }
 
-export const throwValidationError = (message: string, details?: any) => {
+export const throwValidationError = (message: string, details?: Record<string, unknown>) => {
   throw new AppError(message, 400, ErrorCode.VALIDATION_ERROR, details)
 }
 

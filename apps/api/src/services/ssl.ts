@@ -284,7 +284,7 @@ export class SSLService {
       }
 
       // Decrypt certificate
-      const decrypted = decryptSSLCertificate(domain.sslCertificate as string)
+      const decrypted = decryptSSLCertificate(domain.sslCertificate)
 
       return decrypted
     } catch (error) {

@@ -66,7 +66,7 @@ export const updateProjectHandler = async (c: Context<{ Variables: Variables }>)
 
   try {
     // Validação manual do body
-    const body = await c.req.json()
+    const body = await c.req.json() as unknown
     const data = updateProjectSchema.parse(body)
 
     const project = await ProjectService.update(projectId, user.userId, data)

@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws'
 import type { Server } from 'http'
+import { Duplex } from 'stream'
 import { dockerService } from '../services/docker'
 import { prisma } from '../lib/prisma'
 import { verifyToken } from '../lib/jwt'
@@ -13,13 +14,23 @@ interface TerminalWebSocketClient extends WebSocket {
   authenticated: boolean
   messageCount: number
   lastMessageTime: number
-  execStream?: any
+  execStream?: Duplex
 }
 
 interface TerminalSession {
   containerId: string
   client: TerminalWebSocketClient
-  execStream?: any
+  execStream?: Duplex
+}
+
+interface TerminalMessage {
+  type: string
+  token?: string
+  containerId?: string
+  shell?: string
+  data?: string
+  cols?: number
+  rows?: number
 }
 
 /**
@@ -102,30 +113,32 @@ export class TerminalWebSocketGateway {
       client.isAlive = true
     })
 
-    client.on('message', async (data: Buffer) => {
-      try {
-        const message = JSON.parse(data.toString())
+    client.on('message', (data: Buffer) => {
+      void (async () => {
+        try {
+          const message = JSON.parse(data.toString()) as TerminalMessage
 
-        // Rate limiting
-        const now = Date.now()
-        if (now - client.lastMessageTime < 100) {
-          // Max 10 messages per second
-          logWarn('Terminal client rate limit exceeded', { clientId: client.id })
-          return
+          // Rate limiting
+          const now = Date.now()
+          if (now - client.lastMessageTime < 100) {
+            // Max 10 messages per second
+            logWarn('Terminal client rate limit exceeded', { clientId: client.id })
+            return
+          }
+
+          client.messageCount++
+          client.lastMessageTime = now
+
+          // Handle message
+          await this.handleMessage(client, message)
+        } catch (error) {
+          logError('Terminal WebSocket message error', error)
+          this.sendToClient(client, {
+            type: 'error',
+            message: 'Invalid message format',
+          })
         }
-
-        client.messageCount++
-        client.lastMessageTime = now
-
-        // Handle message
-        await this.handleMessage(client, message)
-      } catch (error) {
-        logError('Terminal WebSocket message error', error)
-        this.sendToClient(client, {
-          type: 'error',
-          message: 'Invalid message format',
-        })
-      }
+      })()
     })
 
     client.on('close', () => {
@@ -143,12 +156,12 @@ export class TerminalWebSocketGateway {
   /**
    * Handle WebSocket messages
    */
-  private async handleMessage(client: TerminalWebSocketClient, message: any) {
+  private async handleMessage(client: TerminalWebSocketClient, message: TerminalMessage) {
     const { type } = message
 
     switch (type) {
       case 'auth':
-        await this.handleAuth(client, message)
+        this.handleAuth(client, message)
         break
 
       case 'open_terminal':
@@ -156,15 +169,15 @@ export class TerminalWebSocketGateway {
         break
 
       case 'input':
-        await this.handleInput(client, message)
+        this.handleInput(client, message)
         break
 
       case 'resize':
-        await this.handleResize(client, message)
+        this.handleResize(client, message)
         break
 
       case 'close_terminal':
-        await this.handleCloseTerminal(client, message)
+        this.handleCloseTerminal(client, message)
         break
 
       default:
@@ -179,7 +192,7 @@ export class TerminalWebSocketGateway {
   /**
    * Handle authentication
    */
-  private async handleAuth(client: TerminalWebSocketClient, message: any) {
+  private handleAuth(client: TerminalWebSocketClient, message: TerminalMessage) {
     try {
       const { token } = message
 
@@ -219,7 +232,7 @@ export class TerminalWebSocketGateway {
   /**
    * Handle open terminal session
    */
-  private async handleOpenTerminal(client: TerminalWebSocketClient, message: any) {
+  private async handleOpenTerminal(client: TerminalWebSocketClient, message: TerminalMessage) {
     if (!client.authenticated) {
       this.sendToClient(client, {
         type: 'error',
@@ -357,7 +370,7 @@ export class TerminalWebSocketGateway {
   /**
    * Handle terminal input
    */
-  private async handleInput(client: TerminalWebSocketClient, message: any) {
+  private handleInput(client: TerminalWebSocketClient, message: TerminalMessage) {
     if (!client.authenticated || !client.execStream) {
       return
     }
@@ -377,7 +390,7 @@ export class TerminalWebSocketGateway {
   /**
    * Handle terminal resize
    */
-  private async handleResize(client: TerminalWebSocketClient, message: any) {
+  private handleResize(client: TerminalWebSocketClient, message: TerminalMessage) {
     if (!client.authenticated || !client.execStream) {
       return
     }
@@ -407,7 +420,7 @@ export class TerminalWebSocketGateway {
   /**
    * Handle close terminal session
    */
-  private async handleCloseTerminal(client: TerminalWebSocketClient, message: any) {
+  private handleCloseTerminal(client: TerminalWebSocketClient, _message: TerminalMessage) {
     this.cleanupSession(client.id)
 
     this.sendToClient(client, {

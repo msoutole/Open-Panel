@@ -1,15 +1,19 @@
 import { Hono } from 'hono'
 import type { Variables } from '../types'
 import { GitService } from '../services/git'
-import { BuildService } from '../services/build'
 import { webhookRateLimiter } from '../middlewares/rate-limit'
 import { logInfo, logWarn, logError } from '../lib/logger'
 import crypto from 'crypto'
 import { env } from '../lib/env'
 
+interface DeploymentInfo {
+  id: string
+  projectId: string
+  status: string
+}
+
 const webhooks = new Hono<{ Variables: Variables }>()
 const gitService = GitService.getInstance()
-const buildService = BuildService.getInstance()
 
 /**
  * Verify GitHub webhook signature
@@ -63,10 +67,10 @@ webhooks.post('/github', webhookRateLimiter, async (c) => {
       return c.json({ message: 'Event ignored' }, 200)
     }
 
-    const payload = JSON.parse(rawBody)
+    const payload: unknown = JSON.parse(rawBody)
 
     // Parse webhook
-    const webhookData = gitService.parseGitHubWebhook(payload)
+    const webhookData = gitService.parseGitHubWebhook(payload as Parameters<typeof gitService.parseGitHubWebhook>[0])
     if (!webhookData) {
       logWarn('Failed to parse GitHub webhook payload')
       return c.json({ error: 'Invalid payload' }, 400)
@@ -84,7 +88,7 @@ webhooks.post('/github', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments?.map((d: any) => ({
+      deployments: (result.deployments as DeploymentInfo[] | undefined)?.map((d) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
@@ -119,10 +123,10 @@ webhooks.post('/gitlab', webhookRateLimiter, async (c) => {
       return c.json({ message: 'Event ignored' }, 200)
     }
 
-    const payload = JSON.parse(rawBody)
+    const payload: unknown = JSON.parse(rawBody)
 
     // Parse webhook
-    const webhookData = gitService.parseGitLabWebhook(payload)
+    const webhookData = gitService.parseGitLabWebhook(payload as Parameters<typeof gitService.parseGitLabWebhook>[0])
     if (!webhookData) {
       logWarn('Failed to parse GitLab webhook payload')
       return c.json({ error: 'Invalid payload' }, 400)
@@ -140,7 +144,7 @@ webhooks.post('/gitlab', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments?.map((d: any) => ({
+      deployments: (result.deployments as DeploymentInfo[] | undefined)?.map((d) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
@@ -168,10 +172,10 @@ webhooks.post('/bitbucket', webhookRateLimiter, async (c) => {
       return c.json({ message: 'Event ignored' }, 200)
     }
 
-    const payload = JSON.parse(rawBody)
+    const payload: unknown = JSON.parse(rawBody)
 
     // Parse webhook
-    const webhookData = gitService.parseBitbucketWebhook(payload)
+    const webhookData = gitService.parseBitbucketWebhook(payload as Parameters<typeof gitService.parseBitbucketWebhook>[0])
     if (!webhookData) {
       logWarn('Failed to parse Bitbucket webhook payload')
       return c.json({ error: 'Invalid payload' }, 400)
@@ -189,7 +193,7 @@ webhooks.post('/bitbucket', webhookRateLimiter, async (c) => {
     return c.json({
       message: 'Webhook processed',
       deploymentsTriggered: result.triggered,
-      deployments: result.deployments?.map((d: any) => ({
+      deployments: (result.deployments as DeploymentInfo[] | undefined)?.map((d) => ({
         id: d.id,
         projectId: d.projectId,
         status: d.status,
@@ -208,9 +212,9 @@ webhooks.post('/bitbucket', webhookRateLimiter, async (c) => {
  */
 webhooks.post('/generic', webhookRateLimiter, async (c) => {
   try {
-    const payload = await c.req.json()
+    const payload: unknown = await c.req.json()
 
-    logInfo('Generic webhook received', { payload })
+    logInfo('Generic webhook received', { payload: payload as Record<string, unknown> })
 
     return c.json({ message: 'Webhook received', received: new Date().toISOString() })
   } catch (error: unknown) {
@@ -224,7 +228,7 @@ webhooks.post('/generic', webhookRateLimiter, async (c) => {
  * Webhook configuration helper
  * GET /webhooks/config/:provider
  */
-webhooks.get('/config/:provider', async (c) => {
+webhooks.get('/config/:provider', (c) => {
   const provider = c.req.param('provider')
   const baseUrl = env.CORS_ORIGIN || 'http://localhost:3001'
 

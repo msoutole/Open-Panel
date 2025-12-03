@@ -8,7 +8,6 @@ import { Context } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { HTTPException } from 'hono/http-exception'
-import type { Variables } from '../../../types'
 import { ContainerService } from '../../../services/container.service'
 import { logsQuerySchema } from '../validators'
 
@@ -41,15 +40,15 @@ import { logsQuerySchema } from '../validators'
  */
 export const getContainerLogsHandler = [
   zValidator('query', logsQuerySchema),
-  async (c: Context<{ Variables: Variables }>) => {
+  async (c: Context) => {
     try {
-      const user = c.get('user')
+      const user = c.get('user') as { userId?: string } | undefined
       if (!user) {
         throw new HTTPException(401, { message: 'Unauthorized' })
       }
 
       const { id } = c.req.param()
-      const options = c.req.valid('query' as never) as z.infer<typeof logsQuerySchema>
+      const options = (c.req as { valid: (type: string) => unknown }).valid('query') as z.infer<typeof logsQuerySchema>
 
       const logs = await ContainerService.getContainerLogs(id, {
         stdout: options.stdout,

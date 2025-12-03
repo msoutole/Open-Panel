@@ -18,6 +18,7 @@ import { blueGreenDeployHandler, rollbackHandler } from './handlers/blue-green'
 const builds = new Hono<{ Variables: Variables }>()
 
 // POST /api/builds - Criar novo build/deployment
+// @ts-expect-error - zValidator type mismatch with Hono
 builds.post('/', ...createBuildHandler)
 
 // GET /api/builds/project/:projectId - Listar deployments de um projeto
@@ -31,9 +32,11 @@ builds.get('/:id', readBuildHandler)
 builds.post('/detect', detectProjectTypeHandler)
 
 // POST /api/builds/blue-green - Blue-green deployment (zero-downtime)
+// @ts-expect-error - zValidator type mismatch with Hono
 builds.post('/blue-green', ...blueGreenDeployHandler)
 
 // POST /api/builds/rollback - Rollback to previous container
+// @ts-expect-error - zValidator type mismatch with Hono
 builds.post('/rollback', ...rollbackHandler)
 
 // TODO: Adicionar handlers para webhooks quando necessário

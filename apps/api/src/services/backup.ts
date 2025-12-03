@@ -3,7 +3,7 @@ import { promisify } from 'util'
 import fs from 'fs/promises'
 import path from 'path'
 import { prisma } from '../lib/prisma'
-import { logInfo, logError, logDebug } from '../lib/logger'
+import { logInfo, logError } from '../lib/logger'
 import { env } from '../lib/env'
 
 const execAsync = promisify(exec)
@@ -15,7 +15,7 @@ export interface Backup {
   path: string
   size: number // bytes
   createdAt: Date
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export class BackupService {
@@ -335,7 +335,7 @@ export class BackupService {
       })
 
       const containerBackups = await Promise.all(
-        containers.map((container: typeof containers[0]) => this.backupContainer(container.id))
+        containers.map((container) => this.backupContainer(container.id))
       )
 
       const totalSize = database.size + config.size + containerBackups.reduce((sum, b) => sum + b.size, 0)

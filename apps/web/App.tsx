@@ -178,7 +178,7 @@ const AppContent: React.FC = () => {
           {(currentView === 'dashboard' || currentView === 'monitor') && (
             <DashboardView
               onProjectSelect={handleProjectSelect}
-              view={currentView as 'dashboard' | 'monitor'}
+              view={currentView}
             />
           )}
 
@@ -190,7 +190,7 @@ const AppContent: React.FC = () => {
           )}
 
           {(currentView === 'settings' || currentView === 'users' || currentView === 'backups') && (
-            <SettingsView view={currentView as 'settings' | 'users' | 'backups'} />
+            <SettingsView view={currentView} />
           )}
 
           {currentView === 'security' && (
