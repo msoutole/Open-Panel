@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useWebSocket, WebSocketMessage } from './useWebSocket';
 import { SystemMetrics, ContainerMetrics } from '../services/api';
 
@@ -51,7 +51,7 @@ export const useMetrics = (options: UseMetricsOptions = {}): UseMetricsReturn =>
         return newHistory.slice(0, maxHistory);
       });
     } else if (message.type === 'error') {
-      setError(message.message || 'Unknown error');
+      setError((message.message as string | undefined) || 'Unknown error');
     }
   }, [maxHistory]);
 

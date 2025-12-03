@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { X, Loader2, GitBranch, Cpu, MemoryStick, Settings, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Loader2, GitBranch, Cpu, Settings, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { ApplicationTemplate, deployTemplate, TemplateDeployOptions } from '../services/templates';
 
 interface TemplateDeployModalProps {
   template: ApplicationTemplate;
   onClose: () => void;
-  onSuccess: (result: any) => void;
+  onSuccess: (result: unknown) => void;
 }
 
 type Step = 'config' | 'git' | 'resources' | 'review';
@@ -25,7 +25,7 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
   const [gitBranch, setGitBranch] = useState('main');
   const [cpuLimit, setCpuLimit] = useState(template.minCpu || '1000m');
   const [memoryLimit, setMemoryLimit] = useState(template.minMemory || '512Mi');
-  const [customEnv, setCustomEnv] = useState<Record<string, string>>({});
+  const [customEnv] = useState<Record<string, string>>({});
 
   const steps: { key: Step; label: string; icon: React.ReactNode }[] = [
     { key: 'config', label: 'Configuração', icon: <Settings size={16} /> },

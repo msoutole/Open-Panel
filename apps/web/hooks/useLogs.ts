@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useWebSocket, WebSocketMessage } from './useWebSocket';
 
 export interface LogEntry {
@@ -23,16 +23,6 @@ export interface UseLogsReturn {
   error: string | null;
 }
 
-const getApiBaseUrl = (): string => {
-  const envUrl = import.meta.env.VITE_API_URL;
-  const isDev = import.meta.env.DEV;
-  
-  if (isDev) {
-    return '';
-  }
-  
-  return envUrl || '';
-};
 
 const getWebSocketUrl = (path: string): string => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -54,9 +44,9 @@ export const useLogs = (options: UseLogsOptions = {}): UseLogsReturn => {
     if (message.type === 'log' || message.type === 'docker_event') {
       const logEntry: LogEntry = {
         id: `log_${Date.now()}_${logIdCounterRef.current++}`,
-        timestamp: message.timestamp || new Date().toISOString(),
-        level: message.level || 'INFO',
-        message: message.data || JSON.stringify(message.event || message),
+        timestamp: (message.timestamp as string | undefined) || new Date().toISOString(),
+        level: (message.level as LogEntry['level'] | undefined) || 'INFO',
+        message: (message.data as string | undefined) || JSON.stringify((message.event as unknown) || message),
       };
       
       setLogs((prev) => {
@@ -69,7 +59,7 @@ export const useLogs = (options: UseLogsOptions = {}): UseLogsReturn => {
         return newLogs.slice(0, maxLogs);
       });
     } else if (message.type === 'error') {
-      setError(message.message || 'Unknown error');
+      setError((message.message as string | undefined) || 'Unknown error');
     }
   }, [maxLogs]);
 

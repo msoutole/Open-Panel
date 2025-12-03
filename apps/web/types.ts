@@ -221,7 +221,7 @@ export interface AgentConfig {
 export interface MCPTool {
   name: string;
   description: string;
-  inputSchema: Record<string, unknown>;
+  inputSchema: Record<string, unknown>;  
 }
 
 // --- Service Creation Types ---

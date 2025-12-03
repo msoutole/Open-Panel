@@ -6,6 +6,7 @@ import { prisma } from '../lib/prisma'
 import { logError } from '../lib/logger'
 import { HTTPException } from 'hono/http-exception'
 import type { Prisma } from '@prisma/client'
+import type { AuditAction } from '@prisma/client'
 
 const audit = new Hono<{ Variables: Variables }>()
 
@@ -38,7 +39,6 @@ audit.get('/', zValidator('query', auditQuerySchema), async (c) => {
       action,
       resourceType,
       resourceId,
-      status,
       startDate,
       endDate,
       page,
@@ -53,7 +53,7 @@ audit.get('/', zValidator('query', auditQuerySchema), async (c) => {
     }
 
     if (action) {
-      where.action = action as Prisma.AuditAction
+      where.action = action as AuditAction
     }
 
     if (resourceType) {
