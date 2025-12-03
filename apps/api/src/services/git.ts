@@ -383,7 +383,7 @@ export class GitService {
           fullName: payload.repository.full_name || '',
         },
         ref: payload.ref,
-        commits: (payload.commits || []).map((commit: any) => ({
+        commits: (payload.commits || []).map((commit: { id?: string; message?: string; author?: { name?: string; email?: string }; timestamp?: string }) => ({
           id: commit.id,
           message: commit.message,
           author: {
@@ -455,7 +455,7 @@ export class GitService {
           fullName: payload.project.path_with_namespace || '',
         },
         ref: payload.ref,
-        commits: (payload.commits || []).map((commit: any) => ({
+        commits: (payload.commits || []).map((commit: { id?: string; message?: string; author?: { name?: string; email?: string }; timestamp?: string }) => ({
           id: commit.id,
           message: commit.message,
           author: {

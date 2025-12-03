@@ -274,8 +274,8 @@ export class DockerService {
     await this.pullImage(fullImage)
 
     // Prepare port bindings
-    const portBindings: any = {}
-    const exposedPorts: any = {}
+    const portBindings: Record<string, Array<{ HostPort: string }>> = {}
+    const exposedPorts: Record<string, Record<string, never>> = {}
     if (ports) {
       ports.forEach((port) => {
         const containerPort = `${port.container}/${port.protocol || 'tcp'}`
@@ -711,9 +711,9 @@ export class DockerService {
       stderr: options?.stderr ?? true,
       follow: options?.follow ?? true,
       timestamps: options?.timestamps ?? true,
-    } as any) as any
+    } as Parameters<Docker.Container['logs']>[0])
 
-    stream.on('data', (chunk: any) => {
+    stream.on('data', (chunk: Buffer) => {
       callback(chunk.toString('utf-8'))
     })
 

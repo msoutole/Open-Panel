@@ -2,7 +2,15 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 export interface WebSocketMessage {
   type: string;
-  [key: string]: any;
+  data?: unknown;
+  timestamp?: string;
+  level?: 'INFO' | 'DEBUG' | 'WARN' | 'ERROR';
+  message?: string;
+  event?: unknown;
+  token?: string;
+  containerId?: string;
+  interval?: number;
+  [key: string]: unknown;
 }
 
 export interface UseWebSocketOptions {

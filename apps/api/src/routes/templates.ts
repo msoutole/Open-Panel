@@ -119,7 +119,7 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), (c) => {
 
     // O código abaixo será habilitado quando o service for implementado
     /*
-    const result: any = null
+    const result: unknown = null
 
     // Log audit
     await logAudit(c, {

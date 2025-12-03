@@ -92,7 +92,7 @@ query.post('/:containerId/query', zValidator('json', executeQuerySchema), async 
 
     // Log audit
     await logAudit(c, {
-      action: AuditActions.DATABASE_QUERY as any,
+      action: AuditActions.DATABASE_QUERY,
       resourceType: 'database',
       resourceId: containerId,
       metadata: {

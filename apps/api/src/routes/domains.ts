@@ -303,9 +303,10 @@ domains.post('/:domainId/activate', async (c) => {
       message: 'Domain activated successfully',
       domain
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof HTTPException) throw error
-    throw new HTTPException(500, { message: error.message || 'Failed to activate domain' })
+    const errorMessage = error instanceof Error ? error.message : 'Failed to activate domain'
+    throw new HTTPException(500, { message: errorMessage })
   }
 })
 
@@ -324,9 +325,10 @@ domains.post('/sync', async (c) => {
       message: `Synced ${synced} domain(s)`,
       synced
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof HTTPException) throw error
-    throw new HTTPException(500, { message: error.message || 'Failed to sync domains' })
+    const errorMessage = error instanceof Error ? error.message : 'Failed to sync domains'
+    throw new HTTPException(500, { message: errorMessage })
   }
 })
 
@@ -342,8 +344,9 @@ domains.get('/traefik/status', async (c) => {
       routers: routers.length || 0,
       services: services.length || 0,
     })
-  } catch (error: any) {
-    throw new HTTPException(500, { message: error.message || 'Failed to get Traefik status' })
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get Traefik status'
+    throw new HTTPException(500, { message: errorMessage })
   }
 })
 

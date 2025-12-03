@@ -14,7 +14,7 @@ import { DatabaseType } from './database-templates'
 
 export interface QueryResult {
   success: boolean
-  data?: any
+  data?: unknown
   error?: string
   executionTime?: number
   rowsAffected?: number
@@ -100,7 +100,8 @@ export class DatabaseClientService {
     query: string
   ): Promise<QueryResult> {
     const startTime = Date.now()
-    let mysqlConnection: any = null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mysqlConnection: any = null // mysql2 types are complex, using any for connection
 
     try {
       // Validate query
@@ -175,7 +176,7 @@ export class DatabaseClientService {
       const db = client.db(connection.database)
 
       // Execute query based on operation type
-      let result: any
+      let result: unknown
       if (queryObj.operation === 'find') {
         const collection = db.collection(queryObj.collection)
         result = await collection.find(queryObj.filter || {}).limit(queryObj.limit || 100).toArray()

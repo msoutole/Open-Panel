@@ -39,8 +39,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
 
             onCreated(newProject);
             onClose();
-        } catch (err: any) {
-            setError(err.message || LL.projects.createError());
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : LL.projects.createError();
+            setError(message);
         } finally {
             setLoading(false);
         }

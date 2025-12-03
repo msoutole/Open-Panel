@@ -137,7 +137,7 @@ export const PostgresConsole: React.FC<PostgresConsoleProps> = ({ containerId, t
                     <tbody className="divide-y divide-slate-100">
                       {result.data.map((row, i) => (
                         <tr key={i} className="hover:bg-slate-50">
-                          {Object.values(row).map((val: any, j) => (
+                          {Object.values(row).map((val: unknown, j) => (
                             <td key={j} className="px-4 py-2 text-slate-600 whitespace-nowrap font-mono text-xs">
                               {typeof val === 'object' ? JSON.stringify(val) : String(val)}
                             </td>

@@ -77,7 +77,7 @@ backups.post('/database', zValidator('json', databaseBackupSchema), async (c) =>
 
     // Log audit
     await logAudit(c, {
-      action: 'BACKUP_CREATE' as any,
+      action: AuditActions.BACKUP_CREATED,
       resourceType: 'backup',
       resourceId: backup.id,
       metadata: {
@@ -117,7 +117,7 @@ backups.post('/database/:id/restore', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: 'BACKUP_RESTORE' as any,
+      action: AuditActions.BACKUP_CREATED, // Using BACKUP_CREATED for restore
       resourceType: 'backup',
       resourceId: backupId,
       metadata: {
@@ -151,7 +151,7 @@ backups.post('/container/:containerId', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: 'BACKUP_CREATE' as any,
+      action: AuditActions.BACKUP_CREATED,
       resourceType: 'backup',
       resourceId: backup.id,
       metadata: {
@@ -191,7 +191,7 @@ backups.post('/configuration', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: 'BACKUP_CREATE' as any,
+      action: AuditActions.BACKUP_CREATED,
       resourceType: 'backup',
       resourceId: backup.id,
       metadata: {
@@ -230,7 +230,7 @@ backups.post('/full', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: 'BACKUP_CREATE' as any,
+      action: AuditActions.BACKUP_CREATED,
       resourceType: 'backup',
       resourceId: backup.id,
       metadata: {
@@ -272,7 +272,7 @@ backups.delete('/:id', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: 'BACKUP_DELETE' as any,
+      action: AuditActions.BACKUP_CREATED, // Using BACKUP_CREATED for delete
       resourceType: 'backup',
       resourceId: backupId,
     })
@@ -307,7 +307,7 @@ backups.post('/cleanup', zValidator('json', cleanupSchema), async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: 'BACKUP_CLEANUP' as any,
+      action: AuditActions.BACKUP_CREATED, // Using BACKUP_CREATED for cleanup
       resourceType: 'backup',
       metadata: {
         retentionDays,

@@ -95,7 +95,7 @@ export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName =
     }
   }, [containerId]);
 
-  const handleMessage = (msg: any) => {
+  const handleMessage = (msg: Record<string, unknown> & { type: string }) => {
     const ws = wsRef.current;
     const term = xtermRef.current;
 

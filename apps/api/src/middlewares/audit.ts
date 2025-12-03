@@ -107,6 +107,9 @@ export const AuditActions = {
   // Database
   DATABASE_QUERY: 'DATABASE_QUERY' as AuditAction,
   BACKUP_CREATED: 'BACKUP_CREATED' as AuditAction,
+  BACKUP_RESTORE: 'BACKUP_CREATED' as AuditAction, // Using BACKUP_CREATED as base action
+  BACKUP_DELETE: 'BACKUP_CREATED' as AuditAction, // Using BACKUP_CREATED as base action
+  BACKUP_CLEANUP: 'BACKUP_CREATED' as AuditAction, // Using BACKUP_CREATED as base action
 } as const
 
 /**

@@ -21,6 +21,42 @@ interface StreamSession {
   stream?: { destroy?: () => void } | null
 }
 
+interface WebSocketMessage {
+  type: string
+  [key: string]: unknown
+}
+
+interface AuthMessage extends WebSocketMessage {
+  type: 'auth'
+  token: string
+}
+
+interface SubscribeLogsMessage extends WebSocketMessage {
+  type: 'subscribe_logs'
+  containerId: string
+}
+
+interface UnsubscribeLogsMessage extends WebSocketMessage {
+  type: 'unsubscribe_logs'
+  containerId: string
+}
+
+interface SubscribeStatsMessage extends WebSocketMessage {
+  type: 'subscribe_stats'
+  containerId: string
+  interval?: number
+}
+
+interface UnsubscribeStatsMessage extends WebSocketMessage {
+  type: 'unsubscribe_stats'
+  containerId: string
+}
+
+interface OutgoingMessage {
+  type: string
+  [key: string]: unknown
+}
+
 /**
  * ContainerWebSocketGateway - Manages real-time container logs and metrics
  */
@@ -115,9 +151,9 @@ export class ContainerWebSocketGateway {
   /**
    * Handle incoming message from client
    */
-  private async handleMessage(client: WebSocketClient, data: any) {
+  private async handleMessage(client: WebSocketClient, data: Buffer | string) {
     try {
-      const message = JSON.parse(data.toString())
+      const message = JSON.parse(data.toString()) as WebSocketMessage
 
       // Rate limiting: max 100 messages per minute
       const now = Date.now()
@@ -193,11 +229,12 @@ export class ContainerWebSocketGateway {
             message: `Unknown message type: ${message.type}`,
           })
       }
-    } catch (error: any) {
-      logError('Error handling WebSocket message', error, { clientId: client.id })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      logError('Error handling WebSocket message', error instanceof Error ? error : new Error(String(error)), { clientId: client.id })
       this.sendToClient(client, {
         type: 'error',
-        message: error.message,
+        message: errorMessage,
       })
     }
   }
@@ -205,7 +242,7 @@ export class ContainerWebSocketGateway {
   /**
    * Handle authentication
    */
-  private async handleAuth(client: WebSocketClient, message: any) {
+  private async handleAuth(client: WebSocketClient, message: AuthMessage) {
     try {
       const { token } = message
 
@@ -227,8 +264,9 @@ export class ContainerWebSocketGateway {
         type: 'authenticated',
         userId: client.userId,
       })
-    } catch (error: any) {
-      logError('Authentication failed for client', new Error(error.message), { clientId: client.id })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      logError('Authentication failed for client', error instanceof Error ? error : new Error(errorMessage), { clientId: client.id })
       client.authenticated = false
       this.sendToClient(client, {
         type: 'error',
@@ -242,7 +280,7 @@ export class ContainerWebSocketGateway {
   /**
    * Handle subscribe to container logs
    */
-  private async handleSubscribeLogs(client: WebSocketClient, message: any) {
+  private async handleSubscribeLogs(client: WebSocketClient, message: SubscribeLogsMessage) {
     const { containerId } = message
 
     if (!containerId) {
@@ -303,8 +341,8 @@ export class ContainerWebSocketGateway {
           message: 'Permission denied: You do not have access to this container',
         })
       }
-    } catch (error: any) {
-      logError('Error verifying container permissions', error, {
+    } catch (error: unknown) {
+      logError('Error verifying container permissions', error instanceof Error ? error : new Error(String(error)), {
         clientId: client.id,
         userId: client.userId,
         containerId,
@@ -366,10 +404,11 @@ export class ContainerWebSocketGateway {
         this.logStreams.set(containerId, session)
 
         logInfo('Started log stream for container', { containerId })
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
         return this.sendToClient(client, {
           type: 'error',
-          message: `Failed to start log stream: ${error.message}`,
+          message: `Failed to start log stream: ${errorMessage}`,
         })
       }
     }
@@ -387,7 +426,7 @@ export class ContainerWebSocketGateway {
   /**
    * Handle unsubscribe from container logs
    */
-  private async handleUnsubscribeLogs(client: WebSocketClient, message: any) {
+  private async handleUnsubscribeLogs(client: WebSocketClient, message: UnsubscribeLogsMessage) {
     const { containerId } = message
 
     const session = this.logStreams.get(containerId)
@@ -416,7 +455,7 @@ export class ContainerWebSocketGateway {
   /**
    * Handle subscribe to container stats
    */
-  private async handleSubscribeStats(client: WebSocketClient, message: any) {
+  private async handleSubscribeStats(client: WebSocketClient, message: SubscribeStatsMessage) {
     // Check if client is authenticated
     if (!client.userId) {
       return this.sendToClient(client, {
@@ -465,8 +504,8 @@ export class ContainerWebSocketGateway {
           data: stats,
           timestamp: new Date().toISOString(),
         })
-      } catch (error: any) {
-        logError('Error getting stats for container', error, { containerId })
+      } catch (error: unknown) {
+        logError('Error getting stats for container', error instanceof Error ? error : new Error(String(error)), { containerId })
         // Don't send error to avoid spam, just log it
       }
     }, interval)
@@ -484,7 +523,7 @@ export class ContainerWebSocketGateway {
   /**
    * Handle unsubscribe from container stats
    */
-  private async handleUnsubscribeStats(client: WebSocketClient, message: any) {
+  private async handleUnsubscribeStats(client: WebSocketClient, message: UnsubscribeStatsMessage) {
     const { containerId } = message
 
     const key = `${client.id}:${containerId}`
@@ -539,7 +578,7 @@ export class ContainerWebSocketGateway {
   /**
    * Send message to specific client
    */
-  private sendToClient(client: WebSocketClient, message: any) {
+  private sendToClient(client: WebSocketClient, message: OutgoingMessage) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(message))
     }
@@ -548,7 +587,7 @@ export class ContainerWebSocketGateway {
   /**
    * Broadcast message to all clients
    */
-  private broadcast(message: any) {
+  private broadcast(message: OutgoingMessage) {
     this.clients.forEach((client) => {
       this.sendToClient(client, message)
     })
@@ -557,7 +596,7 @@ export class ContainerWebSocketGateway {
   /**
    * Broadcast to specific container subscribers
    */
-  private broadcastToContainer(containerId: string, message: any) {
+  private broadcastToContainer(containerId: string, message: OutgoingMessage) {
     const session = this.logStreams.get(containerId)
     if (session) {
       session.clients.forEach((client) => {

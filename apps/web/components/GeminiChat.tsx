@@ -21,7 +21,7 @@ interface Message {
 interface PendingAction {
     msgId: string;
     toolName: string;
-    toolArgs: any;
+    toolArgs: Record<string, unknown>;
 }
 
 const MODELS_BY_PROVIDER: Record<LLMProvider, string[]> = {
@@ -251,7 +251,12 @@ After a tool runs, interpret the JSON output into a human-readable summary.`;
 // ----------------------------------------------------------------------
 
 // Google Adapter
-const callGoogle = async (config: AgentConfig, history: Message[], userMsg: string, imagePart?: any) => {
+interface ImagePart {
+  mimeType: string;
+  data: string;
+}
+
+const callGoogle = async (config: AgentConfig, history: Message[], userMsg: string, imagePart?: ImagePart) => {
     const apiKey = config.apiKey || '';
     if (!apiKey) throw new Error("API Key is missing for Gemini. Please enter your API key in the settings.");
 
@@ -261,7 +266,7 @@ const callGoogle = async (config: AgentConfig, history: Message[], userMsg: stri
         functionDeclarations: MCP_TOOLS_DEFINITIONS.map(tool => ({
             name: tool.name,
             description: tool.description,
-            parameters: tool.inputSchema as any
+            parameters: tool.inputSchema as Record<string, unknown>
         }))
     }];
 
@@ -277,7 +282,7 @@ const callGoogle = async (config: AgentConfig, history: Message[], userMsg: stri
         }))
     });
 
-    const parts: any[] = [{ text: userMsg }];
+    const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [{ text: userMsg }];
     if (imagePart) {
         parts.unshift({ inlineData: { mimeType: imagePart.mimeType, data: imagePart.data } });
     }
@@ -407,7 +412,7 @@ export const GeminiChat: React.FC = () => {
         setTimeout(() => setReaction(false), 800);
     };
 
-    const executeTool = async (msgId: string, name: string, args: any, currentText: string) => {
+    const executeTool = async (msgId: string, name: string, args: Record<string, unknown>, currentText: string) => {
         setCurrentTool(name);
 
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: currentText + `\n\n⚡ Nexus is accessing tool: **${name}**...` } : m));
@@ -453,7 +458,7 @@ export const GeminiChat: React.FC = () => {
         }
     };
 
-    const initiateToolExecution = async (msgId: string, name: string, args: any, currentText: string) => {
+    const initiateToolExecution = async (msgId: string, name: string, args: Record<string, unknown>, currentText: string) => {
         if (SENSITIVE_TOOLS.includes(name)) {
             setPendingAction({
                 msgId,
@@ -564,8 +569,9 @@ export const GeminiChat: React.FC = () => {
                     setIsLoading(false);
                 }, 1500);
             }
-        } catch (error: any) {
-            setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: `Error: ${error.message}` } : m));
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, text: `Error: ${errorMessage}` } : m));
             setIsLoading(false);
         }
     };

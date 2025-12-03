@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Project, Service, EnvVar, Domain, BlueGreenStatus } from '../types';
+import { Project, Service, EnvVar, Domain, BlueGreenStatus, RedirectRule, Backup } from '../types';
 import {
   ArrowLeft,
   Box,
@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { WebTerminal } from './WebTerminal';
 import { DatabaseConsole } from './DatabaseConsole';
-import { useLogs } from '../hooks/useLogs';
+import { useLogs, type LogEntry } from '../hooks/useLogs';
 import { useMetrics } from '../hooks/useMetrics';
 import { useToast } from '../hooks/useToast';
 import { getErrorMessage } from '../src/utils/error';
@@ -582,7 +582,7 @@ const ChevronDown = ({ size, className }: { size: number; className?: string }) 
 
 const OverviewTab: React.FC<{
   service: Service;
-  serviceLogs: any[];
+  serviceLogs: LogEntry[];
   onOpenConsole: () => void;
 }> = ({ service, serviceLogs, onOpenConsole }) => {
   const LL = useTranslations();
@@ -798,7 +798,7 @@ const NetworkingTab: React.FC<{ service: Service; projectId: string; isDatabase:
 }) => {
   const [localDomains, setLocalDomains] = useState<Domain[]>(service.domains || []);
   const [isAddingDomain, setIsAddingDomain] = useState(false);
-  const [redirects, setRedirects] = useState<any[]>(service.redirects || []);
+  const [redirects, setRedirects] = useState<RedirectRule[]>(service.redirects || []);
   const [exposedPort, setExposedPort] = useState(service.exposedPort || 0);
   const [isSavingPort, setIsSavingPort] = useState(false);
 
@@ -809,9 +809,10 @@ const NetworkingTab: React.FC<{ service: Service; projectId: string; isDatabase:
         exposedPort,
       });
       alert('Porta exposta atualizada com sucesso');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update exposed port:', error);
-      alert('Falha ao atualizar porta exposta: ' + error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert('Falha ao atualizar porta exposta: ' + message);
     } finally {
       setIsSavingPort(false);
     }
@@ -946,7 +947,7 @@ const NetworkingTab: React.FC<{ service: Service; projectId: string; isDatabase:
             </div>
 
             <div className="space-y-2">
-              {redirects.map((r: any) => (
+              {redirects.map((r) => (
                 <div
                   key={r.id}
                   className="flex items-center justify-between bg-card p-3 rounded-lg border border-border"
@@ -1043,9 +1044,10 @@ const AdvancedTab: React.FC<{ service: Service; projectId: string }> = ({ servic
         command,
       });
       alert(LL.serviceDetail.changesSaved());
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save:', error);
-      alert(LL.serviceDetail.failedToSave() + ': ' + error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(LL.serviceDetail.failedToSave() + ': ' + message);
     } finally {
       setIsSaving(false);
     }
@@ -1058,9 +1060,10 @@ const AdvancedTab: React.FC<{ service: Service; projectId: string }> = ({ servic
     try {
       await deleteService(projectId, service.id);
       window.location.reload();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete service:', error);
-      alert(LL.serviceDetail.failedToDelete() + ': ' + error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(LL.serviceDetail.failedToDelete() + ': ' + message);
     }
   };
 
@@ -1146,7 +1149,7 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
   const LL = useTranslations();
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [backupNotification, setBackupNotification] = useState<ErrorNotification | null>(null);
-  const [backups, setBackups] = useState<any[]>(service.backups || []);
+  const [backups, setBackups] = useState<Backup[]>(service.backups || []);
   const [isLoading, setIsLoading] = useState(false);
 
   React.useEffect(() => {
@@ -1178,7 +1181,8 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
         title: 'Backup Created',
         message: `Backup ${backup.filename || backup.name} created successfully.`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       setBackupNotification({
         type: 'error',
         title: 'Backup Failed',
@@ -1202,7 +1206,8 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
         title: LL.serviceDetail.backupRestored(),
         message: 'Banco de dados restaurado com sucesso do backup.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       setBackupNotification({
         type: 'error',
         title: LL.serviceDetail.restoreFailed(),
@@ -1226,7 +1231,8 @@ const BackupsTab: React.FC<{ service: Service }> = ({ service }) => {
         title: LL.serviceDetail.backupDeleted(),
         message: 'Backup excluído com sucesso.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       setBackupNotification({
         type: 'error',
         title: LL.serviceDetail.deleteFailed(),
@@ -1418,9 +1424,10 @@ const ResourcesTab: React.FC<{ service: Service }> = ({ service }) => {
           memoryReservation,
         });
         alert(`Resources updated successfully for ${service.name}`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to update resources:', error);
-        alert(`Failed to update resources: ${error.message || 'Unknown error'}`);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        alert(`Failed to update resources: ${message}`);
       } finally {
         setIsSaving(false);
       }
@@ -1619,9 +1626,10 @@ const SourceTab: React.FC<{ service: Service; projectId: string }> = ({ service,
             : undefined,
       });
       alert('Configuração de origem salva');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save source:', error);
-      alert(LL.serviceDetail.failedToSaveSource() + ': ' + error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(LL.serviceDetail.failedToSaveSource() + ': ' + message);
     } finally {
       setIsSaving(false);
     }
@@ -1915,7 +1923,7 @@ const BlueGreenStatusIndicator: React.FC<{ status: BlueGreenStatus | undefined }
     isActive,
   }: {
     color: 'blue' | 'green';
-    data: any;
+    data: Record<string, unknown>;
     isActive: boolean;
   }) => (
     <div
@@ -2049,9 +2057,10 @@ const EnvironmentTab: React.FC<{ service: Service; projectId: string }> = ({
       setLocalEnvVars(validVars);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save environment variables:', error);
-      setSaveError(error.message || LL.serviceDetail.failedToSaveEnvVars());
+      const message = error instanceof Error ? error.message : LL.serviceDetail.failedToSaveEnvVars();
+      setSaveError(message);
     } finally {
       setIsSaving(false);
     }

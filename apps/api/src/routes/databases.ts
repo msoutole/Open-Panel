@@ -81,7 +81,7 @@ databases.post('/deploy', zValidator('json', deploySchema), async (c) => {
     const { type, name, projectId, customEnv, customPort, tag } = c.req.valid('json')
     const user = c.get('user')
 
-    logInfo(`Deploying ${type} database`, { name, type, userId: user?.userId } as any)
+    logInfo(`Deploying ${type} database`, { name, type, userId: user?.userId })
 
     const result = await DatabaseTemplatesService.deployDatabase({
       type,

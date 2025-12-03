@@ -359,7 +359,7 @@ export class TraefikService {
     }
 
     // Parse ports from container
-    const ports = (container.ports as any) || []
+    const ports = (container.ports as Array<{ container?: number; host?: number }> | undefined) || []
     const mainPort = ports[0]?.container || 80
 
     await this.addRoute({
@@ -423,7 +423,7 @@ export class TraefikService {
   /**
    * Add middleware (CORS, rate limiting, etc.)
    */
-  async addMiddleware(name: string, config: any): Promise<void> {
+  async addMiddleware(name: string, config: Record<string, unknown>): Promise<void> {
     const fullConfig = await this.loadDynamicConfig()
 
     if (!fullConfig.http.middlewares) {

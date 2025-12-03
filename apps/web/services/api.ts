@@ -1,4 +1,4 @@
-import { Project, Service, EnvVar, Domain, Deployment, CreateServiceData, User } from '../types';
+import { Project, Service, EnvVar, Domain, Deployment, CreateServiceData, User, ContainerMetrics, Backup } from '../types';
 import { cache } from '../utils/cache';
 import { retry } from '../utils/retry';
 
@@ -252,11 +252,11 @@ export const getServiceLogs = async (serviceId: string, tail: number = 100): Pro
   return data.logs;
 };
 
-export const getServiceStats = async (serviceId: string): Promise<any> => {
+export const getServiceStats = async (serviceId: string): Promise<ContainerMetrics> => {
   const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/stats`, {
     headers: getAuthHeaders(),
   });
-  const data = await handleResponse<{ stats: any }>(response);
+  const data = await handleResponse<{ stats: ContainerMetrics }>(response);
   return data.stats;
 };
 
@@ -304,7 +304,7 @@ export const getContainers = async (): Promise<Service[]> => {
   const response = await fetch(`${getApiBaseUrl()}/api/containers`, {
     headers: getAuthHeaders(),
   });
-  const data = await handleResponse<{ containers: any[] }>(response);
+  const data = await handleResponse<{ containers: Service[] }>(response);
   // Map backend container to frontend Service type if needed
   return data.containers.map(c => ({
     ...c,
@@ -314,13 +314,13 @@ export const getContainers = async (): Promise<Service[]> => {
   }));
 };
 
-export const createContainer = async (data: any): Promise<Service> => {
+export const createContainer = async (data: CreateServiceData): Promise<Service> => {
   const response = await fetch(`${getApiBaseUrl()}/api/containers`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
-  const result = await handleResponse<{ container: any }>(response);
+  const result = await handleResponse<{ container: Service }>(response);
   return result.container;
 };
 
@@ -439,21 +439,21 @@ export const updateServiceResources = async (
 
 // --- Backups (for database services) ---
 
-export const listBackups = async (serviceId: string): Promise<any[]> => {
+export const listBackups = async (serviceId: string): Promise<Backup[]> => {
   const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/backups`, {
     headers: getAuthHeaders(),
   });
-  const data = await handleResponse<{ backups: any[] }>(response);
+  const data = await handleResponse<{ backups: Backup[] }>(response);
   return data.backups;
 };
 
-export const createBackup = async (serviceId: string, name?: string): Promise<any> => {
+export const createBackup = async (serviceId: string, name?: string): Promise<Backup> => {
   const response = await fetch(`${getApiBaseUrl()}/api/containers/${serviceId}/backups`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ name }),
   });
-  const result = await handleResponse<{ backup: any }>(response);
+  const result = await handleResponse<{ backup: Backup }>(response);
   return result.backup;
 };
 
@@ -576,7 +576,7 @@ export interface AuditLog {
   resourceId?: string;
   ipAddress?: string;
   userAgent?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   timestamp: string;
   status: 'Success' | 'Failure';
 }

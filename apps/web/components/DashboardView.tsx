@@ -455,7 +455,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
       });
       setIsDeleteModalOpen(false);
       setSelectedProject(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       showToast({
         type: 'error',
         title: LL.common.error(),

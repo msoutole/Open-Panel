@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Project } from '../types';
 import { 
   Search, 
   Code, 
@@ -18,7 +19,7 @@ import { TemplateDeployModal } from './TemplateDeployModal';
 
 interface TemplateMarketplaceProps {
   onClose?: () => void;
-  onProjectCreated?: (project: any) => void;
+  onProjectCreated?: (project: Project) => void;
 }
 
 type CategoryTab = 'all' | 'framework' | 'cms' | 'database' | 'static';
@@ -96,7 +97,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
     setShowDeployModal(true);
   };
 
-  const handleDeploySuccess = (result: any) => {
+  const handleDeploySuccess = (result: { project: Project }) => {
     setShowDeployModal(false);
     setSelectedTemplate(null);
     if (onProjectCreated) {

@@ -452,7 +452,7 @@ export class TerminalWebSocketGateway {
   /**
    * Send message to client
    */
-  private sendToClient(client: TerminalWebSocketClient, message: any) {
+  private sendToClient(client: TerminalWebSocketClient, message: Record<string, unknown>) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(message))
     }

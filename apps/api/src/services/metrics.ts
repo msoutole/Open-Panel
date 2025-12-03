@@ -390,9 +390,9 @@ export class MetricsService {
   /**
    * Export metrics data
    */
-  static async exportMetrics(type: string, format: string = 'json'): Promise<any> {
+  static async exportMetrics(type: string, format: string = 'json'): Promise<unknown> {
     try {
-      let data: any
+      let data: unknown
 
       if (type === 'containers') {
         data = await this.getAllContainersMetrics()

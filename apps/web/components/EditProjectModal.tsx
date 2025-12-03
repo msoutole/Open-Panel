@@ -48,8 +48,9 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ isOpen, onCl
 
             onUpdated(updatedProject);
             onClose();
-        } catch (err: any) {
-            setError(err.message || LL.projects.updateError());
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : LL.projects.updateError();
+            setError(message);
         } finally {
             setLoading(false);
         }
