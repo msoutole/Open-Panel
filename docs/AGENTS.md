@@ -4,6 +4,24 @@ Este documento define papéis e responsabilidades para agentes de IA trabalhando
 
 **IMPORTANTE**: Todos os agentes respondem EXCLUSIVAMENTE em português brasileiro.
 
+## Convenção de Nomenclatura de Agentes
+
+Os agentes seguem o padrão GitHub Copilot para máxima compatibilidade:
+
+- **Arquivos**: Localizados em `.github/agents/` com extensão `.md` (sem `.agent.md`)
+- **Nome do arquivo**: `openpanel-<role>.md` (exemplo: `openpanel-backend-specialist.md`)
+- **Campo `name` no frontmatter**: `openpanel-<role>` (sem sufixo `-agent`)
+- **Validação**: Execute `node scripts/validate-agents-frontmatter.js` para verificar conformidade
+
+**Exemplo de frontmatter correto:**
+```yaml
+---
+name: openpanel-backend-specialist
+description: 'Agente OpenPanel — Especialista Backend (Hono + Prisma)...'
+tools: ['edit', 'runNotebooks', 'search', ...]
+---
+```
+
 ## Papéis principais
 
 ### 1) Gestor (Orquestrador)
