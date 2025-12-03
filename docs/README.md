@@ -7,12 +7,14 @@ Documentação completa do OpenPanel - painel de controle self-hosted moderno co
 ## 🚀 Início Rápido
 
 ### Para Usuários
+
 - **[README Principal](../README.md)** - Instalação e guia rápido
 - **[Guia de Setup](./SETUP_GUIDE.md)** - Instalação detalhada por plataforma
 - **[Quick Start](./QUICK_START.md)** - Primeiros passos
 - **[Troubleshooting](./TROUBLESHOOTING.md)** - Solução de problemas
 
 ### Para Desenvolvedores
+
 - **[Domain Docs](./domains/)** - Documentação por domínio (otimizada para LLMs)
 - **[API Reference](./API.md)** - Documentação da API REST
 - **[Arquitetura](./architecture/)** - Design do sistema
@@ -23,7 +25,7 @@ Documentação completa do OpenPanel - painel de controle self-hosted moderno co
 
 ## 📂 Estrutura da Documentação
 
-```
+`
 docs/
 ├── README.md                    # Este arquivo
 ├── SETUP_GUIDE.md              # Guia de instalação (todas as plataformas)
@@ -48,7 +50,7 @@ docs/
 └── architecture/              # Arquitetura do sistema
     ├── 01-system-architecture.md
     └── 02-microservices-proposal.md  # Proposta de microserviços
-```
+`
 
 ## 📖 Documentos Principais
 
@@ -83,12 +85,14 @@ docs/
 A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um único arquivo:
 
 **Por que usar?**
+
 - ✅ Contexto completo em um só lugar
 - ✅ Perfeito para LLMs (Claude, ChatGPT)
 - ✅ Reduz fragmentação de informação
 - ✅ Business rules + código juntos
 
 **Domínios Disponíveis**:
+
 - **[authentication.md](./domains/authentication.md)** - Login, JWT, users, API keys
 - **[projects-teams.md](./domains/projects-teams.md)** - Projetos e times
 - **[containers.md](./domains/containers.md)** - Docker, builds, deployments
@@ -142,4 +146,3 @@ A abordagem **Domain-Driven** concentra 100% do contexto de cada feature em um �
 
 **Última atualização**: 2025-01-27
 **Versão**: 1.0
-
