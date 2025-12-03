@@ -6,8 +6,9 @@ Este documento contém o status atual do projeto, planos futuros e histórico de
 
 ## 🗺️ Roadmap Atual
 
-**Última atualização**: 03 de Dezembro de 2025
+**Última atualização**: 03 de Janeiro de 2025
 **Status**: Em desenvolvimento ativo (Fase 5 - Testes & Polimento)
+**Versão Atual**: 0.3.0 → **Meta**: 1.0.0
 
 ### ✅ Concluído (Fases 1-4)
 
@@ -23,11 +24,16 @@ Este documento contém o status atual do projeto, planos futuros e histórico de
   - Zero Downtime Deployments (Blue-Green strategy).
   - Sistema de backups completo.
 
-### 🚧 Em Progresso (Fase 5)
+### 🚧 Em Progresso (Fase 5 - Roadmap para 1.0.0)
 
-- **Testes Automatizados**: Aumentar cobertura para 60% (Unitários e Integração).
-- **Polimento de UI**: Revisão de consistência visual e responsividade.
-- **Documentação**: Atualização contínua dos manuais.
+- **Testes Automatizados**: Aumentar cobertura para 70% (Unitários e Integração).
+- **Testes E2E**: Implementar testes end-to-end para fluxos críticos (80%+).
+- **Performance**: Análise e otimização de performance.
+- **Estabilidade**: Validação de build de produção e testes de carga.
+- **CI/CD**: Pipeline completo de integração e deploy.
+- **Polimento Final**: Ajustes de UX e documentação de release.
+
+📖 **Ver [ROADMAP_1.0.0.md](./ROADMAP_1.0.0.md) para detalhes completos do que falta para versão 1.0.0**
 
 ### 🔮 Futuro (Fase 6+)
 
@@ -63,8 +69,10 @@ Abaixo o status dos planos encontrados na pasta `.cursor/plans`:
 | Observabilidade | 9           | 9    | ✅      |
 | Documentação    | 10          | 10   | ✅      |
 | Funcionalidades | 10          | 9    | ✅      |
-| Testes          | 7           | 8    | ⚠️      |
-| Cobertura       | 45%         | 60%  | ⚠️      |
+| Testes          | 7           | 9    | ⚠️      |
+| Cobertura       | 45%         | 70%  | ⚠️      |
+| Testes E2E      | 0%          | 80%  | ⚠️      |
+| Performance     | Não medido  | Otimizado | ⚠️      |
 
 ---
 

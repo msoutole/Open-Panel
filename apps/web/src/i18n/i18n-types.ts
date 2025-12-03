@@ -912,6 +912,10 @@ type RootTranslation = {
 		 */
 		addMonitoringCard: string
 		/**
+		 * V​i​s​u​a​l​i​z​a​ç​ã​o​ ​d​o​s​ ​C​a​r​d​s
+		 */
+		monitoringCardsView: string
+		/**
 		 * C​A​R​G​A​ ​C​P​U​ ​D​O​ ​H​O​S​T
 		 */
 		hostCpuLoad: string
@@ -943,6 +947,118 @@ type RootTranslation = {
 		 * N​e​n​h​u​m​ ​d​a​d​o​ ​d​i​s​p​o​n​í​v​e​l
 		 */
 		noDataAvailable: string
+		/**
+		 * B​e​m​-​v​i​n​d​o​ ​a​o​ ​O​p​e​n​ ​P​a​n​e​l​!​ ​�​�
+		 */
+		welcomeTitle: string
+		/**
+		 * C​o​m​e​c​e​ ​c​r​i​a​n​d​o​ ​s​e​u​ ​p​r​i​m​e​i​r​o​ ​p​r​o​j​e​t​o​ ​e​ ​i​m​p​l​a​n​t​e​ ​s​u​a​s​ ​a​p​l​i​c​a​ç​õ​e​s​ ​e​m​ ​m​i​n​u​t​o​s​.
+		 */
+		welcomeSubtitle: string
+		/**
+		 * N​e​n​h​u​m​ ​p​r​o​j​e​t​o​ ​a​i​n​d​a
+		 */
+		emptyStateTitle: string
+		/**
+		 * C​r​i​e​ ​s​e​u​ ​p​r​i​m​e​i​r​o​ ​p​r​o​j​e​t​o​ ​p​a​r​a​ ​c​o​m​e​ç​a​r​ ​a​ ​g​e​r​e​n​c​i​a​r​ ​s​u​a​s​ ​a​p​l​i​c​a​ç​õ​e​s​ ​e​ ​s​e​r​v​i​ç​o​s​.
+		 */
+		emptyStateDescription: string
+		/**
+		 * C​r​i​a​r​ ​P​r​i​m​e​i​r​o​ ​P​r​o​j​e​t​o
+		 */
+		emptyStateAction: string
+		/**
+		 * P​r​e​c​i​s​a​ ​d​e​ ​a​j​u​d​a​?
+		 */
+		emptyStateHelp: string
+		/**
+		 * V​e​r​ ​D​o​c​u​m​e​n​t​a​ç​ã​o
+		 */
+		emptyStateDocs: string
+		/**
+		 * A​ç​õ​e​s​ ​R​á​p​i​d​a​s
+		 */
+		quickActions: string
+		/**
+		 * C​r​i​a​r​ ​P​r​o​j​e​t​o
+		 */
+		quickActionCreateProject: string
+		/**
+		 * C​r​i​a​r​ ​S​e​r​v​i​ç​o
+		 */
+		quickActionCreateService: string
+		/**
+		 * D​o​c​u​m​e​n​t​a​ç​ã​o
+		 */
+		quickActionViewDocs: string
+		/**
+		 * M​é​t​r​i​c​a​s​ ​d​o​ ​S​i​s​t​e​m​a
+		 */
+		quickActionViewMetrics: string
+		/**
+		 * P​r​i​m​e​i​r​o​s​ ​P​a​s​s​o​s
+		 */
+		gettingStarted: string
+		/**
+		 * C​o​m​p​l​e​t​e​ ​e​s​t​a​s​ ​e​t​a​p​a​s​ ​p​a​r​a​ ​c​o​m​e​ç​a​r
+		 */
+		gettingStartedDescription: string
+		/**
+		 * C​r​i​a​r​ ​s​e​u​ ​p​r​i​m​e​i​r​o​ ​p​r​o​j​e​t​o
+		 */
+		gettingStartedCreateProject: string
+		/**
+		 * I​m​p​l​a​n​t​a​r​ ​u​m​ ​s​e​r​v​i​ç​o
+		 */
+		gettingStartedDeployService: string
+		/**
+		 * C​o​n​f​i​g​u​r​a​r​ ​d​o​m​í​n​i​o​ ​p​e​r​s​o​n​a​l​i​z​a​d​o
+		 */
+		gettingStartedConfigureDomain: string
+		/**
+		 * C​o​n​v​i​d​a​r​ ​m​e​m​b​r​o​s​ ​d​a​ ​e​q​u​i​p​e
+		 */
+		gettingStartedInviteTeam: string
+		/**
+		 * C​o​n​c​l​u​í​d​o
+		 */
+		gettingStartedCompleted: string
+		/**
+		 * P​e​n​d​e​n​t​e
+		 */
+		gettingStartedPending: string
+		/**
+		 * B​e​m​-​v​i​n​d​o​ ​a​o​ ​O​p​e​n​ ​P​a​n​e​l​!​ ​�​�
+		 */
+		welcomeBannerTitle: string
+		/**
+		 * C​o​n​f​i​g​u​r​e​ ​s​e​u​ ​p​r​i​m​e​i​r​o​ ​p​r​o​j​e​t​o​ ​e​m​ ​m​e​n​o​s​ ​d​e​ ​2​ ​m​i​n​u​t​o​s​.
+		 */
+		welcomeBannerDescription: string
+		/**
+		 * D​i​s​p​e​n​s​a​r
+		 */
+		welcomeBannerDismiss: string
+		/**
+		 * C​o​m​e​ç​a​r​ ​A​g​o​r​a
+		 */
+		welcomeBannerGetStarted: string
+		/**
+		 * M​é​t​r​i​c​a​s​ ​d​o​ ​S​i​s​t​e​m​a
+		 */
+		systemMetrics: string
+		/**
+		 * M​o​n​i​t​o​r​a​m​e​n​t​o​ ​e​m​ ​t​e​m​p​o​ ​r​e​a​l​ ​d​o​ ​s​e​u​ ​h​o​s​t
+		 */
+		systemMetricsDescription: string
+		/**
+		 * M​o​s​t​r​a​r​ ​M​é​t​r​i​c​a​s
+		 */
+		showMetrics: string
+		/**
+		 * O​c​u​l​t​a​r​ ​M​é​t​r​i​c​a​s
+		 */
+		hideMetrics: string
 	}
 	appTitles: {
 		/**
@@ -1426,6 +1542,218 @@ type RootTranslation = {
 		 * F​a​l​h​a​ ​a​o​ ​E​x​c​l​u​i​r
 		 */
 		deleteFailed: string
+	}
+	serviceModal: {
+		/**
+		 * C​r​i​a​r​ ​N​o​v​o​ ​S​e​r​v​i​ç​o
+		 */
+		createNewService: string
+		/**
+		 * P​a​s​s​o​ ​{​s​t​e​p​}​ ​d​e​ ​{​t​o​t​a​l​}
+		 * @param {number} step
+		 * @param {number} total
+		 */
+		stepXofY: RequiredParams<'step' | 'total'>
+		/**
+		 * E​s​c​o​l​h​e​r​ ​T​i​p​o
+		 */
+		chooseType: string
+		/**
+		 * C​o​n​f​i​g​u​r​a​r
+		 */
+		configure: string
+		/**
+		 * R​e​v​i​s​a​r​ ​e​ ​C​r​i​a​r
+		 */
+		reviewCreate: string
+		/**
+		 * A​p​l​i​c​a​ç​ã​o
+		 */
+		application: string
+		/**
+		 * I​m​p​l​a​n​t​e​ ​a​p​l​i​c​a​ç​õ​e​s​ ​w​e​b​,​ ​A​P​I​s​ ​o​u​ ​m​i​c​r​o​s​s​e​r​v​i​ç​o​s​ ​a​ ​p​a​r​t​i​r​ ​d​e​ ​i​m​a​g​e​n​s​ ​D​o​c​k​e​r​ ​o​u​ ​r​e​p​o​s​i​t​ó​r​i​o​s​ ​G​i​t
+		 */
+		applicationDesc: string
+		/**
+		 * B​a​n​c​o​ ​d​e​ ​D​a​d​o​s
+		 */
+		database: string
+		/**
+		 * P​o​s​t​g​r​e​S​Q​L​,​ ​M​y​S​Q​L​,​ ​M​o​n​g​o​D​B​ ​o​u​ ​R​e​d​i​s​ ​c​o​m​ ​c​o​n​f​i​g​u​r​a​ç​ã​o​ ​a​u​t​o​m​á​t​i​c​a
+		 */
+		databaseDesc: string
+		/**
+		 * I​m​a​g​e​m​ ​D​o​c​k​e​r
+		 */
+		dockerImage: string
+		/**
+		 * U​s​e​ ​u​m​a​ ​i​m​a​g​e​m​ ​D​o​c​k​e​r​ ​p​r​é​-​c​o​n​s​t​r​u​í​d​a​ ​d​o​ ​D​o​c​k​e​r​H​u​b​ ​o​u​ ​u​m​ ​r​e​g​i​s​t​r​o
+		 */
+		dockerImageDesc: string
+		/**
+		 * R​e​p​o​s​i​t​ó​r​i​o​ ​G​i​t
+		 */
+		gitRepository: string
+		/**
+		 * C​o​n​s​t​r​u​a​ ​e​ ​i​m​p​l​a​n​t​e​ ​a​ ​p​a​r​t​i​r​ ​d​o​ ​s​e​u​ ​r​e​p​o​s​i​t​ó​r​i​o​ ​G​i​t​H​u​b​,​ ​G​i​t​L​a​b​ ​o​u​ ​B​i​t​b​u​c​k​e​t
+		 */
+		gitRepositoryDesc: string
+		/**
+		 * V​o​l​t​a​r
+		 */
+		back: string
+		/**
+		 * P​r​ó​x​i​m​o
+		 */
+		next: string
+		/**
+		 * C​a​n​c​e​l​a​r
+		 */
+		cancel: string
+		/**
+		 * C​r​i​a​r​ ​S​e​r​v​i​ç​o
+		 */
+		createService: string
+		/**
+		 * C​r​i​a​n​d​o​.​.​.
+		 */
+		creating: string
+		/**
+		 * C​r​i​a​d​o​!
+		 */
+		created: string
+		/**
+		 * N​o​m​e​ ​d​o​ ​S​e​r​v​i​ç​o
+		 */
+		serviceName: string
+		/**
+		 * m​e​u​-​s​e​r​v​i​c​o
+		 */
+		serviceNamePlaceholder: string
+		/**
+		 * A​p​e​n​a​s​ ​l​e​t​r​a​s​ ​m​i​n​ú​s​c​u​l​a​s​,​ ​n​ú​m​e​r​o​s​ ​e​ ​h​í​f​e​n​s
+		 */
+		serviceNameHint: string
+		/**
+		 * I​m​a​g​e​m​ ​D​o​c​k​e​r
+		 */
+		dockerImageLabel: string
+		/**
+		 * n​g​i​n​x​:​l​a​t​e​s​t
+		 */
+		dockerImagePlaceholder: string
+		/**
+		 * P​o​r​t​a​ ​I​n​t​e​r​n​a
+		 */
+		internalPort: string
+		/**
+		 * 3​0​0​0
+		 */
+		internalPortPlaceholder: string
+		/**
+		 * P​o​r​t​a​ ​E​x​p​o​s​t​a​ ​(​O​p​c​i​o​n​a​l​)
+		 */
+		exposedPort: string
+		/**
+		 * 8​0​8​0
+		 */
+		exposedPortPlaceholder: string
+		/**
+		 * E​s​t​r​a​t​é​g​i​a​ ​d​e​ ​I​m​p​l​a​n​t​a​ç​ã​o
+		 */
+		deploymentStrategy: string
+		/**
+		 * U​R​L​ ​d​o​ ​R​e​p​o​s​i​t​ó​r​i​o
+		 */
+		repositoryUrl: string
+		/**
+		 * h​t​t​p​s​:​/​/​g​i​t​h​u​b​.​c​o​m​/​u​s​u​a​r​i​o​/​r​e​p​o​.​g​i​t
+		 */
+		repositoryUrlPlaceholder: string
+		/**
+		 * B​r​a​n​c​h
+		 */
+		branch: string
+		/**
+		 * m​a​i​n
+		 */
+		branchPlaceholder: string
+		/**
+		 * S​e​l​e​c​i​o​n​a​r​ ​T​i​p​o​ ​d​e​ ​B​a​n​c​o​ ​d​e​ ​D​a​d​o​s
+		 */
+		selectDatabaseType: string
+		/**
+		 * C​o​n​f​i​g​u​r​a​ç​ã​o​ ​d​o​ ​B​a​n​c​o​ ​d​e​ ​D​a​d​o​s
+		 */
+		databaseConfiguration: string
+		/**
+		 * T​i​p​o
+		 */
+		type: string
+		/**
+		 * V​e​r​s​ã​o
+		 */
+		version: string
+		/**
+		 * N​o​m​e​ ​d​e​ ​U​s​u​á​r​i​o
+		 */
+		username: string
+		/**
+		 * A​ ​s​e​n​h​a​ ​s​e​r​á​ ​g​e​r​a​d​a​ ​a​u​t​o​m​a​t​i​c​a​m​e​n​t​e​ ​e​ ​e​x​i​b​i​d​a​ ​a​p​ó​s​ ​a​ ​c​r​i​a​ç​ã​o
+		 */
+		passwordGenerated: string
+		/**
+		 * N​o​m​e​ ​d​o​ ​s​e​r​v​i​ç​o​ ​é​ ​o​b​r​i​g​a​t​ó​r​i​o
+		 */
+		nameRequired: string
+		/**
+		 * O​ ​n​o​m​e​ ​d​e​v​e​ ​t​e​r​ ​p​e​l​o​ ​m​e​n​o​s​ ​3​ ​c​a​r​a​c​t​e​r​e​s
+		 */
+		nameMinLength: string
+		/**
+		 * O​ ​n​o​m​e​ ​p​o​d​e​ ​c​o​n​t​e​r​ ​a​p​e​n​a​s​ ​l​e​t​r​a​s​ ​m​i​n​ú​s​c​u​l​a​s​,​ ​n​ú​m​e​r​o​s​ ​e​ ​h​í​f​e​n​s
+		 */
+		nameInvalid: string
+		/**
+		 * J​á​ ​e​x​i​s​t​e​ ​u​m​ ​s​e​r​v​i​ç​o​ ​c​o​m​ ​e​s​t​e​ ​n​o​m​e
+		 */
+		nameExists: string
+		/**
+		 * I​m​a​g​e​m​ ​D​o​c​k​e​r​ ​é​ ​o​b​r​i​g​a​t​ó​r​i​a
+		 */
+		dockerImageRequired: string
+		/**
+		 * U​R​L​ ​d​o​ ​r​e​p​o​s​i​t​ó​r​i​o​ ​é​ ​o​b​r​i​g​a​t​ó​r​i​a
+		 */
+		repositoryRequired: string
+		/**
+		 * P​o​r​t​a​ ​i​n​t​e​r​n​a​ ​é​ ​o​b​r​i​g​a​t​ó​r​i​a
+		 */
+		portRequired: string
+		/**
+		 * S​e​r​v​i​ç​o​ ​c​r​i​a​d​o​ ​c​o​m​ ​s​u​c​e​s​s​o​!
+		 */
+		serviceCreatedSuccess: string
+		/**
+		 * F​a​l​h​a​ ​a​o​ ​c​r​i​a​r​ ​s​e​r​v​i​ç​o
+		 */
+		createError: string
+		/**
+		 * P​o​s​t​g​r​e​S​Q​L
+		 */
+		postgres: string
+		/**
+		 * M​y​S​Q​L
+		 */
+		mysql: string
+		/**
+		 * M​o​n​g​o​D​B
+		 */
+		mongodb: string
+		/**
+		 * R​e​d​i​s
+		 */
+		redis: string
 	}
 }
 
@@ -2312,6 +2640,10 @@ export type TranslationFunctions = {
 		 */
 		addMonitoringCard: () => LocalizedString
 		/**
+		 * Visualização dos Cards
+		 */
+		monitoringCardsView: () => LocalizedString
+		/**
 		 * CARGA CPU DO HOST
 		 */
 		hostCpuLoad: () => LocalizedString
@@ -2343,6 +2675,118 @@ export type TranslationFunctions = {
 		 * Nenhum dado disponível
 		 */
 		noDataAvailable: () => LocalizedString
+		/**
+		 * Bem-vindo ao Open Panel! 🚀
+		 */
+		welcomeTitle: () => LocalizedString
+		/**
+		 * Comece criando seu primeiro projeto e implante suas aplicações em minutos.
+		 */
+		welcomeSubtitle: () => LocalizedString
+		/**
+		 * Nenhum projeto ainda
+		 */
+		emptyStateTitle: () => LocalizedString
+		/**
+		 * Crie seu primeiro projeto para começar a gerenciar suas aplicações e serviços.
+		 */
+		emptyStateDescription: () => LocalizedString
+		/**
+		 * Criar Primeiro Projeto
+		 */
+		emptyStateAction: () => LocalizedString
+		/**
+		 * Precisa de ajuda?
+		 */
+		emptyStateHelp: () => LocalizedString
+		/**
+		 * Ver Documentação
+		 */
+		emptyStateDocs: () => LocalizedString
+		/**
+		 * Ações Rápidas
+		 */
+		quickActions: () => LocalizedString
+		/**
+		 * Criar Projeto
+		 */
+		quickActionCreateProject: () => LocalizedString
+		/**
+		 * Criar Serviço
+		 */
+		quickActionCreateService: () => LocalizedString
+		/**
+		 * Documentação
+		 */
+		quickActionViewDocs: () => LocalizedString
+		/**
+		 * Métricas do Sistema
+		 */
+		quickActionViewMetrics: () => LocalizedString
+		/**
+		 * Primeiros Passos
+		 */
+		gettingStarted: () => LocalizedString
+		/**
+		 * Complete estas etapas para começar
+		 */
+		gettingStartedDescription: () => LocalizedString
+		/**
+		 * Criar seu primeiro projeto
+		 */
+		gettingStartedCreateProject: () => LocalizedString
+		/**
+		 * Implantar um serviço
+		 */
+		gettingStartedDeployService: () => LocalizedString
+		/**
+		 * Configurar domínio personalizado
+		 */
+		gettingStartedConfigureDomain: () => LocalizedString
+		/**
+		 * Convidar membros da equipe
+		 */
+		gettingStartedInviteTeam: () => LocalizedString
+		/**
+		 * Concluído
+		 */
+		gettingStartedCompleted: () => LocalizedString
+		/**
+		 * Pendente
+		 */
+		gettingStartedPending: () => LocalizedString
+		/**
+		 * Bem-vindo ao Open Panel! 👋
+		 */
+		welcomeBannerTitle: () => LocalizedString
+		/**
+		 * Configure seu primeiro projeto em menos de 2 minutos.
+		 */
+		welcomeBannerDescription: () => LocalizedString
+		/**
+		 * Dispensar
+		 */
+		welcomeBannerDismiss: () => LocalizedString
+		/**
+		 * Começar Agora
+		 */
+		welcomeBannerGetStarted: () => LocalizedString
+		/**
+		 * Métricas do Sistema
+		 */
+		systemMetrics: () => LocalizedString
+		/**
+		 * Monitoramento em tempo real do seu host
+		 */
+		systemMetricsDescription: () => LocalizedString
+		/**
+		 * Mostrar Métricas
+		 */
+		showMetrics: () => LocalizedString
+		/**
+		 * Ocultar Métricas
+		 */
+		hideMetrics: () => LocalizedString
 	}
 	appTitles: {
 		/**
@@ -2821,6 +3265,216 @@ export type TranslationFunctions = {
 		 * Falha ao Excluir
 		 */
 		deleteFailed: () => LocalizedString
+	}
+	serviceModal: {
+		/**
+		 * Criar Novo Serviço
+		 */
+		createNewService: () => LocalizedString
+		/**
+		 * Passo {step} de {total}
+		 */
+		stepXofY: (arg: { step: number, total: number }) => LocalizedString
+		/**
+		 * Escolher Tipo
+		 */
+		chooseType: () => LocalizedString
+		/**
+		 * Configurar
+		 */
+		configure: () => LocalizedString
+		/**
+		 * Revisar e Criar
+		 */
+		reviewCreate: () => LocalizedString
+		/**
+		 * Aplicação
+		 */
+		application: () => LocalizedString
+		/**
+		 * Implante aplicações web, APIs ou microsserviços a partir de imagens Docker ou repositórios Git
+		 */
+		applicationDesc: () => LocalizedString
+		/**
+		 * Banco de Dados
+		 */
+		database: () => LocalizedString
+		/**
+		 * PostgreSQL, MySQL, MongoDB ou Redis com configuração automática
+		 */
+		databaseDesc: () => LocalizedString
+		/**
+		 * Imagem Docker
+		 */
+		dockerImage: () => LocalizedString
+		/**
+		 * Use uma imagem Docker pré-construída do DockerHub ou um registro
+		 */
+		dockerImageDesc: () => LocalizedString
+		/**
+		 * Repositório Git
+		 */
+		gitRepository: () => LocalizedString
+		/**
+		 * Construa e implante a partir do seu repositório GitHub, GitLab ou Bitbucket
+		 */
+		gitRepositoryDesc: () => LocalizedString
+		/**
+		 * Voltar
+		 */
+		back: () => LocalizedString
+		/**
+		 * Próximo
+		 */
+		next: () => LocalizedString
+		/**
+		 * Cancelar
+		 */
+		cancel: () => LocalizedString
+		/**
+		 * Criar Serviço
+		 */
+		createService: () => LocalizedString
+		/**
+		 * Criando...
+		 */
+		creating: () => LocalizedString
+		/**
+		 * Criado!
+		 */
+		created: () => LocalizedString
+		/**
+		 * Nome do Serviço
+		 */
+		serviceName: () => LocalizedString
+		/**
+		 * meu-servico
+		 */
+		serviceNamePlaceholder: () => LocalizedString
+		/**
+		 * Apenas letras minúsculas, números e hífens
+		 */
+		serviceNameHint: () => LocalizedString
+		/**
+		 * Imagem Docker
+		 */
+		dockerImageLabel: () => LocalizedString
+		/**
+		 * nginx:latest
+		 */
+		dockerImagePlaceholder: () => LocalizedString
+		/**
+		 * Porta Interna
+		 */
+		internalPort: () => LocalizedString
+		/**
+		 * 3000
+		 */
+		internalPortPlaceholder: () => LocalizedString
+		/**
+		 * Porta Exposta (Opcional)
+		 */
+		exposedPort: () => LocalizedString
+		/**
+		 * 8080
+		 */
+		exposedPortPlaceholder: () => LocalizedString
+		/**
+		 * Estratégia de Implantação
+		 */
+		deploymentStrategy: () => LocalizedString
+		/**
+		 * URL do Repositório
+		 */
+		repositoryUrl: () => LocalizedString
+		/**
+		 * https://github.com/usuario/repo.git
+		 */
+		repositoryUrlPlaceholder: () => LocalizedString
+		/**
+		 * Branch
+		 */
+		branch: () => LocalizedString
+		/**
+		 * main
+		 */
+		branchPlaceholder: () => LocalizedString
+		/**
+		 * Selecionar Tipo de Banco de Dados
+		 */
+		selectDatabaseType: () => LocalizedString
+		/**
+		 * Configuração do Banco de Dados
+		 */
+		databaseConfiguration: () => LocalizedString
+		/**
+		 * Tipo
+		 */
+		type: () => LocalizedString
+		/**
+		 * Versão
+		 */
+		version: () => LocalizedString
+		/**
+		 * Nome de Usuário
+		 */
+		username: () => LocalizedString
+		/**
+		 * A senha será gerada automaticamente e exibida após a criação
+		 */
+		passwordGenerated: () => LocalizedString
+		/**
+		 * Nome do serviço é obrigatório
+		 */
+		nameRequired: () => LocalizedString
+		/**
+		 * O nome deve ter pelo menos 3 caracteres
+		 */
+		nameMinLength: () => LocalizedString
+		/**
+		 * O nome pode conter apenas letras minúsculas, números e hífens
+		 */
+		nameInvalid: () => LocalizedString
+		/**
+		 * Já existe um serviço com este nome
+		 */
+		nameExists: () => LocalizedString
+		/**
+		 * Imagem Docker é obrigatória
+		 */
+		dockerImageRequired: () => LocalizedString
+		/**
+		 * URL do repositório é obrigatória
+		 */
+		repositoryRequired: () => LocalizedString
+		/**
+		 * Porta interna é obrigatória
+		 */
+		portRequired: () => LocalizedString
+		/**
+		 * Serviço criado com sucesso!
+		 */
+		serviceCreatedSuccess: () => LocalizedString
+		/**
+		 * Falha ao criar serviço
+		 */
+		createError: () => LocalizedString
+		/**
+		 * PostgreSQL
+		 */
+		postgres: () => LocalizedString
+		/**
+		 * MySQL
+		 */
+		mysql: () => LocalizedString
+		/**
+		 * MongoDB
+		 */
+		mongodb: () => LocalizedString
+		/**
+		 * Redis
+		 */
+		redis: () => LocalizedString
 	}
 }
 
