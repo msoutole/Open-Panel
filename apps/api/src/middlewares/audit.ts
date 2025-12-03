@@ -103,6 +103,9 @@ export const AuditActions = {
 
   // Settings
   SETTINGS_UPDATE: 'SETTINGS_UPDATED' as AuditAction,
+  
+  // Database
+  DATABASE_QUERY: 'DATABASE_QUERY' as AuditAction,
 } as const
 
 /**

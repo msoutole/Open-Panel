@@ -4,12 +4,14 @@ import {
     ArrowLeft, Box, Database, SlidersHorizontal,
     Key, Gauge, Settings, Plus, LayoutDashboard, TerminalSquare,
     Trash2, HardDrive, Check, RotateCw, Info, Copy, Eye, EyeOff, Globe, History, Cpu, GitBranch,
-    LayoutGrid, List as ListIcon, Calendar, User, GitCommit, Loader2, KeyRound, Square
+    LayoutGrid, List as ListIcon, Calendar, User, GitCommit, Loader2, KeyRound, Square, X
 } from 'lucide-react';
 import { WebTerminal } from './WebTerminal';
+import { DatabaseConsole } from './DatabaseConsole';
 import { useLogs } from '../hooks/useLogs';
 import { useMetrics } from '../hooks/useMetrics';
 import { useToast } from '../hooks/useToast';
+import { getErrorMessage } from '../src/utils/error';
 import { useTranslations } from '../src/i18n/i18n-react';
 import {
     restartService, startService, stopService, getServiceLogs,
@@ -37,6 +39,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
     const LL = useTranslations();
     const [activeTab, setActiveTab] = useState<string>('overview');
     const [isWebConsoleOpen, setIsWebConsoleOpen] = useState(false);
+    const [isDbConsoleOpen, setIsDbConsoleOpen] = useState(false);
     const [isRestarting, setIsRestarting] = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
     const [isStarting, setIsStarting] = useState(false);
@@ -77,8 +80,8 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 title: 'Serviço reiniciado',
                 message: `${service.name} foi reiniciado com sucesso`,
             });
-        } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : LL.serviceDetail.restartFailed();
+        } catch (error: unknown) {
+            const { message: errorMsg } = getErrorMessage(error);
             setNotification({
                 type: 'error',
                 title: LL.serviceDetail.restartFailed(),
@@ -108,11 +111,12 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 title: LL.serviceDetail.deploymentTriggered(),
                 message: LL.serviceDetail.deploymentTriggeredMessage({ name: service.name })
             });
-        } catch (error) {
+        } catch (error: unknown) {
+            const { message } = getErrorMessage(error);
             setNotification({
                 type: 'error',
                 title: LL.serviceDetail.deployFailed(),
-                message: error instanceof Error ? error.message : LL.serviceDetail.deployFailed()
+                message: message || LL.serviceDetail.deployFailed()
             });
         } finally {
             setIsDeploying(false);
@@ -132,11 +136,12 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 title: LL.serviceDetail.serviceStarted(),
                 message: LL.serviceDetail.serviceStartedMessage({ name: service.name })
             });
-        } catch (error) {
+        } catch (error: unknown) {
+            const { message } = getErrorMessage(error);
             setNotification({
                 type: 'error',
                 title: LL.serviceDetail.startFailed(),
-                message: error instanceof Error ? error.message : LL.serviceDetail.startFailed()
+                message: message || LL.serviceDetail.startFailed()
             });
         } finally {
             setIsStarting(false);
@@ -155,11 +160,12 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                 title: LL.serviceDetail.serviceStopped(),
                 message: LL.serviceDetail.serviceStoppedMessage({ name: service.name })
             });
-        } catch (error) {
+        } catch (error: unknown) {
+            const { message } = getErrorMessage(error);
             setNotification({
                 type: 'error',
                 title: LL.serviceDetail.stopFailed(),
-                message: error instanceof Error ? error.message : LL.serviceDetail.stopFailed()
+                message: message || LL.serviceDetail.stopFailed()
             });
         } finally {
             setIsStopping(false);
@@ -258,12 +264,17 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
+                        {isDatabase && (
+                            <button onClick={() => setIsDbConsoleOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-textSecondary bg-background hover:bg-white rounded-lg transition-colors duration-200 border border-border">
+                                <Database size={14} strokeWidth={1.5} /> DB Console
+                            </button>
+                        )}
                         <button onClick={() => setIsWebConsoleOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-textSecondary bg-background hover:bg-white rounded-lg transition-colors duration-200 border border-border">
                             <TerminalSquare size={14} strokeWidth={1.5} /> {LL.serviceDetail.console()}
                         </button>
                         {service.status === 'Running' ? (
                             <button
-                                onClick={handleStop}
+                                onClick={() => void handleStop()}
                                 disabled={isStopping}
                                 className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-error bg-error/10 hover:bg-error/20 rounded-lg transition-colors duration-200 border border-error/20 disabled:opacity-50"
                             >
@@ -272,7 +283,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                             </button>
                         ) : (
                             <button
-                                onClick={handleStart}
+                                onClick={() => void handleStart()}
                                 disabled={isStarting}
                                 className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-success bg-success/10 hover:bg-success/20 rounded-lg transition-colors duration-200 border border-success/20 disabled:opacity-50"
                             >
@@ -281,7 +292,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                             </button>
                         )}
                         <button
-                            onClick={handleRestart}
+                            onClick={() => void handleRestart()}
                             disabled={isRestarting || service.status !== 'Running'}
                             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-textSecondary bg-background hover:bg-white rounded-lg transition-colors duration-200 border border-border disabled:opacity-50"
                         >
@@ -289,7 +300,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
                             {isRestarting ? LL.serviceDetail.restarting() : LL.serviceDetail.restart()}
                         </button>
                         <button
-                            onClick={handleDeploy}
+                            onClick={() => void handleDeploy()}
                             disabled={isDeploying}
                             className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white bg-primary hover:bg-primaryHover active:bg-primaryActive rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50"
                         >
@@ -318,7 +329,32 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, p
             </div>
 
             {isWebConsoleOpen && (
-                <WebTerminal serviceName={service.name} onClose={() => setIsWebConsoleOpen(false)} />
+                <WebTerminal serviceName={service.name} containerId={service.id} onClose={() => setIsWebConsoleOpen(false)} />
+            )}
+
+            {isDbConsoleOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col w-[900px] h-[600px]">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+                            <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+                                <Database size={16} /> {service.name} Console
+                            </h3>
+                            <button onClick={() => setIsDbConsoleOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <DatabaseConsole 
+                                containerId={service.id} 
+                                type={service.image.includes('postgres') ? 'postgresql' : 
+                                      service.image.includes('mysql') ? 'mysql' : 
+                                      service.image.includes('mariadb') ? 'mariadb' : 
+                                      service.image.includes('mongo') ? 'mongodb' : 
+                                      service.image.includes('redis') ? 'redis' : 'postgresql'} 
+                            />
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Notification Toast */}
@@ -597,7 +633,7 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
                     <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-textPrimary">Domains</h3>
                         <button
-                            onClick={handleAddDomain}
+                            onClick={() => void handleAddDomain()}
                             disabled={isAddingDomain}
                             className="text-sm bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-3 py-1.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-70"
                         >
@@ -623,7 +659,7 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
                                 </div>
                                 <div className="flex items-center gap-1 border-l border-border pl-3">
                                     <button
-                                        onClick={() => handleRemoveDomain(domain.id)}
+                                        onClick={() => void handleRemoveDomain(domain.id)}
                                         className="p-2 text-textSecondary hover:text-error hover:bg-error/10 rounded-lg transition-colors duration-200"
                                     >
                                         <Trash2 size={16} strokeWidth={1.5} />
@@ -642,7 +678,7 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-textPrimary">Redirects</h3>
                             <button
-                                onClick={handleAddRedirect}
+                                onClick={() => void handleAddRedirect()}
                                 className="text-sm bg-card border border-border text-textPrimary px-3 py-1.5 rounded-lg font-medium hover:bg-background transition-colors duration-200"
                             >
                                 Add Redirect
@@ -658,7 +694,7 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
                                         <span className="font-mono text-textPrimary">{r.to}</span>
                                         <span className="text-xs bg-background px-1.5 py-0.5 rounded text-textSecondary">{r.type}</span>
                                     </div>
-                                    <button onClick={() => handleRemoveRedirect(r.id)} className="text-textSecondary hover:text-error transition-colors duration-200">
+                                    <button onClick={() => void handleRemoveRedirect(r.id)} className="text-textSecondary hover:text-error transition-colors duration-200">
                                         <Trash2 size={14} strokeWidth={1.5} />
                                     </button>
                                 </div>
@@ -697,7 +733,7 @@ const NetworkingTab: React.FC<{ service: Service, projectId: string, isDatabase:
                                             className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
                                         />
                                         <button
-                                            onClick={handleSaveExposedPort}
+                                            onClick={() => void handleSaveExposedPort()}
                                             disabled={isSavingPort}
                                             className="bg-slate-900 text-white px-4 rounded-lg text-sm font-medium hover:bg-slate-800 disabled:opacity-70"
                                         >

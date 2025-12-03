@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, AlertCircle, Loader2 } from 'lucide-react';
+import { Box, AlertCircle, Loader2, Shield, Key } from 'lucide-react';
 import { useTranslations } from '../src/i18n/i18n-react';
 
 interface LoginProps {
@@ -13,6 +13,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // 2FA state
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [backupCode, setBackupCode] = useState('');
 
   // Recuperar email salvo ao carregar
   useEffect(() => {
@@ -59,18 +65,35 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         const isDev = import.meta.env.DEV;
         return isDev ? '' : (envUrl || '');
       };
+      
+      // Build request body with optional 2FA code
+      const requestBody: any = { email, password };
+      if (requires2FA) {
+        if (useBackupCode) {
+          requestBody.backupCode = backupCode;
+        } else {
+          requestBody.twoFactorCode = twoFactorCode;
+        }
+      }
+      
       const response = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        // Check if 2FA is required
+        if (data.requires2FA) {
+          setRequires2FA(true);
+          setError('');
+          setIsLoading(false);
+          return;
+        }
+        throw new Error(data.error || 'Login failed');
+      }
 
       // Store tokens and user data
       localStorage.setItem('openpanel_access_token', data.accessToken);
@@ -161,6 +184,65 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <span className="text-textSecondary text-sm">{LL.auth.rememberMe()}</span>
             </label>
           </div>
+
+          {/* 2FA Code Input */}
+          {requires2FA && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield size={18} className="text-blue-600" />
+                <span className="font-medium text-blue-900">Autenticação de Dois Fatores</span>
+              </div>
+              
+              {!useBackupCode ? (
+                <div>
+                  <label className="block text-sm font-medium text-blue-900 mb-1.5">
+                    Código do Autenticador
+                  </label>
+                  <input
+                    type="text"
+                    value={twoFactorCode}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setTwoFactorCode(value);
+                    }}
+                    placeholder="000000"
+                    className="w-full px-4 py-2.5 border border-blue-300 rounded-lg text-sm bg-white text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition-all text-center font-mono text-lg tracking-widest"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setUseBackupCode(true)}
+                    className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <Key size={14} />
+                    Usar código de backup
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-blue-900 mb-1.5">
+                    Código de Backup
+                  </label>
+                  <input
+                    type="text"
+                    value={backupCode}
+                    onChange={(e) => setBackupCode(e.target.value)}
+                    placeholder="12345678"
+                    className="w-full px-4 py-2.5 border border-blue-300 rounded-lg text-sm bg-white text-blue-900 placeholder-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition-all text-center font-mono text-lg tracking-widest"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setUseBackupCode(false)}
+                    className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <Shield size={14} />
+                    Usar código do autenticador
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             type="submit"

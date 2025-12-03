@@ -28,7 +28,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             focus:outline-none transition-all duration-200 resize-none
             ${error
               ? 'border-error focus:border-error focus:ring-4 focus:ring-error/10'
-              : 'border-border focus: 'border-border focus:border-primary focus:ring-4 focus:ring-primary/10'
+              : 'border-border focus:border-primary focus:ring-4 focus:ring-primary/10'
             }
             disabled:bg-[#f1f5f9] disabled:text-[#94a3b8] disabled:cursor-not-allowed
             ${className}`}

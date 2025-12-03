@@ -1,7 +1,7 @@
 import { authenticator } from 'otplib'
 import QRCode from 'qrcode'
 import crypto from 'crypto'
-import { encrypt, decrypt } from '../middlewares/encryption'
+import { encrypt, decrypt } from '../lib/crypto'
 import { logInfo, logError } from '../lib/logger'
 
 /**

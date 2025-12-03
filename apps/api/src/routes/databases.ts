@@ -165,7 +165,7 @@ databases.post('/:id/backup', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: 'DATABASE_BACKUP' as any,
+      action: AuditActions.BACKUP_CREATED,
       resourceType: 'database',
       resourceId: id,
       metadata: { type, backupPath },

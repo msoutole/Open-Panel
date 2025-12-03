@@ -6,24 +6,29 @@ Este documento contém o status atual do projeto, planos futuros e histórico de
 
 ## 🗺️ Roadmap Atual
 
-**Última atualização**: Janeiro 2025
-**Status**: Em desenvolvimento ativo (Fase 4 - Testes)
+**Última atualização**: 03 de Dezembro de 2025
+**Status**: Em desenvolvimento ativo (Fase 4 - Testes & Integração de UI)
 
 ### ✅ Concluído (Fases 1-3)
+
 - **Infraestrutura**: Dockerfiles otimizados, Logging profissional, Health Checks.
-- **Segurança**: Headers de segurança, Rate Limiting, Autenticação JWT robusta, 2FA (TOTP).
+- **Segurança**: Headers de segurança, Rate Limiting, Autenticação JWT robusta, 2FA (Backend pronto).
 - **Qualidade**: CI/CD Pipeline, ESLint/Prettier, 115+ correções TypeScript.
-- **Funcionalidades**: 
-    - WebSockets para logs e **Terminal Interativo** (Implementado).
-    - Deploy de templates (Sistema base pronto, ~5 templates iniciais).
-    - Zero Downtime Deployments.
+- **Funcionalidades**:
+  - WebSockets para logs.
+  - **Deploy de Templates**: Backend e Frontend (Marketplace) implementados.
+  - Zero Downtime Deployments (Backend pronto).
 
 ### 🚧 Em Progresso (Fase 4)
+
+- **Integração de UI**:
+  - Conectar WebTerminal ao WebSocket real.
+  - Integrar fluxo de 2FA no Login e Settings.
 - **Testes Automatizados**: Aumentar cobertura para 60% (Unitários e Integração).
-- **Documentação**: Consolidação e tradução (Concluído).
 - **Templates**: Expandir catálogo de templates de aplicação (Meta: 100+).
 
 ### 🔮 Futuro (Fase 5+)
+
 - **Marketplace**: Sistema de plugins e templates da comunidade.
 - **Multi-Node**: Suporte a cluster Swarm ou Kubernetes.
 - **Billing**: Integração com Stripe/Gateway de pagamentos.
@@ -37,7 +42,7 @@ Abaixo o status dos planos encontrados na pasta `.cursor/plans`:
 
 | Plano                               | Status       | Notas                                                                                            |
 | ----------------------------------- | ------------ | ------------------------------------------------------------------------------------------------ |
-| `compara-o-easypanel-vs-open-panel` | 🟡 Parcial    | Terminal e Zero-Downtime implementados. Faltam os 120+ templates (sistema existe, conteúdo não). |
+| `compara-o-easypanel-vs-open-panel` | 🟡 Parcial    | Backend 100%. UI Templates 100%. Faltam: Integração 2FA e Terminal Real. |
 | `executar-corre-es-e-melhorias`     | ✅ Concluído  | Fases 1-3 de correções e melhorias finalizadas.                                                  |
 | `limpeza-de-branches-git`           | 🔄 Recorrente | Tarefa de manutenção contínua.                                                                   |
 | `melhorias-ui-responsiva`           | ✅ Concluído  | Diretrizes de design e melhorias implementadas.                                                  |

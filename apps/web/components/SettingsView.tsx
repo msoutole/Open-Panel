@@ -219,7 +219,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                 <UserIcon size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-textSecondary" />
                             </div>
                             <button
-                                onClick={handleInviteUser}
+                                onClick={() => void handleInviteUser()}
                                 className="text-sm bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md font-medium transition-all duration-200 active:scale-95"
                             >
                                 {LL.settings.addUser()}
@@ -560,7 +560,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
                                         <input type="text" placeholder="Personal Access Token" className="border border-slate-300 rounded px-3 py-2 text-sm" />
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={handleAddGitToken} className="bg-primary text-white text-xs px-4 py-2 rounded font-medium">Connect Account</button>
+                                        <button onClick={() => void handleAddGitToken()} className="bg-primary text-white text-xs px-4 py-2 rounded font-medium">Connect Account</button>
                                         <button onClick={() => setShowGitForm(false)} className="text-slate-500 text-xs px-4 py-2 hover:bg-slate-200 rounded font-medium">Cancel</button>
                                     </div>
                                 </div>

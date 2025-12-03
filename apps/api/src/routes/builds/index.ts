@@ -18,7 +18,7 @@ import { blueGreenDeployHandler, rollbackHandler } from './handlers/blue-green'
 const builds = new Hono<{ Variables: Variables }>()
 
 // POST /api/builds - Criar novo build/deployment
-builds.post('/', createBuildHandler)
+builds.post('/', ...createBuildHandler)
 
 // GET /api/builds/project/:projectId - Listar deployments de um projeto
 // IMPORTANTE: Rotas mais específicas devem vir antes de rotas genéricas
@@ -31,10 +31,10 @@ builds.get('/:id', readBuildHandler)
 builds.post('/detect', detectProjectTypeHandler)
 
 // POST /api/builds/blue-green - Blue-green deployment (zero-downtime)
-builds.post('/blue-green', blueGreenDeployHandler)
+builds.post('/blue-green', ...blueGreenDeployHandler)
 
 // POST /api/builds/rollback - Rollback to previous container
-builds.post('/rollback', rollbackHandler)
+builds.post('/rollback', ...rollbackHandler)
 
 // TODO: Adicionar handlers para webhooks quando necessário
 // POST /api/builds/webhooks/github - Webhook do GitHub

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { getErrorMessage } from '../src/utils/error';
 
 interface ErrorState {
   message: string;
@@ -25,18 +26,9 @@ export const useErrorHandler = () => {
     // Log do erro no console para debugging
     console.error(`[Error Handler${context ? ` - ${context}` : ''}]:`, err);
 
-    let message = 'An unexpected error occurred';
-    let code = 'UNKNOWN';
-
-    // Extrair mensagem baseado no tipo do erro
-    if (err instanceof Error) {
-      message = err.message;
-    } else if (typeof err === 'string') {
-      message = err;
-    } else if (err && typeof err === 'object' && 'message' in err) {
-      message = String((err as any).message);
-      code = (err as any).code || code;
-    }
+    const extracted = getErrorMessage(err);
+    let message = extracted.message;
+    let code = extracted.code ?? 'UNKNOWN';
 
     setError({
       message,

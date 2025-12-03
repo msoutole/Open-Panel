@@ -285,6 +285,7 @@ export class DatabaseClientService {
     type: DatabaseType
   ): Promise<DatabaseConnection | null> {
     try {
+      // 1. Get container from database for credentials
       const container = await prisma.container.findUnique({
         where: { dockerId: containerId },
         include: {
@@ -300,19 +301,78 @@ export class DatabaseClientService {
         return null
       }
 
-      // Get connection info from environment variables
+      // 2. Get running container info from Docker for Network/Port
+      const { dockerService } = await import('./docker')
+      const { isDevelopment } = await import('../lib/env')
+      
+      const inspect = await dockerService.getContainer(containerId)
+      if (!inspect) {
+        throw new Error('Container is not running')
+      }
+
+      // Determine internal port based on type
+      let internalPort = 5432
+      switch (type) {
+        case 'postgresql': internalPort = 5432; break
+        case 'mysql': internalPort = 3306; break
+        case 'mariadb': internalPort = 3306; break
+        case 'mongodb': internalPort = 27017; break
+        case 'redis': internalPort = 6379; break
+      }
+
+      let host = 'localhost'
+      let port = internalPort
+
+      if (isDevelopment) {
+        // In development: Connect via localhost + exposed port
+        const portKey = `${internalPort}/tcp`
+        const bindings = inspect.NetworkSettings.Ports?.[portKey]
+        
+        if (bindings && bindings.length > 0 && bindings[0].HostPort) {
+          port = parseInt(bindings[0].HostPort, 10)
+        } else {
+          // Fallback: If not exposed, try internal IP (might work if VPN/routing exists)
+          // But usually this means "not accessible"
+          logWarn(`Port ${internalPort} not exposed for container ${containerId}, trying localhost defaults`)
+        }
+      } else {
+        // In production (inside Docker network): Connect via Container IP or Name
+        // Try to get IP from the first network
+        const networks = inspect.NetworkSettings.Networks
+        const networkName = Object.keys(networks)[0]
+        
+        if (networkName && networks[networkName]?.IPAddress) {
+          host = networks[networkName].IPAddress
+        } else if (inspect.NetworkSettings.IPAddress) {
+          host = inspect.NetworkSettings.IPAddress
+        } else {
+          // Fallback to container name (DNS resolution in Docker user-defined networks)
+          host = inspect.Name.replace('/', '')
+        }
+      }
+
+      // Get connection info from environment variables (DB Credentials)
       const envVars: Record<string, string> = {}
-      container.project.envVars.forEach((env) => {
-        envVars[env.key] = env.value
-      })
+      if (container.envVars) {
+        // Use container's specific env vars first
+        ;(container.envVars as any[]).forEach((env: any) => {
+          envVars[env.key] = env.value
+        })
+      }
+      // Also merge project env vars if needed (usually DB vars are on service/container level)
+      if (container.project?.envVars) {
+        container.project.envVars.forEach((env) => {
+          if (!envVars[env.key]) envVars[env.key] = env.value
+        })
+      }
 
       // Extract connection info based on database type
       switch (type) {
         case 'postgresql':
           return {
             type: 'postgresql',
-            host: 'localhost',
-            port: 5432, // Will be mapped from container port
+            host,
+            port,
             database: envVars.POSTGRES_DB || 'app',
             username: envVars.POSTGRES_USER || 'admin',
             password: envVars.POSTGRES_PASSWORD || '',
@@ -322,8 +382,8 @@ export class DatabaseClientService {
         case 'mariadb':
           return {
             type,
-            host: 'localhost',
-            port: 3306,
+            host,
+            port,
             database: envVars.MYSQL_DATABASE || envVars.MARIADB_DATABASE || 'app',
             username: envVars.MYSQL_USER || envVars.MARIADB_USER || 'admin',
             password: envVars.MYSQL_PASSWORD || envVars.MARIADB_PASSWORD || '',
@@ -332,8 +392,8 @@ export class DatabaseClientService {
         case 'mongodb':
           return {
             type: 'mongodb',
-            host: 'localhost',
-            port: 27017,
+            host,
+            port,
             database: envVars.MONGO_INITDB_DATABASE || 'app',
             username: envVars.MONGO_INITDB_ROOT_USERNAME || 'admin',
             password: envVars.MONGO_INITDB_ROOT_PASSWORD || '',
@@ -342,8 +402,8 @@ export class DatabaseClientService {
         case 'redis':
           return {
             type: 'redis',
-            host: 'localhost',
-            port: 6379,
+            host,
+            port,
             database: '0',
             username: '',
             password: envVars.REDIS_PASSWORD || '',

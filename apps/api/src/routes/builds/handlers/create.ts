@@ -6,6 +6,7 @@
 
 import { Context } from 'hono'
 import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
 import { HTTPException } from 'hono/http-exception'
 import { buildService } from '../../../services/build'
 import { gitService } from '../../../services/git'
@@ -36,9 +37,8 @@ import { createBuildSchema } from '../validators'
  * @throws {HTTPException} 404 - Projeto não encontrado
  * @throws {HTTPException} 500 - Erro interno do servidor
  */
-export const createBuildHandler = zValidator(
-  'json',
-  createBuildSchema,
+export const createBuildHandler = [
+  zValidator('json', createBuildSchema),
   async (c: Context<{ Variables: Variables }>) => {
     try {
       const user = c.get('user')
@@ -46,7 +46,7 @@ export const createBuildHandler = zValidator(
         throw new HTTPException(401, { message: 'Unauthorized' })
       }
 
-      const data = c.req.valid('json')
+      const data = c.req.valid('json' as never) as z.infer<typeof createBuildSchema>
 
       // Verificar se projeto existe e usuário tem acesso
       const project = await prisma.project.findFirst({
@@ -98,5 +98,5 @@ export const createBuildHandler = zValidator(
       throw new HTTPException(500, { message: 'Failed to create build' })
     }
   }
-)
+]
 

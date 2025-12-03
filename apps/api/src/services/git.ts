@@ -379,8 +379,8 @@ export class GitService {
 
       return {
         repository: {
-          url: payload.repository.clone_url || payload.repository.url,
-          fullName: payload.repository.full_name,
+          url: payload.repository.clone_url || payload.repository.url || '',
+          fullName: payload.repository.full_name || '',
         },
         ref: payload.ref,
         commits: (payload.commits || []).map((commit: any) => ({
@@ -393,8 +393,8 @@ export class GitService {
           timestamp: commit.timestamp,
         })),
         pusher: {
-          name: payload.pusher.name,
-          email: payload.pusher.email,
+          name: payload.pusher?.name || '',
+          email: payload.pusher?.email || '',
         },
       }
     } catch (error) {
@@ -451,8 +451,8 @@ export class GitService {
 
       return {
         repository: {
-          url: payload.project.git_http_url,
-          fullName: payload.project.path_with_namespace,
+          url: payload.project.git_http_url || '',
+          fullName: payload.project.path_with_namespace || '',
         },
         ref: payload.ref,
         commits: (payload.commits || []).map((commit: any) => ({
@@ -465,8 +465,8 @@ export class GitService {
           timestamp: commit.timestamp,
         })),
         pusher: {
-          name: payload.user_name,
-          email: payload.user_email,
+          name: payload.user_name || '',
+          email: payload.user_email || '',
         },
       }
     } catch (error) {
@@ -550,16 +550,16 @@ export class GitService {
           }
           date?: string
         }) => ({
-          id: commit.hash,
-          message: commit.message,
+          id: commit.hash || '',
+          message: commit.message || '',
           author: {
-            name: commit.author.raw.split('<')[0].trim(),
-            email: commit.author.raw.match(/<(.+)>/)?.[1] || '',
+            name: commit.author?.raw?.split('<')[0].trim() || '',
+            email: commit.author?.raw?.match(/<(.+)>/)?.[1] || '',
           },
-          timestamp: commit.date,
+          timestamp: commit.date || '',
         })),
         pusher: {
-          name: payload.actor.display_name,
+          name: payload.actor?.display_name || '',
           email: '',
         },
       }

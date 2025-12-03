@@ -58,7 +58,9 @@
     "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.3.0"
+    "prettier": "^3.3.0",
+    "prisma": "^7.1.0",
+    "typescript-eslint": "^8.48.1"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -81,5 +83,8 @@
   "bugs": {
     "url": "https://github.com/msoutole/openpanel/issues"
   },
-  "homepage": "https://github.com/msoutole/openpanel#readme"
+  "homepage": "https://github.com/msoutole/openpanel#readme",
+  "dependencies": {
+    "@prisma/client": "^7.1.0"
+  }
 }

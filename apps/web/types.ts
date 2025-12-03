@@ -175,7 +175,7 @@ export interface GitToken {
   status: 'active' | 'error' | 'expired';
 }
 
-export type ViewState = 'login' | 'dashboard' | 'project_details' | 'settings' | 'users' | 'backups' | 'security' | 'monitor';
+export type ViewState = 'login' | 'dashboard' | 'project_details' | 'settings' | 'users' | 'backups' | 'security' | 'monitor' | 'profile';
 
 // --- AI Agent & MCP Types ---
 

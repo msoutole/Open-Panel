@@ -232,7 +232,7 @@ export const Header: React.FC<HeaderProps> = ({ title, onLogout, onMenuToggle, o
                       <button 
                         onClick={() => {
                           setIsProfileOpen(false);
-                          onNavigate?.('users');
+                          onNavigate?.('profile');
                         }}
                         className="w-full text-left px-4 py-2.5 text-sm text-textSecondary hover:bg-background hover:text-primary flex items-center gap-3 transition-colors duration-150"
                         aria-label={LL.header.profileSettings()}

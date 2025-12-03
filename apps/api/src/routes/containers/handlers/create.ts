@@ -6,6 +6,7 @@
 
 import { Context } from 'hono'
 import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../../../types'
 import { ContainerService } from '../../../services/container.service'
@@ -30,9 +31,8 @@ import { createContainerSchema } from '../validators'
  * @throws {HTTPException} 400 - Dados inválidos
  * @throws {HTTPException} 500 - Erro interno do servidor
  */
-export const createContainerHandler = zValidator(
-  'json',
-  createContainerSchema,
+export const createContainerHandler = [
+  zValidator('json', createContainerSchema),
   async (c: Context<{ Variables: Variables }>) => {
     try {
       const user = c.get('user')
@@ -40,7 +40,7 @@ export const createContainerHandler = zValidator(
         throw new HTTPException(401, { message: 'Unauthorized' })
       }
 
-      const data = c.req.valid('json')
+      const data = c.req.valid('json' as never) as z.infer<typeof createContainerSchema>
       const container = await ContainerService.createContainer(data)
 
       return c.json(
@@ -57,5 +57,5 @@ export const createContainerHandler = zValidator(
       throw new HTTPException(500, { message: 'Failed to create container' })
     }
   }
-)
+]
 

@@ -5,6 +5,7 @@ import { DashboardView } from './components/DashboardView';
 import { ProjectDetails } from './components/ProjectDetails';
 import { SettingsView } from './components/SettingsView';
 import { SecurityView } from './components/SecurityView';
+import { ProfileView } from './components/ProfileView';
 import { Login } from './pages/Login';
 import { Onboarding } from './pages/Onboarding';
 import { GeminiChat } from './components/GeminiChat';
@@ -144,6 +145,8 @@ const AppContent: React.FC = () => {
         return LL.appTitles.projects();
       case 'security':
         return LL.appTitles.securityLogs();
+      case 'profile':
+        return LL.appTitles.profile();
       default:
         return LL.appTitles.panel();
     }
@@ -192,6 +195,10 @@ const AppContent: React.FC = () => {
 
           {currentView === 'security' && (
              <SecurityView />
+          )}
+
+          {currentView === 'profile' && (
+             <ProfileView />
           )}
         </main>
 

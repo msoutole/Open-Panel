@@ -6,6 +6,7 @@
 
 import { Context } from 'hono'
 import { zValidator } from '@hono/zod-validator'
+import { z } from 'zod'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../../../types'
 import { ContainerService } from '../../../services/container.service'
@@ -38,9 +39,8 @@ import { logsQuerySchema } from '../validators'
  * @throws {HTTPException} 404 - Container não encontrado
  * @throws {HTTPException} 500 - Erro interno do servidor
  */
-export const getContainerLogsHandler = zValidator(
-  'query',
-  logsQuerySchema,
+export const getContainerLogsHandler = [
+  zValidator('query', logsQuerySchema),
   async (c: Context<{ Variables: Variables }>) => {
     try {
       const user = c.get('user')
@@ -49,7 +49,7 @@ export const getContainerLogsHandler = zValidator(
       }
 
       const { id } = c.req.param()
-      const options = c.req.valid('query')
+      const options = c.req.valid('query' as never) as z.infer<typeof logsQuerySchema>
 
       const logs = await ContainerService.getContainerLogs(id, {
         stdout: options.stdout,
@@ -68,5 +68,5 @@ export const getContainerLogsHandler = zValidator(
       throw new HTTPException(500, { message: 'Failed to get container logs' })
     }
   }
-)
+]
 

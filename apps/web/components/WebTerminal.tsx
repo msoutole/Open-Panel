@@ -1,19 +1,156 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
-import { X, Maximize2, Minimize2, Terminal as TerminalIcon, Power, Play, Square } from 'lucide-react';
+import { X, Maximize2, Minimize2, Terminal as TerminalIcon, Power, Play, Square, Loader2 } from 'lucide-react';
 
 interface WebTerminalProps {
   onClose: () => void;
   serviceName?: string;
+  containerId?: string;
 }
 
-export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName = 'system' }) => {
+type TerminalStatus = 'connecting' | 'connected' | 'disconnected' | 'error' | 'authenticated';
+
+export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName = 'system', containerId }) => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [status, setStatus] = useState<'connected' | 'disconnected'>('connected');
+  const [status, setStatus] = useState<TerminalStatus>('connecting');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Helper to get WS URL
+  const getWsUrl = () => {
+    const envUrl = import.meta.env.VITE_API_URL;
+    const isDev = import.meta.env.DEV;
+    
+    let baseUrl = '';
+    if (isDev) {
+      // In dev, we assume the API is running on port 3001
+      // If VITE_API_URL is set, use it, otherwise default to localhost:3001
+      baseUrl = envUrl || 'http://localhost:3001';
+    } else {
+      // In production, use the provided env var or fallback to current origin
+      baseUrl = envUrl || window.location.origin;
+    }
+
+    // Ensure protocol is ws/wss
+    if (baseUrl.startsWith('http')) {
+      return baseUrl.replace(/^http/, 'ws') + '/ws/terminal';
+    } else if (baseUrl.startsWith('https')) {
+        return baseUrl.replace(/^https/, 'wss') + '/ws/terminal';
+    }
+    
+    // If no protocol, assume it's relative or needs protocol prepended
+    // For relative URLs in prod (same domain), use location.protocol
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    if (baseUrl.startsWith('/')) {
+        return `${protocol}//${window.location.host}${baseUrl}/ws/terminal`;
+    }
+
+    return `${protocol}//${baseUrl}/ws/terminal`;
+  };
+
+  const connect = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+
+    try {
+      setStatus('connecting');
+      setErrorMessage(null);
+      
+      const ws = new WebSocket(getWsUrl());
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        // Connection opened, waiting for 'connected' message from server
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleMessage(msg);
+        } catch (e) {
+          console.error('Failed to parse terminal message', e);
+        }
+      };
+
+      ws.onclose = (e) => {
+        setStatus('disconnected');
+        if (e.reason) {
+            setErrorMessage(`Connection closed: ${e.reason}`);
+        }
+      };
+
+      ws.onerror = () => {
+        setStatus('error');
+        setErrorMessage('Connection error');
+      };
+
+    } catch (e) {
+      setStatus('error');
+      setErrorMessage(e instanceof Error ? e.message : 'Failed to connect');
+    }
+  }, [containerId]);
+
+  const handleMessage = (msg: any) => {
+    const ws = wsRef.current;
+    const term = xtermRef.current;
+
+    switch (msg.type) {
+      case 'connected':
+        // Server ready, send auth
+        const token = localStorage.getItem('openpanel_access_token');
+        if (token && ws) {
+          ws.send(JSON.stringify({ type: 'auth', token }));
+        } else {
+          setStatus('error');
+          setErrorMessage('No authentication token found');
+        }
+        break;
+
+      case 'auth_success':
+        setStatus('authenticated');
+        // Auth success, open terminal
+        if (containerId && ws) {
+          ws.send(JSON.stringify({ 
+            type: 'open_terminal', 
+            containerId,
+            shell: '/bin/bash' // Default shell, maybe make configurable?
+          }));
+        } else {
+            term?.writeln('\x1b[31mError: Container ID missing.\x1b[0m');
+        }
+        break;
+
+      case 'auth_error':
+        setStatus('error');
+        setErrorMessage(msg.message || 'Authentication failed');
+        term?.writeln(`\r\n\x1b[31mAuthentication Error: ${msg.message}\x1b[0m`);
+        break;
+
+      case 'terminal_opened':
+        setStatus('connected');
+        term?.writeln(`\r\n\x1b[32m✔\x1b[0m Terminal session started for \x1b[1;34m${serviceName}\x1b[0m\r\n`);
+        term?.focus();
+        break;
+
+      case 'output':
+        term?.write(msg.data);
+        break;
+
+      case 'error':
+        term?.writeln(`\r\n\x1b[31mError: ${msg.message}\x1b[0m`);
+        break;
+        
+      case 'terminal_closed':
+        term?.writeln('\r\n\x1b[33mTerminal session closed.\x1b[0m');
+        setStatus('disconnected');
+        break;
+    }
+  };
 
   useEffect(() => {
     if (!terminalRef.current) return;
@@ -57,94 +194,79 @@ export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName =
     xtermRef.current = term;
     fitAddonRef.current = fitAddon;
 
-    // Initial greeting and mock connection
-    term.writeln(`\x1b[32m✔\x1b[0m Connected to \x1b[1;34m${serviceName}\x1b[0m via OpenPanel Secure Shell`);
-    term.writeln(`\x1b[2mType 'help' for available commands.\x1b[0m`);
-    term.write('\r\n$ ');
+    term.writeln(`\x1b[2mConnecting to ${serviceName}...[0m`);
 
     // Handle Resize
-    const handleResize = () => fitAddon.fit();
+    const handleResize = () => {
+        fitAddon.fit();
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'resize',
+                cols: term.cols,
+                rows: term.rows
+            }));
+        }
+    };
     window.addEventListener('resize', handleResize);
+    
+    // Also resize when terminal opens
+    term.onResize((size) => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'resize',
+                cols: size.cols,
+                rows: size.rows
+            }));
+        }
+    });
 
-    // Basic Shell Simulation
-    let currentLine = '';
-    term.onData(e => {
-      switch (e) {
-        case '\r': // Enter
-          term.write('\r\n');
-          if (currentLine.trim()) {
-             processCommand(term, currentLine.trim());
-          } else {
-             term.write('$ ');
-          }
-          currentLine = '';
-          break;
-        case '\u007F': // Backspace
-          if (currentLine.length > 0) {
-            term.write('\b \b');
-            currentLine = currentLine.substring(0, currentLine.length - 1);
-          }
-          break;
-        default:
-          // Simple filtering for printable characters
-          if (e >= ' ' && e <= '~') {
-              term.write(e);
-              currentLine += e;
-          }
+    // Handle Input
+    term.onData(data => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
+            type: 'input',
+            data
+        }));
       }
     });
 
+    // Connect to WebSocket
+    connect();
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
       term.dispose();
     };
-  }, [serviceName]);
+  }, [serviceName, containerId]); // Re-init if containerId changes
 
   // Adjust fit when maximized changes
   useEffect(() => {
       setTimeout(() => {
           fitAddonRef.current?.fit();
-      }, 300); // Wait for transition
+          // Send resize event
+          if (xtermRef.current && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+             wsRef.current.send(JSON.stringify({
+                type: 'resize',
+                cols: xtermRef.current.cols,
+                rows: xtermRef.current.rows
+             }));
+          }
+      }, 300); 
   }, [isMaximized]);
 
-  const processCommand = (term: Terminal, cmd: string) => {
-      switch (cmd) {
-          case 'help':
-              term.writeln('Available commands:');
-              term.writeln('  help     Show this help message');
-              term.writeln('  clear    Clear the terminal screen');
-              term.writeln('  status   Show service status');
-              term.writeln('  logs     Tail recent logs');
-              term.writeln('  exit     Close the terminal session');
-              break;
-          case 'clear':
-              term.clear();
-              break;
-          case 'status':
-              term.writeln(`Service: ${serviceName}`);
-              term.writeln('Uptime: 14d 2h 12m');
-              term.writeln('CPU: 12%  MEM: 450MB');
-              break;
-          case 'logs':
-              term.writeln('[INFO] Starting application...');
-              term.writeln('[INFO] Listening on port 8080');
-              term.writeln('[WARN] High latency on DB connection');
-              term.writeln('[INFO] Health check passed');
-              break;
-          case 'exit':
-              onClose();
-              return;
-          default:
-              term.writeln(`bash: ${cmd}: command not found`);
-      }
-      term.write('$ ');
+  const handleReconnect = () => {
+      xtermRef.current?.reset();
+      connect();
   };
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isMaximized ? 'p-0' : 'bg-slate-900/50 backdrop-blur-sm'}`}>
       <div 
-        className={`bg-[#1a1d21] rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 border border-slate-700 ${
-            isMaximized ? 'w-full h-full rounded-none' : 'w-[800px] h-[500px]'
+        className={`bg-[#1a1d21] rounded-xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 border border-slate-700 ${ 
+            isMaximized ? 'w-full h-full rounded-none' : 'w-[800px] h-[500px]' 
         }`}
       >
         {/* Terminal Header */}
@@ -152,14 +274,17 @@ export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName =
             <div className="flex items-center gap-3">
                 <TerminalIcon size={14} className="text-slate-400" />
                 <span className="text-xs font-mono text-slate-300">root@{serviceName}:~</span>
-                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${status === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    {status === 'connected' ? 'Connected' : 'Offline'}
+                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${ 
+                    status === 'connected' || status === 'authenticated' ? 'bg-green-500/20 text-green-400' : 
+                    status === 'connecting' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'
+                }`}>
+                    {status}
                 </div>
             </div>
             
             <div className="flex items-center gap-2">
                 <button 
-                    onClick={() => setStatus(s => s === 'connected' ? 'disconnected' : 'connected')}
+                    onClick={handleReconnect}
                     className="p-1.5 text-slate-500 hover:text-white rounded transition-colors"
                     title="Restart Session"
                 >
@@ -185,23 +310,26 @@ export const WebTerminal: React.FC<WebTerminalProps> = ({ onClose, serviceName =
         <div className="flex-1 p-4 overflow-hidden bg-[#1a1d21] relative">
             <div ref={terminalRef} className="w-full h-full" />
             
-            {status === 'disconnected' && (
+            {(status === 'disconnected' || status === 'error') && (
                 <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-slate-400 z-10 backdrop-blur-[1px]">
                     <div className="text-red-500 mb-2 font-bold flex items-center gap-2">
                         <Square size={16} fill="currentColor" /> Disconnected
                     </div>
-                    <p className="text-sm mb-4">Socket connection lost to remote host.</p>
+                    <p className="text-sm mb-4">{errorMessage || 'Socket connection lost to remote host.'}</p>
                     <button 
-                        onClick={() => {
-                            setStatus('connected');
-                            xtermRef.current?.writeln('\r\n\x1b[32m✔\x1b[0m Reconnecting...\r\n$ ');
-                            xtermRef.current?.focus();
-                        }} 
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                        onClick={handleReconnect} 
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                     >
                         <Play size={14} fill="currentColor" /> Reconnect
                     </button>
                 </div>
+            )}
+
+            {status === 'connecting' && (
+                 <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-slate-400 z-10">
+                    <Loader2 size={32} className="animate-spin mb-2 text-blue-500" />
+                    <p className="text-xs">Establishing secure connection...</p>
+                 </div>
             )}
         </div>
       </div>
