@@ -1,5 +1,7 @@
 # OpenPanel 🚀
 
+![CI](https://github.com/msoutole/openpanel/actions/workflows/ci.yml/badge.svg)
+
 <div align="center">
 
 ![Status](https://img.shields.io/badge/status-active-success.svg)

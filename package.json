@@ -1,5 +1,5 @@
 {
-  "name": "Open Panel",
+  "name": "open-panel",
   "version": "0.2.0",
   "private": true,
   "description": "Modern self-hosted server control panel with AI-powered assistance",
@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/msoutole/openpanel.git"
+    "url": "git+https://github.com/msoutole/openpanel.git"
   },
   "keywords": [
     "docker",
@@ -41,6 +41,8 @@
     "check-secrets": "bash scripts/check-secrets.sh",
     "check-secrets:win": "powershell scripts/check-secrets.ps1",
     "rotate-credentials": "bash scripts/rotate-credentials.sh",
+    "validate:agents": "node scripts/validate-agents-frontmatter.js",
+    "validate:agents:win": "powershell scripts/validate-agents-frontmatter.ps1",
     "remove-secrets-from-history": "bash scripts/remove-secrets-from-history.sh"
   },
   "devDependencies": {
@@ -49,5 +51,14 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=10.0.0"
-  }
+  },
+  "main": "start.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/msoutole/openpanel/issues"
+  },
+  "homepage": "https://github.com/msoutole/openpanel#readme"
 }

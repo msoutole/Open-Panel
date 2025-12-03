@@ -1,7 +1,9 @@
 import { prisma } from '../../lib/prisma'
 import { hashPassword } from '../../lib/hash'
 import { generateAccessToken } from '../../lib/jwt'
-import type { User, UserRole } from '@prisma/client'
+import { Prisma, UserRole } from '@prisma/client'
+
+type User = Prisma.UserGetPayload<object>
 
 export interface TestUser {
   id: string

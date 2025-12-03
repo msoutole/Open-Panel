@@ -31,7 +31,9 @@
       "Bash(npm run type-check:*)",
       "Bash(npm view:*)",
       "Bash(findstr:*)",
-      "Bash(npm run db:generate:*)"
+      "Bash(npm run db:generate:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []

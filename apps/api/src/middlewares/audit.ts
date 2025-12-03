@@ -1,6 +1,6 @@
 import { Context } from 'hono'
 import { queueAuditLog, createAuditLogSync } from '../queues/audit-queue'
-import type { AuditAction } from '@prisma/client'
+import { AuditAction } from '@prisma/client'
 
 /**
  * Audit log middleware helper
