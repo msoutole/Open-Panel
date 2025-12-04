@@ -231,9 +231,11 @@ O script de instalação configura automaticamente os seguintes domínios no `/e
 
 ### Domínios Reais (Produção)
 
-Para usar domínios reais em produção:
+Para usar domínios reais em produção, você tem duas opções:
 
-1. **Configurar DNS**: Aponte seu domínio para o IP do servidor
+#### Opção 1: IP Estático (Recomendado para servidores VPS)
+
+1. **Configurar DNS**: Aponte seu domínio diretamente para o IP do servidor
    ```
    A     openpanel.local        -> IP_DO_SERVIDOR
    A     dev.openpanel.local    -> IP_DO_SERVIDOR
@@ -247,7 +249,46 @@ Para usar domínios reais em produção:
    SSL_EMAIL=seu-email@exemplo.com
    ```
 
+#### Opção 2: IP Dinâmico com No-IP + Hostinger (Recomendado para Home Lab)
+
+Para servidores com IP dinâmico (Home Lab), use No-IP + Hostinger DNS:
+
+1. **Instalar e configurar No-IP DUC**:
+   ```bash
+   ./scripts/setup/install-noip-duc.sh
+   ```
+
+2. **Configurar DNS na Hostinger**:
+   - 📖 **Veja o guia completo**: [HOSTINGER_DNS_CONFIG.md](./HOSTINGER_DNS_CONFIG.md)
+   - Script auxiliar: `./scripts/setup/configure-hostinger-dns.sh soullabs.com.br seuusuario.ddns.net adguard traefik`
+   
+   O script fornecerá instruções detalhadas para criar registros CNAME no painel da Hostinger.
+
+3. **Atualizar .env.prod**:
+   ```bash
+   APP_URL=https://panel.soullabs.com.br
+   DOMAIN=soullabs.com.br
+   SSL_EMAIL=seu-email@exemplo.com
+   ```
+
+**Fluxo de Requisição (No-IP + Hostinger)**:
+```
+Cliente → subdominio.soullabs.com.br
+    ↓
+Hostinger DNS (CNAME → seuusuario.ddns.net)
+    ↓
+No-IP (resolve para IP público atual)
+    ↓
+Roteador (port forwarding)
+    ↓
+Traefik (porta 80/443)
+    ↓
+Serviço
+```
+
 3. **Traefik configurará SSL automaticamente** via Let's Encrypt
+
+> **💡 Dica**: Para Home Labs com IP dinâmico, a combinação No-IP + Hostinger DNS é a solução ideal. Veja a documentação completa em [HOSTINGER_DNS_CONFIG.md](./HOSTINGER_DNS_CONFIG.md).
 
 ## 🔒 Segurança
 

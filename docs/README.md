@@ -55,6 +55,36 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 
 ## 📋 Documentos de Referência
 
+### Configuração de Servidor e Infraestrutura
+
+| Documento | Descrição |
+| --------- | --------- |
+| [INSTALACAO_SERVIDOR.md](./INSTALACAO_SERVIDOR.md) | Guia de instalação em servidor Ubuntu |
+| [TAILSCALE_SETUP.md](./TAILSCALE_SETUP.md) | Configuração do Tailscale para acesso remoto |
+| [HOME_LAB_SETUP.md](./HOME_LAB_SETUP.md) | Configuração completa de Home Lab |
+| [ADGUARD_HOME.md](./ADGUARD_HOME.md) | Integração com AdGuard Home para DNS e filtros |
+| [DOMINIO_EXTERNO.md](./DOMINIO_EXTERNO.md) | Configuração de domínio externo |
+
+### Integração Hostinger
+
+| Documento | Descrição |
+| --------- | --------- |
+| [HOSTINGER_MCP_INDEX.md](./HOSTINGER_MCP_INDEX.md) | Índice principal da integração Hostinger MCP |
+| [HOSTINGER_MCP_QUICKSTART.md](./HOSTINGER_MCP_QUICKSTART.md) | Início rápido com Hostinger MCP |
+| [HOSTINGER_MCP_INTEGRATION.md](./HOSTINGER_MCP_INTEGRATION.md) | Guia completo de integração Hostinger MCP |
+| [HOSTINGER_MCP_TOOLS_REFERENCE.md](./HOSTINGER_MCP_TOOLS_REFERENCE.md) | Referência de ferramentas MCP |
+| [HOSTINGER_MCP_IMPLEMENTATION_SUMMARY.md](./HOSTINGER_MCP_IMPLEMENTATION_SUMMARY.md) | Resumo da implementação |
+| [HOSTINGER_MCP_USAGE.md](./HOSTINGER_MCP_USAGE.md) | Como usar as ferramentas MCP |
+| [HOSTINGER_DNS_CONFIG.md](./HOSTINGER_DNS_CONFIG.md) | Configuração de DNS na Hostinger |
+| [HOSTINGER_DNS_QUICKSTART.md](./HOSTINGER_DNS_QUICKSTART.md) | Início rápido DNS Hostinger |
+| [HOSTINGER_DDNS_INDEX.md](./HOSTINGER_DDNS_INDEX.md) | Índice DDNS Hostinger |
+| [HOSTINGER_DDNS_SETUP.md](./HOSTINGER_DDNS_SETUP.md) | Configuração de DDNS |
+| [HOSTINGER_DDNS_QUICKSTART_INTEGRATION.md](./HOSTINGER_DDNS_QUICKSTART_INTEGRATION.md) | Integração rápida DDNS |
+| [HOSTINGER_DDNS_REFERENCE.md](./HOSTINGER_DDNS_REFERENCE.md) | Referência DDNS |
+| [HOSTINGER_DDNS_ENTREGA_COMPLETA.md](./HOSTINGER_DDNS_ENTREGA_COMPLETA.md) | Entrega completa DDNS |
+
+### Desenvolvimento e Manutenção
+
 | Documento | Descrição |
 | --------- | --------- |
 | [PLANO.md](./PLANO.md) | Plano de implementação consolidado (EasyPanel vs OpenPanel) |

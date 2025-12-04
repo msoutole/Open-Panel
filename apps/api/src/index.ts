@@ -71,6 +71,7 @@ import metrics from './routes/metrics'
 import audit from './routes/audit'
 import stats from './routes/stats'
 import templates from './routes/templates'
+import hostinger from './routes/hostinger'
 
 // Import middlewares
 import { authMiddleware } from './middlewares/auth'
@@ -197,6 +198,7 @@ app.route('/api/metrics', metrics)
 app.route('/api/audit', audit)
 app.route('/api/stats', stats)
 app.route('/api/templates', templates)
+app.route('/api/hostinger', hostinger)
 
 app.get('/api/protected', (c) => {
   const user = c.get('user')
