@@ -135,6 +135,29 @@ services:
       - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.service=api@internal"
 
+  # AdGuard Home para DNS local e bloqueio de anúncios (opcional - use profile: adguard)
+  adguard:
+    profiles: [ "adguard" ]
+    image: adguard/adguardhome:latest
+    container_name: openpanel-adguard
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "3000:3000/tcp"  # Painel admin (ou outra porta se conflitar)
+      - "853:853/tcp"     # DNS-over-HTTPS
+      - "784:784/udp"     # DNS-over-QUIC
+    volumes:
+      - adguard-work:/opt/adguardhome/work
+      - adguard-conf:/opt/adguardhome/conf
+    networks:
+      - openpanel
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adguard.rule=Host(`adguard.openpanel.local`) || Host(`adguard.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.adguard.entrypoints=web"
+      - "traefik.http.services.adguard.loadbalancer.server.port=3000"
+
   # Ollama para modelos de IA locais (opcional - use profile: ollama)
   ollama:
     profiles: [ "ollama" ]
@@ -405,6 +428,10 @@ volumes:
   traefik-data:
     driver: local
   tailscale-state:
+    driver: local
+  adguard-work:
+    driver: local
+  adguard-conf:
     driver: local
 
 # Rede Docker para comunicação entre containers

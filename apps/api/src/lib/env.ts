@@ -162,6 +162,45 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((val) => val === 'true'),
+
+  // Hostinger API (optional, for DDNS and DNS management)
+  HOSTINGER_API_TOKEN: z
+    .string()
+    .optional()
+    .describe('Hostinger API Bearer Token for DNS management'),
+
+  HOSTINGER_API_URL: z
+    .string()
+    .url()
+    .optional()
+    .default('https://api.hostinger.com/v1')
+    .describe('Hostinger API base URL'),
+
+  HOSTINGER_API_TIMEOUT: z
+    .string()
+    .optional()
+    .default('10000')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1000)),
+
+  // DDNS Configuration (optional)
+  DDNS_DOMAIN: z
+    .string()
+    .optional()
+    .describe('Main domain for DDNS updates'),
+
+  DDNS_SUBDOMAIN: z
+    .string()
+    .optional()
+    .describe('Subdomain for DDNS updates (e.g., "home")'),
+
+  DDNS_CHECK_INTERVAL: z
+    .string()
+    .optional()
+    .default('300000')
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(60000))
+    .describe('DDNS check interval in milliseconds (default: 5 min)'),
 })
 
 // Type for validated environment variables
