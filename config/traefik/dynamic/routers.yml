@@ -1,0 +1,92 @@
+# ============================================================================
+# OpenPanel - Traefik Dynamic Configuration
+# ============================================================================
+# Configuração de roteamento para múltiplos ambientes
+# Este arquivo é lido automaticamente pelo Traefik
+# ============================================================================
+
+http:
+  routers:
+    # Ambiente DEV
+    api-dev:
+      rule: "Host(`dev.openpanel.local`) || Host(`dev.${DOMAIN:-localhost}`)"
+      service: api-dev
+      entryPoints:
+        - web
+      priority: 10
+
+    web-dev:
+      rule: "Host(`dev.openpanel.local`) || Host(`dev.${DOMAIN:-localhost}`)"
+      service: web-dev
+      entryPoints:
+        - web
+      priority: 20  # Prioridade maior para servir frontend
+
+    # Ambiente PRE
+    api-pre:
+      rule: "Host(`pre.openpanel.local`) || Host(`pre.${DOMAIN:-localhost}`)"
+      service: api-pre
+      entryPoints:
+        - web
+      priority: 10
+
+    web-pre:
+      rule: "Host(`pre.openpanel.local`) || Host(`pre.${DOMAIN:-localhost}`)"
+      service: web-pre
+      entryPoints:
+        - web
+      priority: 20
+
+    # Ambiente PROD
+    api-prod:
+      rule: "Host(`openpanel.local`) || Host(`${DOMAIN:-localhost}`)"
+      service: api-prod
+      entryPoints:
+        - websecure
+      priority: 10
+      tls:
+        certResolver: letsencrypt
+
+    web-prod:
+      rule: "Host(`openpanel.local`) || Host(`${DOMAIN:-localhost}`)"
+      service: web-prod
+      entryPoints:
+        - websecure
+      priority: 20  # Prioridade maior para servir frontend
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    # Serviços DEV
+    api-dev:
+      loadBalancer:
+        servers:
+          - url: "http://openpanel-api-dev:3001"
+
+    web-dev:
+      loadBalancer:
+        servers:
+          - url: "http://openpanel-web-dev:3000"
+
+    # Serviços PRE
+    api-pre:
+      loadBalancer:
+        servers:
+          - url: "http://openpanel-api-pre:3001"
+
+    web-pre:
+      loadBalancer:
+        servers:
+          - url: "http://openpanel-web-pre:80"
+
+    # Serviços PROD
+    api-prod:
+      loadBalancer:
+        servers:
+          - url: "http://openpanel-api-prod:3001"
+
+    web-prod:
+      loadBalancer:
+        servers:
+          - url: "http://openpanel-web-prod:80"
+

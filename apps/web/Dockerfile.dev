@@ -1,6 +1,9 @@
 # Dockerfile para OpenPanel Web (Desenvolvimento)
 FROM node:20-alpine
 
+# Instalar dependências do sistema
+RUN apk add --no-cache git
+
 # Criar diretório de trabalho
 WORKDIR /app
 
@@ -10,14 +13,18 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 
-# Instalar dependências
+# Instalar dependências (incluindo devDependencies para Vite)
 RUN npm ci
 
-# Copiar arquivos da aplicação
-COPY . .
+# Copiar apenas arquivos de configuração necessários
+COPY apps/web/vite.config.ts ./apps/web/
+COPY apps/web/tsconfig.json ./apps/web/
+COPY packages/shared ./packages/shared
 
 # Expor porta
 EXPOSE 3000
 
 # Comando para iniciar em modo desenvolvimento (hot reload)
+# Vite já tem hot reload nativo
+# Volumes serão montados no docker-compose.yml
 CMD ["npm", "run", "dev:web"]

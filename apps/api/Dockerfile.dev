@@ -1,6 +1,9 @@
 # Dockerfile para OpenPanel API (Desenvolvimento)
 FROM node:20-alpine
 
+# Instalar dependências do sistema
+RUN apk add --no-cache git
+
 # Criar diretório de trabalho
 WORKDIR /app
 
@@ -10,17 +13,20 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 
-# Instalar dependências
+# Instalar dependências (incluindo devDependencies para tsx)
 RUN npm ci
 
-# Copiar arquivos da aplicação
-COPY . .
+# Copiar apenas arquivos necessários para build inicial
+COPY apps/api/prisma ./apps/api/prisma
+COPY packages/shared ./packages/shared
 
-# Gerar o cliente Prisma
-RUN npm run db:generate
+# Gerar o cliente Prisma (será regenerado quando volumes forem montados)
+RUN npm run db:generate || true
 
 # Expor porta
 EXPOSE 3001
 
 # Comando para iniciar em modo desenvolvimento (hot reload)
+# tsx watch já está configurado no package.json
+# Volumes serão montados no docker-compose.yml
 CMD ["npm", "run", "dev:api"]

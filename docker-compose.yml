@@ -1,12 +1,50 @@
 # ============================================================================
-# OpenPanel - Docker Compose
+# OpenPanel - Docker Compose Multi-Ambiente
 # ============================================================================
-# Este arquivo define apenas os serviços de infraestrutura (PostgreSQL, Redis, Traefik)
-# A API e Web rodam localmente via npm run dev para desenvolvimento mais rápido
+# Este arquivo suporta múltiplos ambientes usando Docker Compose profiles:
+# - Infraestrutura compartilhada (sempre ativa): PostgreSQL, Redis, Traefik
+# - Ambiente DEV: desenvolvimento com hot reload (--profile dev)
+# - Ambiente PRE: staging/preview (--profile pre)
+# - Ambiente PROD: produção (--profile prod)
+#
+# Uso:
+#   docker compose up -d                    # Apenas infraestrutura
+#   docker compose --profile dev up -d      # Infraestrutura + DEV
+#   docker compose --profile pre up -d      # Infraestrutura + PRE
+#   docker compose --profile prod up -d     # Infraestrutura + PROD
+#   docker compose --profile dev --profile pre --profile prod up -d  # Todos
 # ============================================================================
 
 services:
+  # ============================================================================
+  # INFRAESTRUTURA COMPARTILHADA (sempre ativa)
+  # ============================================================================
+
+  # Tailscale VPN para acesso remoto seguro (opcional)
+  tailscale:
+    profiles: [ "tailscale" ]  # Use --profile tailscale para habilitar
+    image: tailscale/tailscale:latest
+    container_name: openpanel-tailscale
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY:-}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_ACCEPT_DNS=true
+      - TS_ROUTES=${TAILSCALE_ROUTES:-}
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      - openpanel
+    labels:
+      - "traefik.enable=false"
+
   # PostgreSQL com extensão pgvector para vetores
+  # Banco único compartilhado para todos os ambientes
   postgres:
     image: ankane/pgvector:v0.5.1
     container_name: openpanel-postgres
@@ -19,6 +57,7 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./scripts/setup/postgres-init.sh:/docker-entrypoint-initdb.d/01-init-database.sh:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openpanel}" ]
       interval: 10s
@@ -31,6 +70,7 @@ services:
       - "traefik.enable=false"
 
   # Redis para cache e filas
+  # Database único (0) compartilhado para todos os ambientes
   redis:
     image: redis:7-alpine
     container_name: openpanel-redis
@@ -53,6 +93,47 @@ services:
       - openpanel
     labels:
       - "traefik.enable=false"
+
+  # Traefik como proxy reverso e gerenciador de SSL
+  traefik:
+    image: traefik:v3.0
+    container_name: openpanel-traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=${TRAEFIK_DASHBOARD:-false}"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=openpanel"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=${SSL_EMAIL:-}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Dashboard
+    volumes:
+      - ./traefik-data:/letsencrypt
+      - ./config/traefik/dynamic:/etc/traefik/dynamic:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - openpanel
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.openpanel.local`) || Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.service=api@internal"
 
   # Ollama para modelos de IA locais (opcional - use profile: ollama)
   ollama:
@@ -86,37 +167,232 @@ services:
     #           count: all
     #           capabilities: [gpu]
 
-  # Traefik como proxy reverso e gerenciador de SSL
-  traefik:
-    image: traefik:v3.0
-    container_name: openpanel-traefik
+  # ============================================================================
+  # AMBIENTE DEV (Desenvolvimento)
+  # ============================================================================
+
+  api-dev:
+    profiles: [ "dev" ]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    container_name: openpanel-api-dev
     restart: unless-stopped
-    command:
-      - "--api.dashboard=true"
-      - "--api.insecure=${TRAEFIK_DASHBOARD:-false}"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=openpanel"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--log.level=INFO"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openpanel}:${POSTGRES_PASSWORD:-changeme}@openpanel-postgres:5432/${POSTGRES_DB:-openpanel}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@openpanel-redis:6379/0
+      - API_PORT=3001
+      - APP_URL=${APP_URL_DEV:-http://dev.openpanel.local}
+      - CORS_ORIGIN=${CORS_ORIGIN_DEV:-http://dev.openpanel.local}
+      - LOG_LEVEL=debug
+      - JWT_SECRET=${JWT_SECRET:-changeme}
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080" # Dashboard
+      - "3001:3001"
     volumes:
-      - ./traefik-data:/letsencrypt
-      # Docker socket (Linux/macOS/WSL2)
-      # Windows: use WSL2 backend ou habilite TCP socket na porta 2375
+      - ./apps/api:/app/apps/api:ro
+      - ./packages:/app/packages:ro
+      - ./apps/api/src:/app/apps/api/src
+      - ./packages/shared/src:/app/packages/shared/src
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - openpanel
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/ping" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-dev.rule=Host(`dev.openpanel.local`) || Host(`dev.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.api-dev.entrypoints=web"
+      - "traefik.http.routers.api-dev.service=api-dev"
+      - "traefik.http.services.api-dev.loadbalancer.server.port=3001"
+
+  web-dev:
+    profiles: [ "dev" ]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    container_name: openpanel-web-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://dev.openpanel.local/api
+      - VITE_APP_NAME=OpenPanel (DEV)
+      - VITE_APP_VERSION=${VITE_APP_VERSION:-0.3.0}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages:/app/packages
+      - /app/apps/web/node_modules
+      - /app/node_modules
+    depends_on:
+      - api-dev
+    networks:
+      - openpanel
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-dev.rule=Host(`dev.openpanel.local`) || Host(`dev.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.web-dev.entrypoints=web"
+      - "traefik.http.routers.web-dev.service=web-dev"
+      - "traefik.http.services.web-dev.loadbalancer.server.port=3000"
+      - "traefik.http.routers.web-dev.priority=1" # Prioridade maior que API para servir frontend
+
+  # ============================================================================
+  # AMBIENTE PRE (Staging/Preview)
+  # ============================================================================
+
+  api-pre:
+    profiles: [ "pre" ]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: openpanel-api-pre
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=staging
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openpanel}:${POSTGRES_PASSWORD:-changeme}@openpanel-postgres:5432/${POSTGRES_DB:-openpanel}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@openpanel-redis:6379/0
+      - API_PORT=3002
+      - APP_URL=${APP_URL_PRE:-http://pre.openpanel.local}
+      - CORS_ORIGIN=${CORS_ORIGIN_PRE:-http://pre.openpanel.local}
+      - LOG_LEVEL=info
+      - JWT_SECRET=${JWT_SECRET:-changeme}
+    ports:
+      - "3002:3001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - openpanel
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-pre.rule=Host(`pre.openpanel.local`) || Host(`pre.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.api-pre.entrypoints=web"
+      - "traefik.http.routers.api-pre.service=api-pre"
+      - "traefik.http.services.api-pre.loadbalancer.server.port=3001"
+
+  web-pre:
+    profiles: [ "pre" ]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - VITE_API_URL=http://pre.openpanel.local/api
+    container_name: openpanel-web-pre
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    depends_on:
+      - api-pre
+    networks:
+      - openpanel
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-pre.rule=Host(`pre.openpanel.local`) || Host(`pre.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.web-pre.entrypoints=web"
+      - "traefik.http.routers.web-pre.service=web-pre"
+      - "traefik.http.services.web-pre.loadbalancer.server.port=80"
+      - "traefik.http.routers.web-pre.priority=1"
+
+  # ============================================================================
+  # AMBIENTE PROD (Produção)
+  # ============================================================================
+
+  api-prod:
+    profiles: [ "prod" ]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: openpanel-api-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openpanel}:${POSTGRES_PASSWORD:-changeme}@openpanel-postgres:5432/${POSTGRES_DB:-openpanel}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@openpanel-redis:6379/0
+      - API_PORT=3003
+      - APP_URL=${APP_URL_PROD:-https://openpanel.local}
+      - CORS_ORIGIN=${CORS_ORIGIN_PROD:-https://openpanel.local}
+      - LOG_LEVEL=warn
+      - JWT_SECRET=${JWT_SECRET:-changeme}
+    ports:
+      - "3003:3001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - openpanel
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-prod.rule=Host(`openpanel.local`) || Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.api-prod.entrypoints=websecure"
+      - "traefik.http.routers.api-prod.service=api-prod"
+      - "traefik.http.routers.api-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api-prod.loadbalancer.server.port=3001"
+
+  web-prod:
+    profiles: [ "prod" ]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - VITE_API_URL=https://openpanel.local/api
+    container_name: openpanel-web-prod
+    restart: always
+    ports:
+      - "3002:80"
+    depends_on:
+      - api-prod
+    networks:
+      - openpanel
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-prod.rule=Host(`openpanel.local`) || Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.web-prod.entrypoints=websecure"
+      - "traefik.http.routers.web-prod.service=web-prod"
+      - "traefik.http.routers.web-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-prod.loadbalancer.server.port=80"
+      - "traefik.http.routers.web-prod.priority=1"
 
 # Volumes persistentes
 volumes:
@@ -127,6 +403,8 @@ volumes:
   ollama-data:
     driver: local
   traefik-data:
+    driver: local
+  tailscale-state:
     driver: local
 
 # Rede Docker para comunicação entre containers
