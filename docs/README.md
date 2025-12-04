@@ -2,9 +2,9 @@
 
 Bem-vindo à documentação oficial do OpenPanel.
 
-**Última atualização**: 03 de Dezembro de 2025
+**Última atualização**: 04 de Dezembro de 2025
 
-A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropriado para você:
+A documentação foi organizada e limpa para facilitar o acesso. Escolha o guia apropriado para você:
 
 ## 🚀 Manuais Principais
 
@@ -83,19 +83,20 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 | [HOSTINGER_DDNS_REFERENCE.md](./HOSTINGER_DDNS_REFERENCE.md) | Referência DDNS |
 | [HOSTINGER_DDNS_ENTREGA_COMPLETA.md](./HOSTINGER_DDNS_ENTREGA_COMPLETA.md) | Entrega completa DDNS |
 
-### Desenvolvimento e Manutenção
+### Desenvolvimento Avançado
 
 | Documento | Descrição |
 | --------- | --------- |
-| [PLANO.md](./PLANO.md) | Plano de implementação consolidado (EasyPanel vs OpenPanel) |
-| [ERRORS_FOUND.md](./ERRORS_FOUND.md) | Relatório de erros encontrados e status de correção |
-| [TYPESCRIPT_FIXES.md](./TYPESCRIPT_FIXES.md) | Detalhes das correções TypeScript no frontend |
-| [REVISAO_EXECUCAO.md](./REVISAO_EXECUCAO.md) | Revisão de execução do projeto (Jan 2025) - Correções e validações |
+| [DESENVOLVIMENTO_REMOTO.md](./DESENVOLVIMENTO_REMOTO.md) | Configuração para desenvolvimento remoto |
+| [FEEDBACK_ASSINCRONO.md](./FEEDBACK_ASSINCRONO.md) | Padrões de feedback assíncrono na aplicação |
+| [WORKFLOW_MULTI_AMBIENTE.md](./WORKFLOW_MULTI_AMBIENTE.md) | Gerenciamento de múltiplos ambientes |
 
 ---
 
 ## 🆕 Novidades (Dezembro 2025)
 
+- ✅ **Documentação Reorganizada**: Estrutura limpa e profissional com 30 documentos essenciais
+- ✅ **Manual Técnico Expandido**: Incluindo arquitetura Docker e sistema de inicialização modular
 - ✅ **2FA Completo**: Autenticação de dois fatores integrada (Backend + Frontend)
 - ✅ **Terminal Real**: WebTerminal conectado via WebSocket
 - ✅ **Database Clients**: Consoles para PostgreSQL, MySQL, MongoDB e Redis
@@ -104,4 +105,16 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 
 ---
 
-> *Documentação consolidada em Dezembro de 2025.*
+## 📊 Estrutura da Documentação
+
+### Documentação Atual
+- **Manuais Principais**: 7 documentos essenciais
+- **Configuração de Servidor**: 5 guias de infraestrutura
+- **Integração Hostinger**: 13 documentos especializados
+- **Desenvolvimento Avançado**: 3 documentos técnicos
+- **APIs e Referências**: 2 documentos de API (REST e WebSocket)
+- **Total**: 30 documentos organizados
+
+---
+
+> *Documentação consolidada e organizada em Dezembro de 2025. Removidos 12 documentos legados/temporários.*
