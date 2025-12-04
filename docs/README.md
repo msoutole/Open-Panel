@@ -8,6 +8,14 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 
 ## 🚀 Manuais Principais
 
+### [🏠 Guia Homelab](./GUIA_HOMELAB.md) ⭐ **NOVO**
+**Para quem:** Quem quer instalar no servidor homelab.
+**Conteúdo:**
+- Instalação passo a passo em servidor Ubuntu/Debian
+- Configuração de Tailscale para acesso remoto
+- Configuração de domínio e SSL
+- Comandos úteis e troubleshooting
+
 ### [📘 Manual do Usuário](./MANUAL_DO_USUARIO.md)
 **Para quem:** Usuários finais e administradores do sistema.
 **Conteúdo:**
@@ -52,6 +60,7 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 | [PLANO.md](./PLANO.md) | Plano de implementação consolidado (EasyPanel vs OpenPanel) |
 | [ERRORS_FOUND.md](./ERRORS_FOUND.md) | Relatório de erros encontrados e status de correção |
 | [TYPESCRIPT_FIXES.md](./TYPESCRIPT_FIXES.md) | Detalhes das correções TypeScript no frontend |
+| [REVISAO_EXECUCAO.md](./REVISAO_EXECUCAO.md) | Revisão de execução do projeto (Jan 2025) - Correções e validações |
 
 ---
 

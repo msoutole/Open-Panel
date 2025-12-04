@@ -100,15 +100,15 @@ async function main() {
 
     // Iniciar processos usando ProcessManager
     processManager.markProcessesStarted();
-    processManager.startAPI({});
-    processManager.startWeb({});
+    processManager.startAPI(process.env);
+    processManager.startWeb(process.env);
 
     // Aguardar um pouco e verificar se os processos ainda estão rodando
     await new Promise(resolve => setTimeout(resolve, 10000));
-    
+
     // Verificar se os processos ainda estão rodando
     const { api, web } = processManager.areProcessesRunning();
-    
+
     if (!api || !web) {
       if (!api) {
         print(`\n${icons.warn} API não está rodando`, 'yellow');

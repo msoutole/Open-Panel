@@ -1,7 +1,29 @@
 const { spawn } = require('child_process');
 const http = require('http');
+const path = require('path');
 const { print, printError, icons, colors } = require('./logger');
 const { retryUntilCondition } = require('./retry');
+
+/**
+ * Caminho absoluto da raiz do projeto Open-Panel
+ * Calcula de forma robusta: scripts/utils/process.js -> scripts/utils -> scripts -> raiz
+ * __dirname = d:\Open-Panel\scripts\utils
+ * ../.. = d:\Open-Panel
+ */
+const PROJECT_ROOT = path.resolve(__dirname, '../..');
+
+// Validar que estamos no diretório correto
+const pkgPath = path.join(PROJECT_ROOT, 'package.json');
+try {
+  const pkg = require(pkgPath);
+  if (pkg.name !== 'open-panel') {
+    print(`${require('./logger').icons.warn} AVISO: PROJECT_ROOT apontando para projeto errado!`, 'yellow');
+    print(`   Esperado: open-panel, Encontrado: ${pkg.name}`, 'yellow');
+    print(`   Caminho: ${PROJECT_ROOT}`, 'dim');
+  }
+} catch (e) {
+  print(`${require('./logger').icons.warn} Aviso: Não foi possível validar PROJECT_ROOT`, 'yellow');
+}
 
 /**
  * Gerenciador de processos da aplicação
@@ -14,7 +36,7 @@ class ProcessManager {
     this.apiProcessExited = false;
     this.webProcessExited = false;
     this.processesStarted = false;
-    
+
     // Registrar handlers de cleanup
     this.setupHandlers();
   }
@@ -61,7 +83,7 @@ class ProcessManager {
     this.cleanupExecuted = true;
 
     print(`\n${icons.info} Limpando recursos...`, 'yellow');
-    
+
     try {
       if (this.apiProcess && !this.apiProcess.killed) {
         this.apiProcess.kill('SIGTERM');
@@ -82,6 +104,7 @@ class ProcessManager {
     this.apiProcess = spawn('npm', ['run', 'dev:api'], {
       stdio: 'inherit',
       shell: true,
+      cwd: PROJECT_ROOT,
       env: { ...process.env, ...env },
     });
 
@@ -100,7 +123,7 @@ class ProcessManager {
           print(`\n${icons.warn} API terminou inesperadamente (código: ${code}, sinal: ${signal || 'N/A'})`, 'yellow');
           print(`   Verifique os logs acima para mais detalhes`, 'dim');
           print(`   Tente executar manualmente: npm run dev:api`, 'dim');
-          
+
           if (this.webProcessExited) {
             print(`\n${icons.warn} Ambos os processos terminaram. Encerrando...`, 'yellow');
             this.cleanup();
@@ -119,6 +142,7 @@ class ProcessManager {
     this.webProcess = spawn('npm', ['run', 'dev:web'], {
       stdio: 'inherit',
       shell: true,
+      cwd: PROJECT_ROOT,
       env: { ...process.env, ...env },
     });
 
@@ -137,7 +161,7 @@ class ProcessManager {
           print(`\n${icons.warn} Web terminou inesperadamente (código: ${code}, sinal: ${signal || 'N/A'})`, 'yellow');
           print(`   Verifique os logs acima para mais detalhes`, 'dim');
           print(`   Tente executar manualmente: npm run dev:web`, 'dim');
-          
+
           if (this.apiProcessExited) {
             print(`\n${icons.warn} Ambos os processos terminaram. Encerrando...`, 'yellow');
             this.cleanup();
@@ -164,7 +188,7 @@ class ProcessManager {
   areProcessesRunning() {
     const apiRunning = this.apiProcess && !this.apiProcess.killed && this.apiProcess.exitCode === null;
     const webRunning = this.webProcess && !this.webProcess.killed && this.webProcess.exitCode === null;
-    
+
     return {
       api: apiRunning && !this.apiProcessExited,
       web: webRunning && !this.webProcessExited,
@@ -179,7 +203,7 @@ class ProcessManager {
  */
 function checkAPI(maxRetries = 30) {
   let attemptCount = 0;
-  
+
   return retryUntilCondition(
     () => {
       return new Promise((resolve) => {
@@ -204,7 +228,7 @@ function checkAPI(maxRetries = 30) {
         req.on('error', () => {
           resolve(false);
         });
-        
+
         req.on('timeout', () => {
           req.destroy();
           resolve(false);
