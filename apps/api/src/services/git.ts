@@ -384,13 +384,13 @@ export class GitService {
         },
         ref: payload.ref,
         commits: (payload.commits || []).map((commit: { id?: string; message?: string; author?: { name?: string; email?: string }; timestamp?: string }) => ({
-          id: commit.id,
-          message: commit.message,
+          id: commit.id || '',
+          message: commit.message || '',
           author: {
-            name: commit.author.name,
-            email: commit.author.email,
+            name: commit.author?.name || '',
+            email: commit.author?.email || '',
           },
-          timestamp: commit.timestamp,
+          timestamp: commit.timestamp || '',
         })),
         pusher: {
           name: payload.pusher?.name || '',
@@ -456,13 +456,13 @@ export class GitService {
         },
         ref: payload.ref,
         commits: (payload.commits || []).map((commit: { id?: string; message?: string; author?: { name?: string; email?: string }; timestamp?: string }) => ({
-          id: commit.id,
-          message: commit.message,
+          id: commit.id || '',
+          message: commit.message || '',
           author: {
-            name: commit.author.name,
-            email: commit.author.email,
+            name: commit.author?.name || '',
+            email: commit.author?.email || '',
           },
-          timestamp: commit.timestamp,
+          timestamp: commit.timestamp || '',
         })),
         pusher: {
           name: payload.user_name || '',

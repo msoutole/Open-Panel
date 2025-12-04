@@ -212,7 +212,7 @@ async function validateAIProvider(
   provider: string,
   apiKey?: string,
   apiUrl?: string
-): Promise<{ valid: boolean; models?: string[]; error?: string }> {
+): Promise<{ valid: boolean; models?: Array<{ id: string; name: string; type?: string }>; error?: string }> {
   try {
     switch (provider) {
       case 'gemini':
