@@ -47,6 +47,7 @@
     "rotate-credentials": "bash scripts/rotate-credentials.sh",
     "validate:agents": "node scripts/validate-agents-frontmatter.js",
     "validate:agents:win": "powershell scripts/validate-agents-frontmatter.ps1",
+    "validate:project": "bash scripts/validate-project.sh",
     "remove-secrets-from-history": "bash scripts/remove-secrets-from-history.sh"
   },
   "devDependencies": {
