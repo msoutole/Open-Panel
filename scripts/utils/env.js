@@ -135,7 +135,7 @@ POSTGRES_PORT=5432
 
 # Redis
 # Nota: Usa localhost porque a API roda localmente (não em container)
-REDIS_URL=redis://:${redisPassword}@localhost:6379
+REDIS_URL=redis://:${redisPassword}@localhost:6379/0
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=${redisPassword}
