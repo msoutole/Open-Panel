@@ -1,17 +1,20 @@
 # OpenPanel 🚀
 
-![CI](https://github.com/msoutole/openpanel/actions/workflows/ci.yml/badge.svg)
-
 <div align="center">
 
+![CI](https://github.com/msoutole/openpanel/actions/workflows/ci.yml/badge.svg)
 ![Status](https://img.shields.io/badge/status-active-success.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)
+![Docker](https://img.shields.io/badge/docker-ready-blue.svg)
+![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey.svg)
 
 **Modern self-hosted server control panel with AI-powered assistance**
 
-[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing)
+*Perfect for homelabs, development environments, and production deployments*
+
+[Features](#features) • [Quick Start](#quick-start) • [Homelab Guide](HOMELAB_QUICKSTART.md) • [Documentation](#documentation) • [Contributing](#contributing)
 
 </div>
 
@@ -55,7 +58,19 @@ Isso é tudo! O script `start.js` faz automaticamente:
 - 🔌 API: http://localhost:3001
 - 📊 Traefik Dashboard: http://localhost:8080
 
-📖 **Documentação completa:** Veja [docs/MANUAL_DO_USUARIO.md](docs/MANUAL_DO_USUARIO.md) para mais detalhes.
+📖 **Documentação completa:** 
+- 🏠 **Homelab?** Veja [HOMELAB_QUICKSTART.md](HOMELAB_QUICKSTART.md) para instalação rápida
+- 📚 **Manual Completo:** [docs/MANUAL_DO_USUARIO.md](docs/MANUAL_DO_USUARIO.md)
+
+## 🏠 Para Usuários Homelab
+
+Se você está instalando em um servidor homelab, recomendamos nosso **[Guia Rápido para Homelab](HOMELAB_QUICKSTART.md)** que inclui:
+
+- ⚡ Instalação automatizada em Ubuntu/Debian
+- 🔒 Configuração de acesso remoto seguro (Tailscale)
+- 🌐 Setup de domínio e SSL
+- 🛠️ Troubleshooting e dicas de performance
+- 💡 Casos de uso práticos
 
 ## 🔒 Segurança
 
@@ -327,6 +342,35 @@ Key environment variables (see `.env.example` for complete list with description
 - **Issues**: Check existing issues or report problems on GitHub
 - **Email**: msoutole@hotmail.com
 - **Logs**: Check `.logs/` directory for detailed error logs
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+- 📋 [Code of Conduct](CODE_OF_CONDUCT.md)
+- 🐛 [Report Issues](https://github.com/msoutole/openpanel/issues)
+- 💡 [Feature Requests](https://github.com/msoutole/openpanel/issues/new?template=feature_request.md)
+- 🔒 [Security Policy](SECURITY.md)
+
+## 🔄 OpenPanel vs. Alternatives
+
+| Feature | OpenPanel | Portainer | Dokku | CasaOS |
+|---------|-----------|-----------|-------|--------|
+| **AI Assistant** | ✅ Multiple providers | ❌ | ❌ | ❌ |
+| **Git Deployments** | ✅ Automated | ❌ | ✅ | ❌ |
+| **Auto SSL** | ✅ Let's Encrypt | ✅ | ✅ | ❌ |
+| **2FA** | ✅ Built-in | ✅ Paid | ❌ | ❌ |
+| **Free & Open Source** | ✅ MIT | ✅/💰 | ✅ | ✅ |
+| **Homelab Optimized** | ✅ | ⚠️ | ⚠️ | ✅ |
+| **WebTerminal** | ✅ | ✅ Paid | ❌ | ❌ |
+| **Template Marketplace** | ✅ | ⚠️ Limited | ❌ | ✅ |
+
+**Why OpenPanel?**
+- 🎯 **Purpose-built for homelabs** with security and ease-of-use in mind
+- 🤖 **AI-powered assistance** for troubleshooting and deployment
+- 🔓 **100% Free & Open Source** - no paid tiers or limitations
+- ⚡ **Modern Stack** - React 19, Hono, Prisma, TypeScript
+- 🛠️ **Developer-friendly** - Easy to extend and customize
 
 ## Contributing
 
