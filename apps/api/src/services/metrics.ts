@@ -410,9 +410,9 @@ export class MetricsService {
           }
 
           // Get headers from first object
-          const headers = Object.keys(data[0]).join(',')
+          const headers = Object.keys(data[0] as Record<string, unknown>).join(',')
           const rows = data.map((item) =>
-            Object.values(item)
+            Object.values(item as Record<string, unknown>)
               .map((val) => {
                 if (typeof val === 'object') {
                   return JSON.stringify(val)
@@ -425,8 +425,8 @@ export class MetricsService {
           return [headers, ...rows].join('\n')
         } else {
           // Single object
-          const headers = Object.keys(data).join(',')
-          const row = Object.values(data)
+          const headers = Object.keys(data as Record<string, unknown>).join(',')
+          const row = Object.values(data as Record<string, unknown>)
             .map((val) => {
               if (typeof val === 'object') {
                 return JSON.stringify(val)
