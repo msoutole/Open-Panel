@@ -14,7 +14,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "types": [],
+    "types": ["node"],
     "paths": {
       "@/*": ["./src/*"],
       "@openpanel/shared": ["../../packages/shared/src/index.ts"]
