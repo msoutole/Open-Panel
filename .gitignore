@@ -42,6 +42,14 @@ build/
 *.swo
 *~
 
+# AI Assistant IDEs
+.cursor/
+.claude/
+.gemini/
+.cursorignore
+.copilot/
+.aider/
+
 # OS
 .DS_Store
 Thumbs.db
@@ -65,6 +73,9 @@ uploads/
 coverage/
 .nyc_output/
 .nyc_coverage/
+test-user.json
+*.test.local.ts
+*.test.local.tsx
 
 # Cache
 .cache/
