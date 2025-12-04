@@ -408,6 +408,62 @@ configure_local_domains() {
     done
 }
 
+# Configurar Home Lab (opcional)
+configure_home_lab() {
+    echo ""
+    echo -e "${CYAN}🏠 Configuração de Home Lab (Opcional)${NC}"
+    echo ""
+    echo -e "${INFO} Você pode configurar:"
+    echo -e "   1. IP estático"
+    echo -e "   2. AdGuard Home (DNS local e bloqueio de anúncios)"
+    echo -e "   3. Domínio externo (Hostinger + No-IP)"
+    echo ""
+    read -p "Deseja configurar Home Lab? (s/N): " CONFIGURE_HOMELAB
+    
+    if [[ ! "$CONFIGURE_HOMELAB" =~ ^[Ss]$ ]]; then
+        log "INFO" "Configuração de Home Lab pulada"
+        return 0
+    fi
+    
+    # IP Estático
+    echo ""
+    read -p "Deseja configurar IP estático? (s/N): " CONFIGURE_STATIC_IP
+    if [[ "$CONFIGURE_STATIC_IP" =~ ^[Ss]$ ]]; then
+        log "INFO" "Configurando IP estático..."
+        if [ -f "$SCRIPT_DIR/setup/configure-static-ip.sh" ]; then
+            sudo "$SCRIPT_DIR/setup/configure-static-ip.sh" || log "WARN" "Falha ao configurar IP estático"
+        else
+            log "WARN" "Script configure-static-ip.sh não encontrado"
+        fi
+    fi
+    
+    # AdGuard Home
+    echo ""
+    read -p "Deseja instalar AdGuard Home? (s/N): " INSTALL_ADGUARD
+    if [[ "$INSTALL_ADGUARD" =~ ^[Ss]$ ]]; then
+        log "INFO" "Instalando AdGuard Home..."
+        if [ -f "$SCRIPT_DIR/setup/install-adguard.sh" ]; then
+            sudo "$SCRIPT_DIR/setup/install-adguard.sh" || log "WARN" "Falha ao instalar AdGuard Home"
+        else
+            log "WARN" "Script install-adguard.sh não encontrado"
+        fi
+    fi
+    
+    # Domínio Externo
+    echo ""
+    read -p "Deseja configurar domínio externo? (s/N): " CONFIGURE_DOMAIN
+    if [[ "$CONFIGURE_DOMAIN" =~ ^[Ss]$ ]]; then
+        log "INFO" "Configurando domínio externo..."
+        if [ -f "$SCRIPT_DIR/setup/configure-domain.sh" ]; then
+            "$SCRIPT_DIR/setup/configure-domain.sh" || log "WARN" "Falha ao configurar domínio"
+        else
+            log "WARN" "Script configure-domain.sh não encontrado"
+        fi
+    fi
+    
+    log "SUCCESS" "Configuração de Home Lab concluída"
+}
+
 # Resumo da instalação
 print_summary() {
     echo ""
@@ -444,6 +500,7 @@ print_summary() {
     echo -e "${CYAN}📚 Documentação:${NC}"
     echo -e "   ${ARROW} docs/INSTALACAO_SERVIDOR.md"
     echo -e "   ${ARROW} docs/DESENVOLVIMENTO_REMOTO.md"
+    echo -e "   ${ARROW} docs/HOME_LAB_SETUP.md"
     echo ""
 }
 
@@ -469,6 +526,7 @@ main() {
     make_scripts_executable
     start_infrastructure
     configure_local_domains
+    configure_home_lab
     
     log "SUCCESS" "Instalação concluída!"
     

@@ -52,6 +52,9 @@ A documentação foi reorganizada para facilitar o acesso. Escolha o guia apropr
 | [PLANO.md](./PLANO.md) | Plano de implementação consolidado (EasyPanel vs OpenPanel) |
 | [ERRORS_FOUND.md](./ERRORS_FOUND.md) | Relatório de erros encontrados e status de correção |
 | [TYPESCRIPT_FIXES.md](./TYPESCRIPT_FIXES.md) | Detalhes das correções TypeScript no frontend |
+| [INSTALACAO_SERVIDOR.md](./INSTALACAO_SERVIDOR.md) | Guia de instalação em servidor Ubuntu |
+| [HOSTINGER_DNS_CONFIG.md](./HOSTINGER_DNS_CONFIG.md) | Configuração de DNS na Hostinger com No-IP |
+| [TAILSCALE_SETUP.md](./TAILSCALE_SETUP.md) | Configuração do Tailscale para acesso remoto |
 
 ---
 
