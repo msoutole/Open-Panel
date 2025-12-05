@@ -18,6 +18,7 @@ const SecurityView = lazy(() => import('./components/SecurityView').then(m => ({
 const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
 const Onboarding = lazy(() => import('./pages/Onboarding').then(m => ({ default: m.Onboarding })));
 const GeminiChat = lazy(() => import('./components/GeminiChat').then(m => ({ default: m.GeminiChat })));
+const AIResourcesView = lazy(() => import('./components/AIResourcesView').then(m => ({ default: m.AIResourcesView })));
 
 console.log('App.tsx loaded');
 
@@ -31,7 +32,7 @@ const AppContent: React.FC = () => {
   });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [currentView, setCurrentView] = useState<ViewState>('dashboard');
+  const [currentView, setCurrentView] = useState<ViewState | 'ai_resources'>('dashboard');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
@@ -108,7 +109,7 @@ const AppContent: React.FC = () => {
     setIsLoggedIn(false);
   };
 
-  const handleViewChange = (view: ViewState) => {
+  const handleViewChange = (view: ViewState | 'ai_resources') => {
     setCurrentView(view);
     if (view !== 'project_details') {
       setSelectedProject(null);
@@ -122,7 +123,7 @@ const AppContent: React.FC = () => {
 
   // Wrapper function to convert string to ViewState for Header navigation
   const handleNavigate = (view: string) => {
-    handleViewChange(view as ViewState);
+    handleViewChange(view as ViewState | 'ai_resources');
   };
 
   if (!isLoggedIn) {
@@ -137,7 +138,7 @@ const AppContent: React.FC = () => {
     );
   }
   
-  const getPageTitle = (view: ViewState) => {
+  const getPageTitle = (view: ViewState | 'ai_resources') => {
     switch (view) {
       case 'dashboard':
         return LL.appTitles.dashboard();
@@ -155,6 +156,8 @@ const AppContent: React.FC = () => {
         return LL.appTitles.securityLogs();
       case 'profile':
         return LL.appTitles.profile();
+      case 'ai_resources':
+        return "AI Knowledge Base";
       default:
         return LL.appTitles.panel();
     }
@@ -166,7 +169,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
-        currentView={currentView}
+        currentView={currentView as ViewState}
         onChangeView={handleViewChange}
         isCollapsed={isCollapsed}
         onToggle={toggleSidebar}
@@ -219,6 +222,12 @@ const AppContent: React.FC = () => {
           {currentView === 'profile' && (
             <Suspense fallback={<SkeletonLoader />}>
               <ProfileView />
+            </Suspense>
+          )}
+
+          {currentView === 'ai_resources' && (
+            <Suspense fallback={<SkeletonLoader />}>
+              <AIResourcesView />
             </Suspense>
           )}
         </main>

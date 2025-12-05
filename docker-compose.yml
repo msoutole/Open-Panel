@@ -190,6 +190,88 @@ services:
     #           count: all
     #           capabilities: [gpu]
 
+  # MongoDB para o serviço de IA/MCP
+  mongo:
+    image: mongo:latest
+    container_name: openpanel-mongo
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-changeme}
+    networks:
+      - openpanel
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "traefik.enable=false"
+
+  # Serviço de Lógica de Negócios (Python/FastAPI)
+  ai-service:
+    build:
+      context: .
+      dockerfile: apps/ai-service/Dockerfile
+    container_name: openpanel-ai-service
+    restart: unless-stopped
+    environment:
+      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-changeme}@openpanel-mongo:27017
+      - PORT=8000
+      - LOG_LEVEL=info
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - openpanel
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-service.rule=Host(`ai.openpanel.local`) || Host(`ai.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.ai-service.entrypoints=web"
+
+  # Servidor MCP (Node.js/Express)
+  mcp-server:
+    build:
+      context: .
+      dockerfile: apps/mcp-server/Dockerfile
+    container_name: openpanel-mcp-server
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3005
+      - AI_SERVICE_URL=http://openpanel-ai-service:8000
+      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-changeme}@openpanel-mongo:27017
+      - JWT_SECRET=${JWT_SECRET:-changeme}
+    ports:
+      - "3005:3005"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - ai-service
+      - mongo
+    networks:
+      - openpanel
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-server.rule=Host(`mcp.openpanel.local`) || Host(`mcp.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.mcp-server.entrypoints=web"
+
   # ============================================================================
   # AMBIENTE DEV (Desenvolvimento)
   # ============================================================================
@@ -432,6 +514,8 @@ volumes:
   adguard-work:
     driver: local
   adguard-conf:
+    driver: local
+  mongo-data:
     driver: local
 
 # Rede Docker para comunicação entre containers

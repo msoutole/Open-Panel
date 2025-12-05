@@ -19,6 +19,7 @@ sudo bash scripts/install-server.sh
 ```
 
 **Pronto!** O script instala e configura automaticamente:
+
 - ✅ **Node.js 20 LTS** (Verifica e atualiza se necessário)
 - ✅ **Docker e Docker Compose** (Gerencia conflitos)
 - ✅ **Todas as dependências** com auto-recuperação de erros
@@ -46,6 +47,7 @@ npm start
 ### Credenciais Padrão
 
 Após a instalação, faça login com:
+
 - **Email:** `admin@admin.com.br`
 - **Senha:** `admin123`
 
@@ -53,15 +55,15 @@ Após a instalação, faça login com:
 
 ### Portas Utilizadas
 
-| Serviço | Porta | Descrição |
-|---------|-------|-----------|
-| Web UI  | 3000  | Interface web |
-| API     | 3001  | API REST |
-| PostgreSQL | 5432 | Banco de dados |
-| Redis   | 6379  | Cache |
-| Traefik | 80/443 | Proxy reverso |
-| Traefik Dashboard | 8080 | Dashboard Traefik |
-| Ollama  | 11434 | IA local (opcional) |
+| Serviço           | Porta  | Descrição           |
+| ----------------- | ------ | ------------------- |
+| Web UI            | 3000   | Interface web       |
+| API               | 3001   | API REST            |
+| PostgreSQL        | 5432   | Banco de dados      |
+| Redis             | 6379   | Cache               |
+| Traefik           | 80/443 | Proxy reverso       |
+| Traefik Dashboard | 8080   | Dashboard Traefik   |
+| Ollama            | 11434  | IA local (opcional) |
 
 ### Configuração de Firewall
 
@@ -80,9 +82,9 @@ sudo ufw enable
 
 Adicione ao `/etc/hosts` do seu computador:
 
-```
+`
 192.168.1.100  openpanel.local
-```
+`
 
 ### Domínio Externo com SSL
 
@@ -96,7 +98,7 @@ SSL_EMAIL=seu@email.com
 NODE_ENV=production
 ```
 
-4. **Reinicie os serviços:**
+#### Reinicie os serviços
 
 ```bash
 docker-compose -f docker-compose.prod.yml up -d
@@ -118,6 +120,7 @@ sudo tailscale up
 ```
 
 Vantagens:
+
 - ✅ Acesso seguro sem expor portas
 - ✅ Criptografia end-to-end
 - ✅ Funciona em qualquer rede
@@ -128,10 +131,12 @@ Vantagens:
 ### 1. Configurar IA (Opcional)
 
 **Via Gemini (Cloud):**
+
 1. Obtenha API key em [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Configure em Settings → AI Provider
 
 **Via Ollama (Local):**
+
 ```bash
 # Habilite o Ollama
 docker-compose --profile ollama up -d
@@ -211,6 +216,7 @@ npm run create:admin
 ### Para servidores com pouca RAM (2GB)
 
 No `.env`:
+
 ```bash
 POSTGRES_MAX_CONNECTIONS=50
 REDIS_MAXMEMORY=256mb
@@ -219,6 +225,7 @@ REDIS_MAXMEMORY=256mb
 ### Para servidores potentes (8GB+)
 
 No `.env`:
+
 ```bash
 POSTGRES_MAX_CONNECTIONS=200
 POSTGRES_SHARED_BUFFERS=512MB
@@ -236,9 +243,9 @@ REDIS_MAXMEMORY=1024mb
 ## 📞 Suporte
 
 - **Issues:** [GitHub Issues](https://github.com/msoutole/openpanel/issues)
-- **Email:** msoutole@hotmail.com
+- **Email:** <msoutole@hotmail.com>
 - **Documentação:** [docs/README.md](docs/README.md)
 
 ---
 
-**Desenvolvido com ❤️ para a comunidade homelab**
+Desenvolvido com ❤️ para a comunidade homelab

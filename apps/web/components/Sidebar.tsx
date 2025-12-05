@@ -36,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: LL.sidebar.cluster(), icon: LayoutDashboard, view: 'dashboard' as ViewState },
     { id: 'monitor', label: LL.sidebar.monitoring(), icon: Activity, view: 'monitor' as ViewState },
+    { id: 'ai_resources', label: 'AI Knowledge Base', icon: Box, view: 'ai_resources' as ViewState },
     { id: 'users', label: LL.sidebar.identity(), icon: Users, view: 'users' as ViewState },
     { id: 'security', label: LL.sidebar.security(), icon: ShieldCheck, view: 'security' as ViewState },
     { id: 'backups', label: LL.sidebar.backups(), icon: HardDrive, view: 'backups' as ViewState },

@@ -202,7 +202,8 @@ export type ViewState =
   | 'backups'
   | 'security'
   | 'monitor'
-  | 'profile';
+  | 'profile'
+  | 'ai_resources';
 
 // --- AI Agent & MCP Types ---
 
