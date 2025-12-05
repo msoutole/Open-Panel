@@ -208,6 +208,19 @@ create_env_files() {
     
     cd "$PROJECT_DIR"
     
+    # Verificar se arquivo .env na raiz existe, senão usar .env.example como base
+    BASE_ENV_FILE=".env.example"
+    TARGET_ENV_FILE=".env"
+    
+    if [ ! -f "$TARGET_ENV_FILE" ] && [ -f "$BASE_ENV_FILE" ]; then
+        cp "$BASE_ENV_FILE" "$TARGET_ENV_FILE"
+        log "SUCCESS" "Arquivo .env criado a partir de .env.example"
+    elif [ -f "$TARGET_ENV_FILE" ]; then
+        log "INFO" "Arquivo .env já existe"
+    else
+        error_exit "Nenhum arquivo .env ou .env.example encontrado"
+    fi
+    
     # Perguntar sobre Tailscale Auth Key
     echo ""
     echo -e "${CYAN}🔐 Configuração do Tailscale (VPN)${NC}"
@@ -215,76 +228,18 @@ create_env_files() {
     echo -e "${INFO} Se você já tem uma auth key, digite agora (ou pressione Enter para pular):"
     read -p "TAILSCALE_AUTHKEY (ou Enter para pular): " TAILSCALE_KEY
     
-    # Criar .env.dev se não existir
-    if [ ! -f .env.dev ]; then
-        if [ -f .env.dev.example ]; then
-            cp .env.dev.example .env.dev
-            log "SUCCESS" "Arquivo .env.dev criado"
-        else
-            log "WARN" "Arquivo .env.dev.example não encontrado"
-        fi
-    fi
-    
-    # Adicionar Tailscale Auth Key se fornecida
+    # Adicionar ou atualizar Tailscale Auth Key no .env
     if [ -n "$TAILSCALE_KEY" ]; then
-        # Adicionar ou atualizar em .env.dev
-        if grep -q "^TAILSCALE_AUTHKEY=" .env.dev 2>/dev/null; then
-            sed -i "s|^TAILSCALE_AUTHKEY=.*|TAILSCALE_AUTHKEY=$TAILSCALE_KEY|" .env.dev
+        if grep -q "^TAILSCALE_AUTHKEY=" "$TARGET_ENV_FILE" 2>/dev/null; then
+            sed -i "s|^TAILSCALE_AUTHKEY=.*|TAILSCALE_AUTHKEY=$TAILSCALE_KEY|" "$TARGET_ENV_FILE"
         else
-            echo "" >> .env.dev
-            echo "# Tailscale (VPN)" >> .env.dev
-            echo "TAILSCALE_AUTHKEY=$TAILSCALE_KEY" >> .env.dev
+            echo "" >> "$TARGET_ENV_FILE"
+            echo "# Tailscale (VPN)" >> "$TARGET_ENV_FILE"
+            echo "TAILSCALE_AUTHKEY=$TAILSCALE_KEY" >> "$TARGET_ENV_FILE"
         fi
-        log "SUCCESS" "Tailscale Auth Key adicionada ao .env.dev"
-    fi
-    
-    # Criar .env.pre se não existir
-    if [ ! -f .env.pre ]; then
-        if [ -f .env.pre.example ]; then
-            cp .env.pre.example .env.pre
-            log "SUCCESS" "Arquivo .env.pre criado"
-        else
-            log "WARN" "Arquivo .env.pre.example não encontrado"
-        fi
-    fi
-    
-    # Adicionar Tailscale Auth Key em .env.pre se fornecida
-    if [ -n "$TAILSCALE_KEY" ]; then
-        if grep -q "^TAILSCALE_AUTHKEY=" .env.pre 2>/dev/null; then
-            sed -i "s|^TAILSCALE_AUTHKEY=.*|TAILSCALE_AUTHKEY=$TAILSCALE_KEY|" .env.pre
-        else
-            echo "" >> .env.pre
-            echo "# Tailscale (VPN)" >> .env.pre
-            echo "TAILSCALE_AUTHKEY=$TAILSCALE_KEY" >> .env.pre
-        fi
-        log "SUCCESS" "Tailscale Auth Key adicionada ao .env.pre"
-    fi
-    
-    # Criar .env.prod se não existir
-    if [ ! -f .env.prod ]; then
-        if [ -f .env.prod.example ]; then
-            cp .env.prod.example .env.prod
-            log "WARN" "Arquivo .env.prod criado com senhas padrão!"
-            log "WARN" "⚠️  IMPORTANTE: Altere todas as senhas em .env.prod antes de usar em produção!"
-        else
-            log "WARN" "Arquivo .env.prod.example não encontrado"
-        fi
-    fi
-    
-    # Adicionar Tailscale Auth Key em .env.prod se fornecida
-    if [ -n "$TAILSCALE_KEY" ]; then
-        if grep -q "^TAILSCALE_AUTHKEY=" .env.prod 2>/dev/null; then
-            sed -i "s|^TAILSCALE_AUTHKEY=.*|TAILSCALE_AUTHKEY=$TAILSCALE_KEY|" .env.prod
-        else
-            echo "" >> .env.prod
-            echo "# Tailscale (VPN)" >> .env.prod
-            echo "TAILSCALE_AUTHKEY=$TAILSCALE_KEY" >> .env.prod
-        fi
-        log "SUCCESS" "Tailscale Auth Key adicionada ao .env.prod"
-    fi
-    
-    if [ -z "$TAILSCALE_KEY" ]; then
-        log "INFO" "Tailscale não configurado. Você pode adicionar depois editando os arquivos .env"
+        log "SUCCESS" "Tailscale Auth Key adicionada ao .env"
+    else
+        log "INFO" "Tailscale não configurado. Você pode adicionar depois editando .env"
         log "INFO" "Obtenha uma auth key em: https://login.tailscale.com/admin/settings/keys"
     fi
     
@@ -304,35 +259,19 @@ generate_secrets() {
         echo "changeme-$(date +%s)"
     }
     
-    # Atualizar senhas em .env.dev se ainda estiverem como padrão
-    if [ -f .env.dev ] && grep -q "changeme" .env.dev; then
+    # Atualizar senhas no .env se ainda estiverem como padrão
+    if [ -f .env ] && grep -q "changeme" .env; then
         POSTGRES_PASSWORD=$(generate_password)
         REDIS_PASSWORD=$(generate_password)
         JWT_SECRET=$(openssl rand -hex 64 2>/dev/null || node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
         
-        sed -i "s/POSTGRES_PASSWORD=changeme/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/" .env.dev
-        sed -i "s/REDIS_PASSWORD=changeme/REDIS_PASSWORD=$REDIS_PASSWORD/" .env.dev
-        sed -i "s|DATABASE_URL=.*|DATABASE_URL=postgresql://openpanel:$POSTGRES_PASSWORD@openpanel-postgres:5432/openpanel|" .env.dev
-        sed -i "s|REDIS_URL=.*|REDIS_URL=redis://:$REDIS_PASSWORD@openpanel-redis:6379/0|" .env.dev
+        sed -i "s/POSTGRES_PASSWORD=changeme/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/" .env
+        sed -i "s/REDIS_PASSWORD=changeme/REDIS_PASSWORD=$REDIS_PASSWORD/" .env
+        sed -i "s|DATABASE_URL=postgresql://.*|DATABASE_URL=postgresql://openpanel:$POSTGRES_PASSWORD@openpanel-postgres:5432/openpanel|" .env
+        sed -i "s|REDIS_URL=redis://.*|REDIS_URL=redis://:$REDIS_PASSWORD@openpanel-redis:6379/0|" .env
         
-        log "SUCCESS" "Senhas geradas para .env.dev"
+        log "SUCCESS" "Senhas seguras geradas no .env"
     fi
-    
-    # Repetir para .env.pre
-    if [ -f .env.pre ] && grep -q "changeme" .env.pre; then
-        POSTGRES_PASSWORD=$(generate_password)
-        REDIS_PASSWORD=$(generate_password)
-        JWT_SECRET=$(openssl rand -hex 64 2>/dev/null || node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
-        
-        sed -i "s/POSTGRES_PASSWORD=changeme/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/" .env.pre
-        sed -i "s/REDIS_PASSWORD=changeme/REDIS_PASSWORD=$REDIS_PASSWORD/" .env.pre
-        sed -i "s|DATABASE_URL=.*|DATABASE_URL=postgresql://openpanel:$POSTGRES_PASSWORD@openpanel-postgres:5432/openpanel|" .env.pre
-        sed -i "s|REDIS_URL=.*|REDIS_URL=redis://:$REDIS_PASSWORD@openpanel-redis:6379/0|" .env.pre
-        
-        log "SUCCESS" "Senhas geradas para .env.pre"
-    fi
-    
-    log "INFO" "⚠️  Lembre-se de gerar senhas fortes para .env.prod manualmente!"
 }
 
 # Instalar dependências do projeto
@@ -441,7 +380,11 @@ configure_home_lab() {
     echo ""
     read -p "Deseja instalar AdGuard Home? (s/N): " INSTALL_ADGUARD
     if [[ "$INSTALL_ADGUARD" =~ ^[Ss]$ ]]; then
-        log "INFO" "Instalando AdGuard Home..."
+        log "INFO" "Preparando instalação do AdGuard Home..."
+        log "WARN" "IMPORTANTE: Certifique-se de que as portas 53, 80, 443 e 3000 estão disponíveis"
+        log "WARN" "           Se a Web App usar porta 3000, pode haver conflito"
+        sleep 2
+        
         if [ -f "$SCRIPT_DIR/setup/install-adguard.sh" ]; then
             sudo "$SCRIPT_DIR/setup/install-adguard.sh" || log "WARN" "Falha ao instalar AdGuard Home"
         else
@@ -471,36 +414,48 @@ print_summary() {
     echo -e "${GREEN}║           INSTALAÇÃO CONCLUÍDA COM SUCESSO! 🎉                ║${NC}"
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "${CYAN}📋 Próximos Passos:${NC}"
+    echo -e "${CYAN}📋 PRÓXIMOS PASSOS:${NC}"
     echo ""
-    echo -e "   ${ARROW} 1. Configure Tailscale (opcional):"
-    echo -e "      ${WHITE}Obtenha uma auth key: https://login.tailscale.com/admin/settings/keys${NC}"
-    echo -e "      ${WHITE}Adicione TAILSCALE_AUTHKEY nos arquivos .env${NC}"
+    echo -e "   ${ARROW} 1. Verificar Tailscale (opcional VPN):"
+    echo -e "      ${WHITE}Obtenha auth key: https://login.tailscale.com/admin/settings/keys${NC}"
+    echo -e "      ${WHITE}Edite: ${BLUE}${PROJECT_DIR}/.env${NC}"
+    echo -e "      ${WHITE}Procure por: TAILSCALE_AUTHKEY${NC}"
     echo ""
-    echo -e "   ${ARROW} 2. Configure os arquivos .env:"
-    echo -e "      ${WHITE}- .env.dev${NC} (desenvolvimento)"
-    echo -e "      ${WHITE}- .env.pre${NC} (staging)"
-    echo -e "      ${WHITE}- .env.prod${NC} (produção - ${RED}⚠️ altere senhas!${NC})"
+    echo -e "   ${ARROW} 2. Editar configurações no .env:"
+    echo -e "      ${WHITE}Arquivo: ${BLUE}${PROJECT_DIR}/.env${NC}"
+    echo -e "      ${WHITE}⚠️  Banco PostgreSQL é COMPARTILHADO entre ambientes${NC}"
     echo ""
-    echo -e "   ${ARROW} 3. Nota: Banco PostgreSQL e Redis são compartilhados entre todos os ambientes"
+    echo -e "   ${ARROW} 3. Executar migrações do banco de dados:"
+    echo -e "      ${WHITE}cd ${PROJECT_DIR}${NC}"
+    echo -e "      ${WHITE}npm run db:push${NC}"
     echo ""
-    echo -e "   ${ARROW} 4. Inicie os ambientes:"
-    echo -e "      ${WHITE}./scripts/server/start-dev.sh${NC}    # Ambiente DEV"
-    echo -e "      ${WHITE}./scripts/server/start-pre.sh${NC}    # Ambiente PRE"
-    echo -e "      ${WHITE}./scripts/server/start-prod.sh${NC}   # Ambiente PROD"
+    echo -e "   ${ARROW} 4. Criar usuário administrador:"
+    echo -e "      ${WHITE}npm run create:admin${NC}"
     echo ""
-    echo -e "   ${ARROW} 5. Acesse os ambientes:"
-    echo -e "      ${WHITE}http://dev.openpanel.local${NC}       # DEV"
-    echo -e "      ${WHITE}http://pre.openpanel.local${NC}       # PRE"
-    echo -e "      ${WHITE}https://openpanel.local${NC}          # PROD"
+    echo -e "   ${ARROW} 5. Iniciar desenvolvemto (modo dev):"
+    echo -e "      ${WHITE}npm start${NC}  # Configuração automática completa"
+    echo -e "      ${WHITE}ou${NC}"
+    echo -e "      ${WHITE}npm run dev${NC}  # Apenas dev rápido"
     echo ""
-    echo -e "   ${ARROW} 6. Verifique o status:"
-    echo -e "      ${WHITE}./scripts/server/status.sh${NC}"
+    echo -e "   ${ARROW} 6. Acessar aplicação:"
+    echo -e "      ${WHITE}API:  http://localhost:3001${NC}"
+    echo -e "      ${WHITE}Web:  http://localhost:3000${NC}"
+    echo -e "      ${WHITE}Admin Banco: npm run db:studio${NC}"
     echo ""
-    echo -e "${CYAN}📚 Documentação:${NC}"
-    echo -e "   ${ARROW} docs/INSTALACAO_SERVIDOR.md"
-    echo -e "   ${ARROW} docs/DESENVOLVIMENTO_REMOTO.md"
-    echo -e "   ${ARROW} docs/HOME_LAB_SETUP.md"
+    echo -e "${YELLOW}⚠️  IMPORTANTE:${NC}"
+    echo -e "   ${ARROW} Se instalou AdGuard Home, libere porta 53 para DNS"
+    echo -e "   ${ARROW} Se usará IP estático, reinicie a máquina após reboot"
+    echo -e "   ${ARROW} Senhas ALEATÓRIAS foram geradas no .env (seguro)"
+    echo ""
+    echo -e "${CYAN}📚 DOCUMENTAÇÃO:${NC}"
+    echo -e "   ${ARROW} Instalação: docs/INSTALACAO_SERVIDOR.md"
+    echo -e "   ${ARROW} Troubleshooting: docs/TROUBLESHOOTING_INSTALACAO.md"
+    echo -e "   ${ARROW} Desenvolvimento: docs/GUIA_DE_DESENVOLVIMENTO.md"
+    echo -e "   ${ARROW} Home Lab: docs/HOME_LAB_SETUP.md"
+    echo -e "   ${ARROW} Quick Start: docs/QUICK_START.md"
+    echo ""
+    echo -e "${CYAN}📊 STATUS DA INSTALAÇÃO:${NC}"
+    echo -e "   ${ARROW} Log completo: ${BLUE}${PROJECT_DIR}/install-server.log${NC}"
     echo ""
 }
 
@@ -512,7 +467,19 @@ main() {
     echo "==================================" >> "${LOG_FILE}"
     
     log "INFO" "Iniciando instalação do OpenPanel no servidor..."
+    log "INFO" "Executando verificações pré-instalação..."
     
+    # Executar verificações pré-instalação se script existir
+    if [ -f "$SCRIPT_DIR/setup/pre-install-check.sh" ]; then
+        if ! "$SCRIPT_DIR/setup/pre-install-check.sh"; then
+            log "ERROR" "Verificações pré-instalação falharam"
+            exit 1
+        fi
+    else
+        log "WARN" "Script pre-install-check.sh não encontrado"
+    fi
+    
+    echo ""
     check_sudo
     detect_os
     install_system_dependencies

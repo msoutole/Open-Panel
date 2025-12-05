@@ -146,11 +146,31 @@ EOF
 apply_netplan() {
     echo -e "${INFO} Aplicando configuração Netplan..."
     
-    # Validar configuração
-    if ! netplan try --timeout 10 2>/dev/null; then
-        echo -e "${CROSS} ${RED}Erro na configuração Netplan. Revertendo...${NC}"
-        if [ -f "${NETPLAN_FILE}.backup" ]; then
-            cp "${NETPLAN_FILE}.backup" "$NETPLAN_FILE"
+    # Primeiro, tenta validar a sintaxe do arquivo
+    if ! netplan validate 2>/dev/null; then
+        echo -e "${CROSS} ${RED}Erro na sintaxe do arquivo Netplan. Revertendo...${NC}"
+        
+        # Encontrar o backup mais recente
+        LATEST_BACKUP=$(ls -t "${NETPLAN_FILE}.backup"* 2>/dev/null | head -1)
+        if [ -n "$LATEST_BACKUP" ]; then
+            cp "$LATEST_BACKUP" "$NETPLAN_FILE"
+            echo -e "${INFO} Arquivo revertido para: $LATEST_BACKUP"
+        else
+            rm -f "$NETPLAN_FILE"
+            echo -e "${INFO} Arquivo de configuração removido"
+        fi
+        exit 1
+    fi
+    
+    # Testar com timeout de 10 segundos
+    if ! timeout 10 netplan try --timeout 5 2>&1 | grep -q "Configuration accepted"; then
+        echo -e "${CROSS} ${RED}Erro ao aplicar configuração Netplan. Revertendo...${NC}"
+        
+        LATEST_BACKUP=$(ls -t "${NETPLAN_FILE}.backup"* 2>/dev/null | head -1)
+        if [ -n "$LATEST_BACKUP" ]; then
+            cp "$LATEST_BACKUP" "$NETPLAN_FILE"
+            netplan apply
+            echo -e "${INFO} Arquivo revertido para backup anterior"
         fi
         exit 1
     fi
@@ -161,7 +181,7 @@ apply_netplan() {
     echo -e "${CHECK} Configuração aplicada com sucesso!"
     echo ""
     echo -e "${WARN} ⚠️  IMPORTANTE: Verifique se a conexão ainda está funcionando!"
-    echo -e "${INFO} Se você perder a conexão, restaure o backup:"
+    echo -e "${INFO} Se você perder a conexão, conecte via SSH com o IP antigo e restaure:"
     echo -e "   ${ARROW} sudo cp ${NETPLAN_FILE}.backup.* $NETPLAN_FILE"
     echo -e "   ${ARROW} sudo netplan apply"
 }

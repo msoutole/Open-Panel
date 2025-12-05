@@ -51,36 +51,48 @@ cd /opt/openpanel
 
 ```bash
 # Clonar repositório
-git clone https://github.com/msoutole/openpanel.git .
+git clone https://github.com/msoutole/Open-Panel.git .
 
 # Ou se preferir outro local:
-# git clone https://github.com/msoutole/openpanel.git ~/openpanel
-# cd ~/openpanel
+git clone https://github.com/msoutole/Open-Panel.git /opt/openpanel
+cd /opt/openpanel
 ```
 
 ---
 
 ### **Passo 4: Executar Instalação Automática**
 
+#### Opção 1: Script Universal (Recomendado)
+
 ```bash
 # Dar permissão de execução
-chmod +x scripts/install-server.sh
+chmod +x scripts/install.sh
 
 # Executar instalação
-./scripts/install-server.sh
+sudo ./scripts/install.sh
+```
+
+#### Opção 2: Script Específico para Servidor
+
+```bash
+# Para instalação otimizada em servidor Ubuntu
+chmod +x scripts/install-server.sh
+sudo ./scripts/install-server.sh
 ```
 
 **O script irá:**
-1. ✅ Detectar sistema operacional
-2. ✅ Instalar Node.js 20.x
-3. ✅ Instalar Docker Engine + Docker Compose
-4. ✅ Configurar firewall (UFW)
-5. ✅ Criar arquivo `.env` com valores seguros
-6. ✅ Instalar dependências npm
-7. ✅ Iniciar infraestrutura (PostgreSQL, Redis, Traefik)
-8. ✅ Configurar domínios locais no `/etc/hosts`
+1. ✅ Detectar sistema operacional (Ubuntu/Debian)
+2. ✅ Instalar Node.js 20.x LTS
+3. ✅ Instalar Docker Engine + Docker Compose v2
+4. ✅ Configurar firewall (UFW) com regras seguras
+5. ✅ Criar arquivo `.env` na raiz com valores seguros
+6. ✅ Instalar todas as dependências npm
+7. ✅ Iniciar infraestrutura Docker (PostgreSQL, Redis, Traefik)
+8. ✅ Executar migrations do banco de dados
+9. ✅ Criar usuário administrador padrão
+10. ✅ Verificar e testar todos os serviços
 
-⏱️ **Tempo estimado**: 5-10 minutos
+⏱️ **Tempo estimado**: 5-15 minutos (dependendo da conexão)
 
 ---
 
@@ -144,37 +156,80 @@ Você receberá um IP como `100.x.x.x` - use este IP para acessar remotamente.
 
 ### **Passo 6: Iniciar OpenPanel**
 
+#### Inicialização Automática (Recomendado)
+
 ```bash
 # No servidor
 cd /opt/openpanel
 
-# Iniciar ambiente de desenvolvimento
+# Iniciar tudo automaticamente
 npm start
 ```
 
-**Ou usar scripts de servidor:**
+O comando `npm start` faz:
+- ✅ Verifica pré-requisitos
+- ✅ Cria/atualiza `.env` se necessário
+- ✅ Instala dependências
+- ✅ Inicia containers Docker
+- ✅ Configura banco de dados
+- ✅ Cria admin (se não existir)
+- ✅ Inicia API e Web em dev mode
+
+#### Comandos Alternativos
 
 ```bash
-# Ambiente DEV (desenvolvimento)
-./scripts/server/start-dev.sh
+# Apenas desenvolvimento (API + Web)
+npm run dev
 
-# Ambiente PROD (produção)
-./scripts/server/start-prod.sh
+# Apenas API
+npm run dev:api
+
+# Apenas Web
+npm run dev:web
+
+# Modo produção (somente infra)
+docker compose up -d
 ```
 
 ---
 
 ### **Passo 7: Acessar OpenPanel**
 
-#### Opção 1: Acesso Local (no servidor)
+O OpenPanel estará disponível em:
+
+#### 🌐 URLs Padrão
+
+- **Frontend (Web)**: `http://localhost:3000` ou `http://IP_SERVIDOR:3000`
+- **Backend (API)**: `http://localhost:3001` ou `http://IP_SERVIDOR:3001`
+- **Traefik Dashboard**: `http://localhost:8080` (se habilitado)
+
+#### Opção 1: Acesso Local (no próprio servidor)
 
 ```bash
-# No servidor, abra navegador (se tiver interface gráfica)
-# Ou use curl para testar
+# Testar API
+curl http://localhost:3001/health
+
+# Testar Web
 curl http://localhost:3000
+
+# Abrir navegador (se tiver GUI)
+xdg-open http://localhost:3000  # Linux
+open http://localhost:3000      # macOS
 ```
 
-#### Opção 2: Acesso via Tailscale (Recomendado)
+#### Opção 2: Acesso via Rede Local
+
+```bash
+# Descobrir IP do servidor
+ip addr show | grep inet
+# ou
+hostname -I
+
+# Acessar do seu computador
+http://192.168.1.100:3000  # Substitua pelo IP real
+```
+
+#### Opção 3: Acesso via Tailscale (Recomendado para acesso remoto)
 
 1. **Instale Tailscale no seu computador:**
    - Windows/macOS: https://tailscale.com/download
@@ -182,23 +237,21 @@ curl http://localhost:3000
 
 2. **Faça login** com a mesma conta do Tailscale
 
-3. **Acesse via IP Tailscale:**
-   ```
-   http://100.x.x.x:3000  # Substitua pelo IP do seu servidor
+3. **Obtenha o IP Tailscale do servidor:**
+   ```bash
+   # No servidor
+   docker exec openpanel-tailscale tailscale ip -4
    ```
 
-4. **Ou use MagicDNS** (se configurado):
+4. **Acesse via IP Tailscale:**
+   ```
+   http://100.x.x.x:3000  # Substitua pelo IP obtido
+   ```
+
+5. **Ou use MagicDNS** (mais fácil):
    ```
    http://nome-do-servidor:3000
    ```
-
-#### Opção 3: Acesso via IP Local (Rede Local)
-
-Se estiver na mesma rede local:
-
-```
-http://192.168.1.100:3000  # Substitua pelo IP do servidor
-```
 
 ---
 
@@ -209,6 +262,20 @@ http://192.168.1.100:3000  # Substitua pelo IP do servidor
 - 🔑 **Senha**: `admin123`
 
 ⚠️ **IMPORTANTE**: Altere a senha imediatamente após o primeiro login!
+
+#### Criar Novo Admin (Opcional)
+
+Se precisar criar um novo usuário administrador:
+
+```bash
+cd /opt/openpanel
+npm run create:admin
+
+# Ou manualmente com script
+node scripts/create-admin.ts
+```
+
+Siga as instruções interativas para definir email e senha.
 
 ---
 
@@ -315,53 +382,83 @@ crontab -e
 # Status de todos os containers
 docker ps
 
-# Status específico do OpenPanel
-./scripts/server/status.sh
+# Status completo do sistema
+npm run status
 
-# Ver logs
-./scripts/server/logs-dev.sh -f
+# Ver logs em tempo real
+docker compose logs -f
+
+# Logs específicos
+docker logs openpanel-postgres -f
+docker logs openpanel-redis -f
+docker logs openpanel-traefik -f
 ```
 
-### Reiniciar Serviços
+### Desenvolvimento
 
 ```bash
-# Reiniciar tudo
-docker compose restart
+# Iniciar tudo (infra + dev)
+npm start
 
-# Reiniciar apenas API
-docker restart openpanel-api-dev
+# Apenas desenvolvimento (assume infra rodando)
+npm run dev
 
-# Reiniciar apenas banco
-docker restart openpanel-postgres
+# Apenas API
+npm run dev:api
+
+# Apenas Web
+npm run dev:web
+
+# Verificar tipos TypeScript
+npm run type-check
+
+# Executar testes
+npm run test -w apps/api
 ```
 
-### Parar/Iniciar
+### Gerenciar Containers
 
 ```bash
 # Parar tudo
 docker compose down
 
-# Iniciar tudo
-docker compose up -d
+# Parar e remover volumes (CUIDADO: apaga dados)
+docker compose down -v
 
-# Parar apenas ambiente DEV
-./scripts/server/stop-dev.sh
+# Iniciar apenas infraestrutura
+docker compose up -d postgres redis traefik
 
-# Iniciar apenas ambiente DEV
-./scripts/server/start-dev.sh
+# Reiniciar serviço específico
+docker restart openpanel-postgres
+docker restart openpanel-redis
+docker restart openpanel-traefik
+
+# Ver uso de recursos
+docker stats
 ```
 
-### Acessar Banco de Dados
+### Gerenciar Banco de Dados
 
 ```bash
-# Conectar ao PostgreSQL
+# Conectar ao PostgreSQL (psql)
 docker exec -it openpanel-postgres psql -U openpanel -d openpanel
 
+# Prisma Studio (GUI para banco de dados)
+npm run db:studio
+
+# Migrations
+npm run db:generate      # Gerar client Prisma
+npm run db:push          # Aplicar schema sem migrations
+npm run db:migrate       # Criar e aplicar migration
+
 # Backup manual
-docker exec openpanel-postgres pg_dump -U openpanel openpanel > backup.sql
+docker exec openpanel-postgres pg_dump -U openpanel openpanel > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restaurar backup
 docker exec -i openpanel-postgres psql -U openpanel openpanel < backup.sql
+
+# Ver tamanho do banco
+docker exec openpanel-postgres psql -U openpanel -d openpanel -c "SELECT pg_size_pretty(pg_database_size('openpanel'));"
 ```
 
 ---
@@ -373,29 +470,41 @@ docker exec -i openpanel-postgres psql -U openpanel openpanel < backup.sql
 ⚠️ **CRÍTICO**: Altere todas as senhas antes de usar em produção!
 
 ```bash
-# Editar .env
+# Editar arquivo .env na raiz do projeto
 nano .env
 
-# Gerar senha segura para PostgreSQL
-openssl rand -hex 32
+# Gerar senhas seguras
+openssl rand -hex 32  # Para PostgreSQL
+openssl rand -hex 32  # Para Redis
+openssl rand -hex 64  # Para JWT_SECRET
 
-# Gerar senha segura para Redis
-openssl rand -hex 32
-
-# Gerar JWT_SECRET (mínimo 32 caracteres)
-openssl rand -hex 64
-
-# Atualizar no .env:
-POSTGRES_PASSWORD=nova_senha_segura
-REDIS_PASSWORD=nova_senha_segura
-JWT_SECRET=nova_chave_secreta_64_chars
+# Atualizar no .env (na raiz do projeto):
+POSTGRES_PASSWORD=nova_senha_segura_aqui
+REDIS_PASSWORD=nova_senha_segura_aqui
+JWT_SECRET=nova_chave_jwt_64_caracteres_aqui
+JWT_REFRESH_SECRET=outra_chave_jwt_64_caracteres_aqui
 ```
 
-Após alterar, reinicie os containers:
+⚠️ **IMPORTANTE**: Edite apenas o `.env` da **raiz do projeto**!
+
+Após alterar, recrie os containers:
 
 ```bash
+# Parar containers
 docker compose down
-docker compose up -d
+
+# Remover volumes (CUIDADO: apaga dados do banco)
+docker volume rm openpanel_postgres-data openpanel_redis-data
+
+# Recriar tudo
+npm start
+```
+
+**Ou use o script de rotação de credenciais:**
+
+```bash
+chmod +x scripts/rotate-credentials.sh
+./scripts/rotate-credentials.sh
 ```
 
 ### Desabilitar Traefik Dashboard
@@ -524,7 +633,7 @@ Depois acesse: `http://seu-ip-publico:3000`
 ## 📞 Suporte
 
 - **Documentação**: Veja outros arquivos em `docs/`
-- **Issues**: [GitHub Issues](https://github.com/msoutole/openpanel/issues)
+- **Issues**: [GitHub Issues](https://github.com/msoutole/Open-Panel/issues)
 - **Email**: msoutole@hotmail.com
 
 ---

@@ -15,6 +15,7 @@ Este documento detalha as melhorias de feedback visual implementadas para opera�
 Componente para exibir progresso de operações longas.
 
 **Características:**
+
 - ✅ Barra de progresso animada (0-100%)
 - ✅ Label opcional
 - ✅ Exibição de porcentagem
@@ -23,6 +24,7 @@ Componente para exibir progresso de operações longas.
 - ✅ Animação shimmer durante loading
 
 **Uso:**
+
 ```tsx
 <ProgressBar
   progress={75}
@@ -34,6 +36,7 @@ Componente para exibir progresso de operações longas.
 ```
 
 **Estados:**
+
 - `loading`: Barra azul com animação shimmer
 - `success`: Barra verde com ícone de check
 - `error`: Barra vermelha
@@ -45,6 +48,7 @@ Componente para exibir progresso de operações longas.
 Componente para indicar status de conexão WebSocket.
 
 **Características:**
+
 - ✅ Indicador visual de conexão (conectado, conectando, desconectado, erro)
 - ✅ Contador de tentativas de reconexão
 - ✅ Botão de retry quando há erro
@@ -52,6 +56,7 @@ Componente para indicar status de conexão WebSocket.
 - ✅ Tamanhos configuráveis (sm, md, lg)
 
 **Uso:**
+
 ```tsx
 <WebSocketIndicator
   isConnected={isConnected}
@@ -66,6 +71,7 @@ Componente para indicar status de conexão WebSocket.
 ```
 
 **Estados Visuais:**
+
 - **Conectado**: Ícone WiFi verde com pulse animation
 - **Conectando**: Spinner azul animado
 - **Desconectado**: Ícone WiFiOff amarelo com contador de tentativas
@@ -78,6 +84,7 @@ Componente para indicar status de conexão WebSocket.
 Componente para retry de operações que falharam.
 
 **Características:**
+
 - ✅ Exibição de erro
 - ✅ Contador de tentativas
 - ✅ Limite máximo de tentativas
@@ -85,6 +92,7 @@ Componente para retry de operações que falharam.
 - ✅ Estado de loading durante retry
 
 **Uso:**
+
 ```tsx
 <RetryButton
   onRetry={handleRetry}
@@ -97,6 +105,7 @@ Componente para retry de operações que falharam.
 ```
 
 **Variantes:**
+
 - `button`: Card completo com mensagem de erro e botão grande
 - `inline`: Layout compacto inline com erro e botão pequeno
 
@@ -107,11 +116,13 @@ Componente para retry de operações que falharam.
 ### DashboardView
 
 **Melhorias:**
+
 - ✅ Indicador WebSocket para métricas em tempo real
 - ✅ Exibido apenas na view de monitoramento
 - ✅ Posicionado no topo direito
 
 **Código:**
+
 ```tsx
 {isMonitor && (
   <div className="flex justify-end">
@@ -130,11 +141,13 @@ Componente para retry de operações que falharam.
 ### ServiceDetailView
 
 **Melhorias:**
+
 - ✅ Indicadores WebSocket para logs e métricas
 - ✅ Exibidos apenas nas tabs correspondentes
 - ✅ Feedback visual do status de conexão
 
 **Código:**
+
 ```tsx
 {(activeTab === 'logs' || activeTab === 'metrics') && (
   <div className="mb-4 flex gap-4">
@@ -163,12 +176,14 @@ Componente para retry de operações que falharam.
 ### TemplateDeployModal
 
 **Melhorias:**
+
 - ✅ Progress bar durante deploy
 - ✅ Estimativa de tempo dinâmica
 - ✅ Retry button em caso de erro
 - ✅ Contador de tentativas
 
 **Código:**
+
 ```tsx
 {loading && (
   <ProgressBar
@@ -196,24 +211,29 @@ Componente para retry de operações que falharam.
 ## Padrões de Feedback Visual
 
 ### Operações de Curta Duração (< 2s)
+
 - **Loading State**: Spinner simples no botão
 - **Feedback**: Mudança de estado do botão (disabled + spinner)
 
 ### Operações de Média Duração (2s - 30s)
+
 - **Progress Bar**: Com porcentagem e estimativa de tempo
 - **Feedback**: Atualização contínua do progresso
 
 ### Operações de Longa Duração (> 30s)
+
 - **Progress Bar**: Com etapas detalhadas
 - **Estimativa de Tempo**: Atualizada dinamicamente
 - **Cancelamento**: Opção de cancelar quando aplicável
 
 ### Conexões WebSocket
+
 - **Indicador Visual**: Sempre visível quando WebSocket está ativo
 - **Status em Tempo Real**: Atualização automática do status
 - **Retry Automático**: Com feedback visual das tentativas
 
 ### Erros e Retry
+
 - **Mensagem Clara**: Exibição do erro de forma legível
 - **Ação Sugerida**: Botão de retry sempre visível
 - **Limite de Tentativas**: Feedback quando máximo é atingido
@@ -255,4 +275,3 @@ Componente para retry de operações que falharam.
 ---
 
 **Última atualização**: Dezembro 2025
-

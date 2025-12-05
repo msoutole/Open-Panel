@@ -27,11 +27,12 @@ AdGuard Home é um servidor DNS local que oferece:
 
 ### Instalação Automática
 
-```bash
+`bash
 sudo ./scripts/setup/install-adguard.sh
-```
+`
 
 O script irá:
+
 1. Verificar se systemd-resolved está ativo
 2. Oferecer desabilitar systemd-resolved (necessário)
 3. Iniciar AdGuard via Docker Compose
@@ -39,13 +40,16 @@ O script irá:
 
 ### Instalação Manual
 
-```bash
+`bash
+
 # Iniciar AdGuard
+
 docker compose --profile adguard up -d adguard
 
 # Verificar status
+
 docker ps | grep adguard
-```
+`
 
 ## Configuração Inicial
 
@@ -71,10 +75,10 @@ Recomendamos usar DNS criptografados:
 
 Configure servidores DNS para resolver nomes dos servidores upstream:
 
-```
+`
 1.1.1.1
 8.8.8.8
-```
+`
 
 ## Configuração de Filtros
 
@@ -98,10 +102,12 @@ Adicione os seguintes filtros em **Filtros → Bloqueio de anúncios**:
 
 Você pode criar filtros personalizados em **Filtros → Filtros personalizados**:
 
-```
+`
+
 # Exemplo: Bloquear domínio específico
+
 ||exemplo.com^
-```
+`
 
 ## Uso como DNS Local
 
@@ -129,9 +135,9 @@ Todos os dispositivos na rede usarão automaticamente o AdGuard Home.
 
 Edite `/etc/resolv.conf`:
 
-```
+`
 nameserver <IP_DO_SERVIDOR>
-```
+`
 
 #### macOS
 
@@ -151,24 +157,28 @@ nameserver <IP_DO_SERVIDOR>
 O AdGuard Home está configurado para ser acessível via Traefik:
 
 ### Acesso Local
+
 - `http://adguard.openpanel.local`
 
 ### Acesso Externo (se domínio configurado)
+
 - `http://adguard.<seu-dominio>`
 - `https://adguard.<seu-dominio>` (SSL automático via Let's Encrypt)
 
 ### Configuração no docker-compose.yml
 
-```yaml
+`yaml
 adguard:
   profiles: [ "adguard" ]
-  # ... configuração ...
+
+# ... configuração
+
   labels:
     - "traefik.enable=true"
     - "traefik.http.routers.adguard.rule=Host(`adguard.${DOMAIN:-localhost}`)"
     - "traefik.http.routers.adguard.entrypoints=web"
     - "traefik.http.services.adguard.loadbalancer.server.port=3000"
-```
+`
 
 ## Acesso Remoto Seguro
 
@@ -181,6 +191,7 @@ O AdGuard Home deve ser usado apenas na rede local. Para acesso remoto ao painel
 ### Opção 1: Via Traefik (Recomendado)
 
 Use o Traefik com SSL automático:
+
 - `https://adguard.<seu-dominio>`
 
 ### Opção 2: Via Tailscale
@@ -197,23 +208,27 @@ Configure uma VPN (OpenVPN, WireGuard) e acesse via IP local.
 ### Problema: AdGuard não inicia
 
 **Verificar logs**:
-```bash
+
+`bash
 docker logs openpanel-adguard
-```
+`
 
 **Verificar porta 53**:
-```bash
+
+`bash
 sudo lsof -i :53
-```
+`
 
 **Solução**: Desabilitar systemd-resolved
-```bash
+
+`bash
 sudo ./scripts/setup/disable-systemd-resolved.sh
-```
+`
 
 ### Problema: Dispositivos não usam AdGuard
 
 **Verificações**:
+
 1. DNS configurado corretamente no roteador/dispositivo?
 2. Firewall bloqueando porta 53?
 3. AdGuard está rodando? `docker ps | grep adguard`
@@ -221,6 +236,7 @@ sudo ./scripts/setup/disable-systemd-resolved.sh
 ### Problema: Muitos sites bloqueados incorretamente
 
 **Solução**:
+
 1. Desative filtros muito agressivos
 2. Adicione exceções em **Filtros → Whitelist**
 3. Verifique logs em **Consulta Log** para identificar falsos positivos
@@ -228,6 +244,7 @@ sudo ./scripts/setup/disable-systemd-resolved.sh
 ### Problema: Performance lenta
 
 **Soluções**:
+
 1. Use DNS upstream mais rápido (Cloudflare, Quad9)
 2. Reduza número de filtros ativos
 3. Configure cache DNS maior
@@ -237,36 +254,44 @@ sudo ./scripts/setup/disable-systemd-resolved.sh
 
 ### Gerenciamento
 
-```bash
+`bash
+
 # Iniciar
+
 ./scripts/server/start-adguard.sh
 
 # Parar
+
 ./scripts/server/stop-adguard.sh
 
 # Status
+
 docker ps | grep adguard
 
 # Logs
+
 docker logs -f openpanel-adguard
 
 # Reiniciar
+
 docker compose --profile adguard restart adguard
-```
+`
 
 ### Backup
 
-```bash
+`bash
+
 # Backup de configuração
+
 docker exec openpanel-adguard tar czf /opt/adguardhome/conf/backup.tar.gz /opt/adguardhome/conf
 
 # Restaurar backup
+
 docker exec openpanel-adguard tar xzf /opt/adguardhome/conf/backup.tar.gz -C /
-```
+`
 
 ## Referências
 
 - [Documentação Oficial do AdGuard Home](https://github.com/AdguardTeam/AdGuardHome/wiki)
 - [Lista de Filtros](https://filterlists.com/)
 - [Guia de Filtros Personalizados](https://kb.adguard.com/en/general/how-to-create-your-own-ad-filters)
-

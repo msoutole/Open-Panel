@@ -58,11 +58,23 @@ backup_config() {
 disable_resolved() {
     echo -e "${INFO} Desabilitando systemd-resolved..."
     
+    # Backup de configurações antes de modificar
+    mkdir -p /etc/systemd/resolved.conf.d
+    [ -f /etc/systemd/resolved.conf ] && cp /etc/systemd/resolved.conf /etc/systemd/resolved.conf.backup.$(date +%Y%m%d_%H%M%S)
+    
     # Parar serviço
-    systemctl stop systemd-resolved 2>/dev/null || true
+    if ! systemctl stop systemd-resolved 2>/dev/null; then
+        echo -e "${WARN} Aviso: systemd-resolved pode não estar instalado ou em uso"
+    else
+        echo -e "${CHECK} Serviço systemd-resolved parado"
+    fi
     
     # Desabilitar no boot
-    systemctl disable systemd-resolved 2>/dev/null || true
+    if ! systemctl disable systemd-resolved 2>/dev/null; then
+        echo -e "${WARN} Aviso: Não foi possível desabilitar systemd-resolved do boot"
+    else
+        echo -e "${CHECK} systemd-resolved desabilitado do boot"
+    fi
     
     echo -e "${CHECK} systemd-resolved desabilitado"
 }
@@ -113,12 +125,15 @@ main() {
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${WARN} ⚠️  IMPORTANTE:"
-    echo -e "   ${ARROW} /etc/resolv.conf agora é estático"
+    echo -e "   ${ARROW} /etc/resolv.conf agora é estático (imutável)"
     echo -e "   ${ARROW} Configure o AdGuard Home como DNS após instalá-lo"
-    echo -e "   ${ARROW} Para reativar systemd-resolved:"
-    echo -e "      ${BLUE}sudo chattr -i /etc/resolv.conf${NC}"
-    echo -e "      ${BLUE}sudo systemctl enable systemd-resolved${NC}"
-    echo -e "      ${BLUE}sudo systemctl start systemd-resolved${NC}"
+    echo -e "   ${ARROW} Backups foram criados em: /etc/systemd/resolved.conf.d/"
+    echo ""
+    echo -e "${INFO} Para REVERTER (reativar systemd-resolved):"
+    echo -e "   ${BLUE}sudo chattr -i /etc/resolv.conf${NC}"
+    echo -e "   ${BLUE}sudo systemctl enable systemd-resolved${NC}"
+    echo -e "   ${BLUE}sudo systemctl start systemd-resolved${NC}"
+    echo -e "   ${BLUE}sudo rm /etc/resolv.conf${NC}"
     echo ""
 }
 

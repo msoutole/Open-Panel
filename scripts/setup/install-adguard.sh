@@ -103,6 +103,48 @@ check_port_53() {
     fi
 }
 
+# Verificar portas necessárias
+check_required_ports() {
+    echo -e "${INFO} Verificando portas necessárias para AdGuard..."
+    
+    local ports_in_use=()
+    local all_ok=true
+    
+    # Portas: 53 (DNS), 80 (HTTP), 443 (HTTPS), 3000 (UI)
+    for port in 53 80 443 3000; do
+        if netstat -tuln 2>/dev/null | grep -q ":$port " || ss -tuln 2>/dev/null | grep -q ":$port "; then
+            ports_in_use+=($port)
+            echo -e "${WARN} Porta $port está em uso"
+            all_ok=false
+        fi
+    done
+    
+    if [ "$all_ok" = false ]; then
+        echo ""
+        echo -e "${WARN} ⚠️  Algumas portas necessárias estão ocupadas:"
+        for port in "${ports_in_use[@]}"; do
+            echo -e "   ${ARROW} Porta $port:"
+            if command -v lsof >/dev/null 2>&1; then
+                lsof -i :$port 2>/dev/null | tail -1 || true
+            elif command -v netstat >/dev/null 2>&1; then
+                netstat -tulpn 2>/dev/null | grep ":$port " | head -1 || true
+            fi
+        done
+        echo ""
+        echo -e "${WARN} Recomendações:"
+        echo -e "   ${ARROW} Parar aplicações que usam estas portas"
+        echo -e "   ${ARROW} Ou, configurar AdGuard em portas diferentes via .env"
+        echo ""
+        read -p "Deseja continuar mesmo assim? (s/N): " CONTINUE_ANYWAY
+        if [[ ! "$CONTINUE_ANYWAY" =~ ^[Ss]$ ]]; then
+            echo -e "${INFO} Instalação de AdGuard cancelada"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
 # Iniciar AdGuard via docker-compose
 start_adguard() {
     echo -e "${INFO} Iniciando AdGuard Home via Docker Compose..."
@@ -115,13 +157,36 @@ start_adguard() {
         exit 1
     fi
     
-    # Iniciar AdGuard com profile
-    docker compose --profile adguard up -d adguard || {
+    # Tentar iniciar AdGuard com profile
+    if ! docker compose --profile adguard up -d adguard 2>&1 | tee /tmp/adguard-startup.log; then
         echo -e "${CROSS} ${RED}Falha ao iniciar AdGuard Home${NC}"
-        exit 1
-    }
+        
+        # Mostrar última parte do log
+        echo -e "${INFO} Últimas linhas do erro:"
+        tail -10 /tmp/adguard-startup.log
+        
+        # Verificar se é erro de porta
+        if grep -q "address already in use\|bind.*failed" /tmp/adguard-startup.log; then
+            echo ""
+            echo -e "${WARN} Parece ser um problema de porta já em uso"
+            echo -e "${INFO} Verifique quais portas estão em uso:"
+            echo -e "   ${ARROW} netstat -tuln | grep LISTEN"
+            echo -e "   ${ARROW} ss -tuln | grep LISTEN"
+        fi
+        
+        return 1
+    fi
     
-    echo -e "${CHECK} AdGuard Home iniciado"
+    # Aguardar um pouco e verificar se container está rodando
+    sleep 2
+    if ! docker ps --format "{{.Names}}" | grep -q "openpanel-adguard"; then
+        echo -e "${WARN} Container openpanel-adguard não está rodando"
+        echo -e "${INFO} Verificando logs:"
+        docker compose --profile adguard logs adguard | tail -20
+        return 1
+    fi
+    
+    echo -e "${CHECK} AdGuard Home iniciado com sucesso"
 }
 
 # Configurar DNS local
@@ -170,6 +235,8 @@ main() {
     check_docker
     echo ""
     check_port_53
+    echo ""
+    check_required_ports || exit 0
     echo ""
     check_systemd_resolved
     echo ""
