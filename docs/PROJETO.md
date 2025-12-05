@@ -6,7 +6,7 @@ Este documento contém o status atual do projeto, planos futuros e histórico de
 
 ## 🗺️ Roadmap Atual
 
-**Última atualização**: 03 de Janeiro de 2025
+**Última atualização**: 05 de Dezembro de 2025
 **Status**: Em desenvolvimento ativo (Fase 5 - Testes & Polimento)
 **Versão Atual**: 0.3.0 → **Meta**: 1.0.0
 
@@ -23,6 +23,7 @@ Este documento contém o status atual do projeto, planos futuros e histórico de
   - **Database Clients**: Consoles para PostgreSQL, MySQL, MongoDB e Redis.
   - Zero Downtime Deployments (Blue-Green strategy).
   - Sistema de backups completo.
+  - **Integração Hostinger**: DDNS, DNS e VPS via MCP.
 
 ### 🚧 Em Progresso (Fase 5 - Roadmap para 1.0.0)
 
@@ -35,66 +36,36 @@ Este documento contém o status atual do projeto, planos futuros e histórico de
 
 📖 **Ver [ROADMAP_1.0.0.md](./ROADMAP_1.0.0.md) para detalhes completos do que falta para versão 1.0.0**
 
-### 🔮 Futuro (Fase 6+)
-
-- **Marketplace Comunidade**: Sistema de plugins e templates contribuídos pela comunidade.
-- **Multi-Node**: Suporte a cluster Docker Swarm ou Kubernetes.
-- **Billing**: Integração com Stripe/Gateway de pagamentos.
-- **Mobile App**: App nativo para monitoramento.
-- **GitOps**: Integração avançada com GitHub/GitLab para CI/CD automático.
-
 ---
 
-## 📋 Status dos Planos de Implementação (.cursor/plans)
+## 📜 Histórico de Melhorias e Changelog
 
-Abaixo o status dos planos encontrados na pasta `.cursor/plans`:
+### 4 de Dezembro de 2025: Consolidação e Qualidade
 
-| Plano                               | Status       | Notas                                                                                            |
-| ----------------------------------- | ------------ | ------------------------------------------------------------------------------------------------ |
-| `compara-o-easypanel-vs-open-panel` | ✅ Concluído  | Backend 100%. UI Templates 100%. 2FA integrado. Terminal Real conectado. Database Clients OK. |
-| `executar-corre-es-e-melhorias`     | ✅ Concluído  | Fases 1-4 de correções e melhorias finalizadas.                                                  |
-| `limpeza-de-branches-git`           | 🔄 Recorrente | Tarefa de manutenção contínua.                                                                   |
-| `melhorias-ui-responsiva`           | ✅ Concluído  | Diretrizes de design e melhorias implementadas.                                                  |
-| `refatora-o-frontend-design-system` | ✅ Concluído  | Design System estabelecido.                                                                      |
-| `revis-o-e-organiza-o-completa`     | ✅ Concluído  | Documentação consolidada e repositório organizado (Jan 2025).                                    |
+**1. Instalação e Setup**
+- 🛠️ Correção de bug onde `.env.example` não era encontrado.
+- 🛠️ Validação automática de portas (detecta conflito na 3000/53).
+- 🛠️ Melhoria no script de IP Estático com backup automático do Netplan.
+- 🆕 Script `pre-install-check.sh` para validar ambiente antes da instalação.
 
----
+**2. Correções de Código (0.3.0)**
+- ✅ **89.1% de redução** nos erros TypeScript (802 → 87 erros).
+- ✅ Correção de tipos no Prisma e Node.js (`@types/node` habilitado).
+- ✅ Correção de `undefined` em webhooks do Git.
+- ✅ **Zero vulnerabilidades** de segurança detectadas.
 
-## 📊 Métricas de Qualidade
-
-| Área            | Nota (0-10) | Meta | Status |
-| --------------- | ----------- | ---- | ------ |
-| Arquitetura     | 9           | 9    | ✅      |
-| Segurança       | 10          | 9    | ✅      |
-| Observabilidade | 9           | 9    | ✅      |
-| Documentação    | 10          | 10   | ✅      |
-| Funcionalidades | 10          | 9    | ✅      |
-| Testes          | 7           | 9    | ⚠️      |
-| Cobertura       | 45%         | 70%  | ⚠️      |
-| Testes E2E      | 0%          | 80%  | ⚠️      |
-| Performance     | Não medido  | Otimizado | ⚠️      |
-
----
-
-## 🏛️ Histórico e Arquivo
-
-Para manter a documentação limpa, consolidamos vários documentos antigos.
-
-### Documentos Consolidados (Jan 2025)
-
-Os seguintes documentos foram absorvidos pelos manuais atuais (`MANUAL_DO_USUARIO`, `MANUAL_TECNICO`, `GUIA_DE_DESENVOLVIMENTO`):
-
-- `INSTALL.md`, `QUICK_START.md` -> **Manual do Usuário**
-- `architecture/*`, `domains/*`, `API.md` -> **Manual Técnico**
-- `AGENTS.md`, `TESTING_CHECKLIST.md` -> **Guia de Desenvolvimento**
-- `PLANO-CORRECOES.md`, `AUDITORIA-COMPLETA.md` -> **(Arquivados)**
+**3. Documentação**
+- 📚 Consolidação de 42 arquivos em estrutura organizada.
+- 🗑️ Remoção de documentos legados e temporários.
+- 🆕 Criação de Manuais Consolidados (Infraestrutura, Desenvolvimento, Hostinger).
 
 ### Decisões Arquiteturais Passadas
 
 1. **Monorepo**: Adotado para facilitar compartilhamento de tipos entre Frontend e Backend.
 2. **Hono vs Express**: Migramos para Hono pela performance e suporte a Edge, mantendo compatibilidade com Node.js.
 3. **Prisma Singleton**: Implementado para resolver problemas de conexão em hot-reload e serverless.
-4. **WebSocket Auth**: Decidido usar ticket/token na primeira mensagem em vez de query params por segurança (evitar logs de token).
+4. **WebSocket Auth**: Decidido usar ticket/token na primeira mensagem em vez de query params por segurança.
+5. **Hostinger MCP**: Abstração completa da API da Hostinger para permitir automação de infraestrutura via IA.
 
 ---
 
