@@ -123,7 +123,7 @@ async function main() {
     
     // Start Docker services
     console.log(`${colors.yellow}Starting Docker services...${colors.reset}`);
-    execSync('docker-compose up -d', { stdio: 'inherit' });
+    execSync('docker compose up -d --build --force-recreate || docker-compose up -d --build --force-recreate', { stdio: 'inherit' });
     
     // Wait for critical services
     const services = ['openpanel-postgres', 'openpanel-redis', 'openpanel-traefik'];

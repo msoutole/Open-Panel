@@ -9,7 +9,7 @@ docker network create openpanel-network 2>/dev/null || true
 
 # Build and Start Services
 echo "Building and starting services..."
-docker compose up -d --build mongo ai-service mcp-server
+docker compose up -d --build --force-recreate mongo ai-service mcp-server
 
 # Check Health
 echo "Waiting for services to be healthy..."

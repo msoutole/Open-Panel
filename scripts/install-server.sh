@@ -43,7 +43,13 @@ else
 fi
 
 # Configuração de Logs (usa common.sh)
-LOG_FILE="${PROJECT_DIR}/install-server.log"
+# Usa log no diretório home do usuário se não conseguir escrever no da raiz
+if [ -w "${PROJECT_DIR}/install-server.log" ] 2>/dev/null || touch "${PROJECT_DIR}/install-server.log" 2>/dev/null; then
+    LOG_FILE="${PROJECT_DIR}/install-server.log"
+else
+    LOG_FILE="${HOME}/openpanel-install-server.log"
+    echo "AVISO: Não foi possível escrever em ${PROJECT_DIR}/install-server.log, usando ${LOG_FILE}" >&2
+fi
 # Redefinir LOG_FILE do common.sh para manter compatibilidade com local esperado
 export LOG_FILE
 
@@ -375,13 +381,16 @@ start_services() {
     find scripts -name "*.sh" -exec chmod +x {} \;
     
     log_info "Subindo containers de infraestrutura (Postgres, Redis, Traefik)..."
-    if ! docker compose up -d postgres redis traefik; then
-        log_fatal "Falha ao iniciar docker compose."
+    if ! docker_compose_recreate "" "" "postgres redis traefik"; then
+        log_warn "Falha ao recriar containers, tentando iniciar normalmente..."
+        if ! docker compose up -d postgres redis traefik; then
+            log_fatal "Falha ao iniciar docker compose."
+        fi
     fi
     
     if [ -n "$(grep TAILSCALE_AUTHKEY .env | cut -d= -f2)" ] || [ -n "${TAILSCALE_AUTHKEY:-}" ]; then
         log_info "Iniciando container Tailscale..."
-        docker compose --profile tailscale up -d tailscale || log_warn "Falha ao iniciar Tailscale (verifique logs)"
+        docker compose --profile tailscale up -d --build --force-recreate tailscale || log_warn "Falha ao iniciar Tailscale (verifique logs)"
     fi
     
     log_info "Aguardando banco de dados estar pronto..."

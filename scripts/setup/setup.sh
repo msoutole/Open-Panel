@@ -368,9 +368,9 @@ print_success "Estrutura de diretórios criada"
 print_subsection "Iniciando serviços Docker"
 
 print_info "Iniciando containers Docker..."
-log_info "Running: docker-compose up -d"
+log_info "Running: docker-compose up -d --build --force-recreate"
 
-if ! docker-compose up -d 2>&1 | tee -a "$LOG_FILE"; then
+if ! docker compose up -d --build --force-recreate 2>&1 | tee -a "$LOG_FILE" || docker-compose up -d --build --force-recreate 2>&1 | tee -a "$LOG_FILE"; then
     log_fatal "Falha ao iniciar docker-compose"
 fi
 

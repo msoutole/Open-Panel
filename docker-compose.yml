@@ -141,22 +141,18 @@ services:
     image: adguard/adguardhome:latest
     container_name: openpanel-adguard
     restart: unless-stopped
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "3000:3000/tcp"  # Painel admin (ou outra porta se conflitar)
-      - "853:853/tcp"     # DNS-over-HTTPS
-      - "784:784/udp"     # DNS-over-QUIC
+    # AdGuard requer privilégios de rede para portas baixas (53)
+    network_mode: host  # Usa network_mode: host para portas privilegiadas
+    # Portas configuradas via network_mode: host
+    # DNS: 53, Admin: 3030 (configurado no AdGuard), DoH: 853, DoQ: 784
     volumes:
       - adguard-work:/opt/adguardhome/work
       - adguard-conf:/opt/adguardhome/conf
-    networks:
-      - openpanel
+    # Não usa network openpanel quando usa network_mode: host
+    # networks:
+    #   - openpanel
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.adguard.rule=Host(`adguard.openpanel.local`) || Host(`adguard.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.adguard.entrypoints=web"
-      - "traefik.http.services.adguard.loadbalancer.server.port=3000"
+      - "traefik.enable=false"  # AdGuard não precisa do Traefik com network_mode: host
 
   # Ollama para modelos de IA locais (opcional - use profile: ollama)
   ollama:
@@ -196,7 +192,7 @@ services:
     container_name: openpanel-mongo
     restart: unless-stopped
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "${MONGO_PORT:-27018}:27017"  # Porta 27018 no host para evitar conflito com MongoDB do RocketChat
     volumes:
       - mongo-data:/data/db
     environment:
@@ -254,7 +250,7 @@ services:
       - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-changeme}@openpanel-mongo:27017
       - JWT_SECRET=${JWT_SECRET:-changeme}
     ports:
-      - "3005:3005"
+      - "${MCP_SERVER_PORT:-3006}:3005"  # Porta 3006 no host para evitar conflito com web-prod
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
@@ -332,8 +328,10 @@ services:
       - VITE_API_URL=http://dev.openpanel.local/api
       - VITE_APP_NAME=OpenPanel (DEV)
       - VITE_APP_VERSION=${VITE_APP_VERSION:-0.3.0}
-    ports:
-      - "3000:3000"
+    # Porta não exposta diretamente - acesso via Traefik apenas
+    # Evita conflito com RocketChat na porta 3000
+    # ports:
+    #   - "3000:3000"
     volumes:
       - ./apps/web:/app/apps/web
       - ./packages:/app/packages
@@ -405,7 +403,7 @@ services:
     container_name: openpanel-web-pre
     restart: unless-stopped
     ports:
-      - "3001:80"
+      - "3003:80"
     depends_on:
       - api-pre
     networks:
@@ -439,13 +437,13 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-openpanel}:${POSTGRES_PASSWORD:-changeme}@openpanel-postgres:5432/${POSTGRES_DB:-openpanel}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@openpanel-redis:6379/0
-      - API_PORT=3003
+      - API_PORT=3001
       - APP_URL=${APP_URL_PROD:-https://openpanel.local}
       - CORS_ORIGIN=${CORS_ORIGIN_PROD:-https://openpanel.local}
       - LOG_LEVEL=warn
       - JWT_SECRET=${JWT_SECRET:-changeme}
     ports:
-      - "3003:3001"
+      - "3004:3001"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
@@ -479,7 +477,7 @@ services:
     container_name: openpanel-web-prod
     restart: always
     ports:
-      - "3002:80"
+      - "3005:80"
     depends_on:
       - api-prod
     networks:

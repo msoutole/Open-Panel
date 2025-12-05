@@ -738,6 +738,95 @@ install_command() {
 }
 
 ##
+# Recria containers Docker com build e force-recreate
+# Trata falhas de credenciais automaticamente
+#
+# Parâmetros:
+#   $1 - Profile do Docker Compose (opcional, ex: "dev", "prod", "pre")
+#   $2 - Env file (opcional, ex: ".env.dev")
+#   $3 - Serviços específicos (opcional, ex: "postgres redis")
+#
+# Exemplo:
+#   docker_compose_recreate "dev" ".env.dev"
+#   docker_compose_recreate "" "" "postgres redis traefik"
+#
+docker_compose_recreate() {
+    local profile="${1:-}"
+    local env_file="${2:-}"
+    local services="${3:-}"
+    
+    local compose_cmd="docker compose"
+    local profile_flag=""
+    local env_flag=""
+    local services_list=""
+    
+    # Construir comando base
+    if [ -n "$profile" ]; then
+        profile_flag="--profile $profile"
+    fi
+    
+    if [ -n "$env_file" ]; then
+        env_flag="--env-file $env_file"
+    fi
+    
+    if [ -n "$services" ]; then
+        services_list="$services"
+    fi
+    
+    log_info "Recriando containers Docker (build + force-recreate)..."
+    
+    # Tentar recriar com build e force-recreate
+    local max_attempts=2
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        if [ $attempt -eq 1 ]; then
+            log_debug "Tentativa $attempt: docker compose up -d --build --force-recreate"
+            if $compose_cmd $profile_flag $env_flag up -d --build --force-recreate $services_list 2>&1 | tee -a "$LOG_FILE"; then
+                print_success "Containers recriados com sucesso."
+                return 0
+            fi
+        else
+            # Na segunda tentativa, verificar se é erro de credenciais
+            log_warn "Falha na tentativa $attempt. Verificando se é problema de credenciais..."
+            
+            # Verificar logs para erros de autenticação
+            if docker compose $profile_flag ps 2>&1 | grep -qi "authentication\|credential\|password\|unauthorized"; then
+                log_warn "Detectado possível problema de credenciais. Tentando regenerar senhas..."
+                
+                # Chamar função para regenerar senhas (se existir)
+                if command -v regenerate_credentials 2>/dev/null; then
+                    regenerate_credentials || true
+                else
+                    log_warn "Função regenerate_credentials não encontrada. Atualizando manualmente..."
+                    # Tentar atualizar .env com novas senhas
+                    if [ -f "$PROJECT_DIR/.env" ]; then
+                        local pg_pass=$(generate_random_string 32)
+                        local redis_pass=$(generate_random_string 32)
+                        
+                        sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$pg_pass/" "$PROJECT_DIR/.env" 2>/dev/null || true
+                        sed -i "s/REDIS_PASSWORD=.*/REDIS_PASSWORD=$redis_pass/" "$PROJECT_DIR/.env" 2>/dev/null || true
+                        
+                        log_info "Senhas atualizadas no .env"
+                    fi
+                fi
+            fi
+            
+            log_info "Tentando novamente sem force-recreate..."
+            if $compose_cmd $profile_flag $env_flag up -d --build $services_list 2>&1 | tee -a "$LOG_FILE"; then
+                print_success "Containers iniciados com sucesso (sem force-recreate)."
+                return 0
+            fi
+        fi
+        
+        attempt=$((attempt + 1))
+    done
+    
+    log_error "Falha ao recriar containers após $max_attempts tentativas."
+    return 1
+}
+
+##
 # Instalação para Linux
 #
 install_linux() {

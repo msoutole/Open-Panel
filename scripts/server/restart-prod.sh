@@ -12,7 +12,9 @@ cd "$PROJECT_DIR"
 
 echo "🔄 Reiniciando ambiente PROD..."
 
-docker compose --profile prod --env-file .env.prod restart
+# Recriar containers para garantir configurações atualizadas
+docker compose --profile prod --env-file .env.prod down
+docker compose --profile prod --env-file .env.prod up -d --build --force-recreate
 
-echo "✅ Ambiente PROD reiniciado!"
+echo "✅ Ambiente PROD reiniciado e recriado!"
 

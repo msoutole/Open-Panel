@@ -198,8 +198,8 @@ async function startDockerServices() {
         // Ignorar erro se não houver containers rodando
       }
       
-      // Recriar containers com --force-recreate para garantir senhas corretas
-      execSync(`${composeCommand} up -d --force-recreate`, { 
+      // Recriar containers com --build e --force-recreate para garantir versões e senhas atualizadas
+      execSync(`${composeCommand} up -d --build --force-recreate`, { 
         stdio: 'inherit', 
         timeout: 120000,
         env: { ...process.env }

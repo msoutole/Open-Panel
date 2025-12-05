@@ -12,7 +12,9 @@ cd "$PROJECT_DIR"
 
 echo "🔄 Reiniciando ambiente PRE..."
 
-docker compose --profile pre --env-file .env.pre restart
+# Recriar containers para garantir configurações atualizadas
+docker compose --profile pre --env-file .env.pre down
+docker compose --profile pre --env-file .env.pre up -d --build --force-recreate
 
-echo "✅ Ambiente PRE reiniciado!"
+echo "✅ Ambiente PRE reiniciado e recriado!"
 

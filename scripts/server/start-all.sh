@@ -26,10 +26,10 @@ done
 
 # Iniciar infraestrutura compartilhada
 echo "📦 Iniciando infraestrutura compartilhada..."
-docker compose up -d postgres redis traefik
+docker compose up -d --build --force-recreate postgres redis traefik
 # Tailscale é opcional - use --profile tailscale se configurado
 if [ -n "${TAILSCALE_AUTHKEY:-}" ]; then
-    docker compose --profile tailscale up -d tailscale || echo "⚠️  Tailscale não configurado (opcional)"
+    docker compose --profile tailscale up -d --build --force-recreate tailscale || echo "⚠️  Tailscale não configurado (opcional)"
 fi
 
 # Aguardar PostgreSQL estar pronto
@@ -49,13 +49,13 @@ echo ""
 
 # Iniciar todos os ambientes
 echo "🔧 Iniciando ambiente DEV..."
-docker compose --profile dev --env-file .env.dev up -d 2>/dev/null || echo "⚠️  DEV já está rodando ou erro ao iniciar"
+docker compose --profile dev --env-file .env.dev up -d --build --force-recreate 2>/dev/null || echo "⚠️  DEV já está rodando ou erro ao iniciar"
 
 echo "🔧 Iniciando ambiente PRE..."
-docker compose --profile pre --env-file .env.pre up -d --build 2>/dev/null || echo "⚠️  PRE já está rodando ou erro ao iniciar"
+docker compose --profile pre --env-file .env.pre up -d --build --force-recreate 2>/dev/null || echo "⚠️  PRE já está rodando ou erro ao iniciar"
 
 echo "🔧 Iniciando ambiente PROD..."
-docker compose --profile prod --env-file .env.prod up -d --build 2>/dev/null || echo "⚠️  PROD já está rodando ou erro ao iniciar"
+docker compose --profile prod --env-file .env.prod up -d --build --force-recreate 2>/dev/null || echo "⚠️  PROD já está rodando ou erro ao iniciar"
 
 echo ""
 echo "✅ Todos os ambientes iniciados!"

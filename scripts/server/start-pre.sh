@@ -28,7 +28,7 @@ fi
 
 # Iniciar infraestrutura compartilhada (se não estiver rodando)
 echo "📦 Verificando infraestrutura compartilhada..."
-docker compose up -d postgres redis traefik
+docker compose up -d --build --force-recreate postgres redis traefik
 # Tailscale é opcional - use --profile tailscale se configurado
 if [ -n "${TAILSCALE_AUTHKEY:-}" ]; then
     docker compose --profile tailscale up -d tailscale || echo "⚠️  Tailscale não configurado (opcional)"
@@ -51,7 +51,7 @@ echo ""
 
 # Iniciar ambiente PRE
 echo "🔧 Iniciando containers PRE..."
-docker compose --profile pre --env-file .env.pre up -d --build
+docker compose --profile pre --env-file .env.pre up -d --build --force-recreate
 
 echo "✅ Ambiente PRE iniciado!"
 echo ""

@@ -157,8 +157,8 @@ start_adguard() {
         exit 1
     fi
     
-    # Tentar iniciar AdGuard com profile
-    if ! docker compose --profile adguard up -d adguard 2>&1 | tee /tmp/adguard-startup.log; then
+    # Tentar iniciar AdGuard com profile (recriando para garantir atualizações)
+    if ! docker compose --profile adguard up -d --build --force-recreate adguard 2>&1 | tee /tmp/adguard-startup.log; then
         echo -e "${CROSS} ${RED}Falha ao iniciar AdGuard Home${NC}"
         
         # Mostrar última parte do log

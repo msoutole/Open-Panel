@@ -12,7 +12,9 @@ cd "$PROJECT_DIR"
 
 echo "🔄 Reiniciando ambiente DEV..."
 
-docker compose --profile dev --env-file .env.dev restart
+# Recriar containers para garantir configurações atualizadas
+docker compose --profile dev --env-file .env.dev down
+docker compose --profile dev --env-file .env.dev up -d --build --force-recreate
 
-echo "✅ Ambiente DEV reiniciado!"
+echo "✅ Ambiente DEV reiniciado e recriado!"
 

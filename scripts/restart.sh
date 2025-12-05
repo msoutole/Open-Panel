@@ -16,14 +16,18 @@ print_section "🔄 Restarting Open-Panel Services"
 
 # Parar tudo
 print_subsection "Parando serviços"
-docker-compose down || log_error "Erro ao parar serviços"
+docker compose down || docker-compose down || log_error "Erro ao parar serviços"
 
 # Aguardar um pouco
 sleep 2
 
-# Iniciar novamente
-print_subsection "Reiniciando serviços"
-docker-compose up -d || log_fatal "Erro ao reiniciar docker-compose"
+# Iniciar novamente com recriação
+print_subsection "Reiniciando e recriando serviços (build + force-recreate)"
+if command -v docker_compose_recreate >/dev/null 2>&1; then
+    docker_compose_recreate
+else
+    docker compose up -d --build --force-recreate || docker-compose up -d --build --force-recreate || log_fatal "Erro ao reiniciar docker-compose"
+fi
 
 # Aguardar saúde
 print_subsection "Aguardando containers"

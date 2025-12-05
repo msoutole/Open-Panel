@@ -663,7 +663,7 @@ start_docker_services() {
 
     cd "$SCRIPT_DIR"
 
-    docker compose up -d || docker-compose up -d || error_exit "Failed to start Docker services"
+    docker compose up -d --build --force-recreate || docker-compose up -d --build --force-recreate || error_exit "Failed to start Docker services"
 
     log "SUCCESS" "Docker services started"
 

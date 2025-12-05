@@ -41,11 +41,12 @@ if ! docker compose --profile prod ps | grep -q "Up"; then
     ./scripts/server/start-prod.sh
 fi
 
-echo "🔨 Rebuildando containers PROD..."
+echo "🔨 Rebuildando e recriando containers PROD..."
 docker compose --profile prod --env-file .env.prod build --no-cache
 
-echo "🔄 Reiniciando ambiente PROD..."
-docker compose --profile prod --env-file .env.prod up -d
+echo "🔄 Reiniciando ambiente PROD com force-recreate..."
+docker compose --profile prod --env-file .env.prod down
+docker compose --profile prod --env-file .env.prod up -d --build --force-recreate
 
 echo "⏳ Aguardando serviços estarem prontos..."
 sleep 15

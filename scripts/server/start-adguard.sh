@@ -16,7 +16,7 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$PROJECT_DIR"
 
 echo "Iniciando AdGuard Home..."
-docker compose --profile adguard up -d adguard
+docker compose --profile adguard up -d --build --force-recreate adguard
 
 echo "AdGuard Home iniciado!"
 echo "Acesse: http://adguard.openpanel.local"

@@ -22,11 +22,12 @@ if ! docker compose --profile pre ps | grep -q "Up"; then
     ./scripts/server/start-pre.sh
 fi
 
-echo "🔨 Rebuildando containers PRE..."
+echo "🔨 Rebuildando e recriando containers PRE..."
 docker compose --profile pre --env-file .env.pre build --no-cache
 
-echo "🔄 Reiniciando ambiente PRE..."
-docker compose --profile pre --env-file .env.pre up -d
+echo "🔄 Reiniciando ambiente PRE com force-recreate..."
+docker compose --profile pre --env-file .env.pre down
+docker compose --profile pre --env-file .env.pre up -d --build --force-recreate
 
 echo "⏳ Aguardando serviços estarem prontos..."
 sleep 10
