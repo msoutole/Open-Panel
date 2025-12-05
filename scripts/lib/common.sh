@@ -75,7 +75,10 @@ log_write() {
 # Log DEBUG (apenas se DEBUG está ativado)
 #
 log_debug() {
-    [[ "$LOG_LEVEL" == "DEBUG" ]] && log_write "DEBUG" "$@"
+    if [[ "$LOG_LEVEL" == "DEBUG" ]]; then
+        log_write "DEBUG" "$@"
+    fi
+    return 0
 }
 
 ##
