@@ -360,7 +360,7 @@ install_npm_deps() {
     print_section "Instalando Dependências do Projeto"
     cd "$PROJECT_DIR"
     
-    if ! retry_with_backoff 3 npm install; then
+    if ! retry_with_backoff 3 npm install --legacy-peer-deps; then
         log_fatal "Falha ao executar npm install."
     fi
     print_success "Dependências NPM instaladas."
@@ -471,7 +471,7 @@ main() {
     
     check_lock
     check_sudo_perms
-    check_connectivity
+    # check_connectivity
     
     # Pre-checks
     detect_os

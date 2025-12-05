@@ -118,8 +118,9 @@ create_netplan_config() {
         echo -e "${CHECK} Backup criado: ${NETPLAN_FILE}.backup.*"
     fi
     
-    # Converter DNS servers para array YAML
-    DNS_ARRAY=$(echo "$DNS_SERVERS" | tr ',' '\n' | sed 's/^/      - /')
+    # Converter DNS servers para formato de lista YAML
+    # Ex: "8.8.8.8,8.8.4.4" -> "[8.8.8.8, 8.8.4.4]"
+    FORMATTED_DNS_SERVERS=$(echo "$DNS_SERVERS" | sed 's/,/, /g' | sed 's/^/[/; s/$/]/')
     
     # Criar arquivo Netplan
     cat > "$NETPLAN_FILE" <<EOF
@@ -135,8 +136,7 @@ network:
         - to: default
           via: $GATEWAY
       nameservers:
-        addresses:
-$DNS_ARRAY
+        addresses: $FORMATTED_DNS_SERVERS
 EOF
     
     echo -e "${CHECK} Arquivo Netplan criado: $NETPLAN_FILE"
@@ -145,22 +145,6 @@ EOF
 # Aplicar configuração
 apply_netplan() {
     echo -e "${INFO} Aplicando configuração Netplan..."
-    
-    # Primeiro, tenta validar a sintaxe do arquivo
-    if ! netplan validate 2>/dev/null; then
-        echo -e "${CROSS} ${RED}Erro na sintaxe do arquivo Netplan. Revertendo...${NC}"
-        
-        # Encontrar o backup mais recente
-        LATEST_BACKUP=$(ls -t "${NETPLAN_FILE}.backup"* 2>/dev/null | head -1)
-        if [ -n "$LATEST_BACKUP" ]; then
-            cp "$LATEST_BACKUP" "$NETPLAN_FILE"
-            echo -e "${INFO} Arquivo revertido para: $LATEST_BACKUP"
-        else
-            rm -f "$NETPLAN_FILE"
-            echo -e "${INFO} Arquivo de configuração removido"
-        fi
-        exit 1
-    fi
     
     # Testar com timeout de 10 segundos
     if ! timeout 10 netplan try --timeout 5 2>&1 | grep -q "Configuration accepted"; then

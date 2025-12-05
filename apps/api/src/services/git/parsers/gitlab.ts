@@ -1,5 +1,5 @@
 import { WebhookParser, WebhookPayload } from '../types'
-import { logError } from '../../../../lib/logger'
+import { logError } from '../../../lib/logger'
 
 export class GitLabParser implements WebhookParser {
   verifySignature(token: string, _signature: string, secret: string): boolean {

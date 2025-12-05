@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { WebhookParser, WebhookPayload } from '../types'
-import { logError } from '../../../../lib/logger'
+import { logError } from '../../../lib/logger'
 
 export class GitHubParser implements WebhookParser {
   verifySignature(payload: string, signature: string, secret: string): boolean {
