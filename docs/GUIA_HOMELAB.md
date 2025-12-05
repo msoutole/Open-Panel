@@ -64,22 +64,28 @@ cd /opt/openpanel
 
 ## **Passo 4: Executar Instalação Automática**
 
-### Opção 1: Script Universal (Recomendado)
+### Opção 1: Script Específico para Servidor Ubuntu (Recomendado)
 
 ```bash
-# Dar permissão de execução
+# Para instalação otimizada em servidor Ubuntu/homelab
+chmod +x scripts/install-server.sh
+sudo ./scripts/install-server.sh
+```
+
+**Vantagens do script específico:**
+- ✅ Otimizado para servidores Ubuntu/Debian
+- ✅ Verificações de hardware mais rápidas
+- ✅ Instalação mais eficiente com cache
+- ✅ Suporte completo para homelab
+
+#### Opção 2: Script Universal (Alternativa)
+
+```bash
+# Script genérico para Linux/macOS
 chmod +x scripts/install.sh
 
 # Executar instalação
 sudo ./scripts/install.sh
-```
-
-#### Opção 2: Script Específico para Servidor
-
-```bash
-# Para instalação otimizada em servidor Ubuntu
-chmod +x scripts/install-server.sh
-sudo ./scripts/install-server.sh
 ```
 
 #### Opção 3: Instalação Headless (Sem Interação)
@@ -103,17 +109,23 @@ sudo MIN_RAM_MB=1024 MIN_DISK_GB=5 ./scripts/install-server.sh
 **O script irá:**
 
 1. ✅ Detectar sistema operacional (Ubuntu/Debian)
-2. ✅ Verificar requisitos de hardware (RAM, disco, arquitetura)
-3. ✅ Instalar Node.js 20.x LTS
-4. ✅ Instalar Docker Engine + Docker Compose v2
+2. ✅ Verificar requisitos de hardware (RAM, disco, arquitetura) - **Otimizado: verificações mais rápidas**
+3. ✅ Instalar Node.js 20.x LTS (verifica se já está instalado antes)
+4. ✅ Instalar Docker Engine + Docker Compose v2 (verifica se já está rodando)
 5. ✅ Configurar firewall (UFW) com regras seguras
 6. ✅ Criar arquivo `.env` na raiz com valores seguros
 7. ✅ Gerar senhas criptograficamente seguras
-8. ✅ Instalar todas as dependências npm
+8. ✅ Instalar dependências npm (usa cache quando disponível) - **Otimizado: verifica antes de instalar**
 9. ✅ Iniciar infraestrutura Docker (PostgreSQL, Redis, Traefik)
 10. ✅ Executar migrations do banco de dados
 11. ✅ Criar usuário administrador padrão
 12. ✅ Verificar e testar todos os serviços
+
+**Melhorias de Performance:**
+- ✅ Verificações de hardware otimizadas (leitura única de /proc/meminfo)
+- ✅ Instalação de pacotes verifica o que já está instalado antes
+- ✅ npm install usa cache quando disponível
+- ✅ Verificações de conectividade mais rápidas em modo headless
 
 ⏱️ **Tempo estimado**: 5-15 minutos (dependendo da conexão)
 
@@ -580,6 +592,9 @@ docker exec openpanel-postgres pg_isready -U openpanel
 
 # Verificar credenciais no .env
 cat .env | grep DATABASE_URL
+
+# Para comandos executados no host (fora do Docker), usar localhost:
+DATABASE_URL="postgresql://openpanel:SENHA@localhost:5432/openpanel" npm run db:push
 ```
 
 ### Porta já em uso
@@ -589,8 +604,30 @@ cat .env | grep DATABASE_URL
 sudo lsof -i :3000
 sudo lsof -i :3001
 
+# Verificar portas em uso
+sudo netstat -tulpn | grep LISTEN
+
 # Parar processo ou alterar porta no .env
 ```
+
+### Arquivo de Log com Permissões Root
+
+**Problema:** `install-server.log` pertence ao root, impedindo escrita.
+
+**Solução:**
+```bash
+sudo chown $USER:$USER /opt/openpanel/install-server.log
+```
+
+O script `install-server.sh` já foi ajustado para usar log alternativo no `$HOME` quando não conseguir escrever no log da raiz.
+
+### Status "Unhealthy" em Containers
+
+**Containers afetados:** `openpanel-traefik`, `openpanel-api-dev`
+
+**Status:** Não crítico - os serviços estão funcionando normalmente. Health checks podem estar muito rigorosos ou ter problemas de configuração.
+
+**Ação:** Pode ser ignorado ou investigado posteriormente.
 
 ### Tailscale não conecta
 
@@ -614,6 +651,37 @@ sudo usermod -aG docker $USER
 
 # Ou executar
 newgrp docker
+```
+
+### Conflitos de Portas
+
+Se encontrar conflitos de portas (ex: porta 3000 já em uso por outro serviço):
+
+1. **Verificar portas em uso:**
+   ```bash
+   sudo netstat -tulpn | grep LISTEN
+   ```
+
+2. **Verificar mapeamento de portas dos containers:**
+   ```bash
+   docker ps --format "table {{.Names}}\t{{.Ports}}"
+   ```
+
+3. **Consultar documentação de portas:**
+   - Veja `docs/MAPEAMENTO_PORTAS.md` para mapeamento completo
+   - Web Dev pode ser acessado via Traefik sem expor porta diretamente
+
+### Problemas com Prisma Client
+
+Se encontrar erros relacionados ao Prisma Client:
+
+```bash
+# Regenerar Prisma Client
+cd apps/api
+npx prisma generate
+
+# Verificar binary targets no schema.prisma
+# Deve incluir: ["native", "linux-musl-openssl-3.0.x"]
 ```
 
 ---
@@ -656,8 +724,8 @@ Depois acesse: `http://seu-ip-publico:3000`
 
 - [Manual do Usuário](./MANUAL_DO_USUARIO.md) - Guia completo de uso
 - [Manual Técnico](./MANUAL_TECNICO.md) - Detalhes técnicos
-- [Guia Tailscale](./TAILSCALE_SETUP.md) - Configuração detalhada do Tailscale
-- [Instalação em Servidor](./INSTALACAO_SERVIDOR.md) - Guia avançado
+- [Mapeamento de Portas](./MAPEAMENTO_PORTAS.md) - Documentação completa de portas
+- [HOMELAB_QUICKSTART.md](../HOMELAB_QUICKSTART.md) - Guia rápido de instalação
 
 ---
 

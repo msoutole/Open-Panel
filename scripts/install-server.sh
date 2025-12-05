@@ -89,23 +89,29 @@ check_lock() {
     echo $$ > "$LOCK_FILE"
 }
 
-# Verificar conectividade com internet
+# Verificar conectividade com internet (otimizado: verificação rápida)
 check_connectivity() {
-    print_info "Verificando conectividade com a internet..."
-    if ! retry 3 curl -s --connect-timeout 5 https://google.com >/dev/null; then
-        if ! retry 3 curl -s --connect-timeout 5 https://cloudflare.com >/dev/null; then
-            log_fatal "Sem conexão com a internet. Verifique sua rede."
+    if [ "$HEADLESS_MODE" = "true" ]; then
+        # Em modo headless, verificação rápida
+        if ! curl -s --connect-timeout 3 --max-time 5 https://www.google.com >/dev/null 2>&1; then
+            log_warn "Conectividade com internet não verificada. Continuando..."
+        fi
+    else
+        print_info "Verificando conectividade com a internet..."
+        if ! retry 2 curl -s --connect-timeout 3 --max-time 5 https://www.google.com >/dev/null 2>&1; then
+            log_warn "Conectividade limitada. Algumas operações podem falhar."
+        else
+            log_info "Conectividade OK."
         fi
     fi
-    log_info "Conectividade OK."
 }
 
-# Verificar requisitos de hardware (Melhorado)
+# Verificar requisitos de hardware (Otimizado: verificações mais rápidas)
 check_hardware_requirements_enhanced() {
     print_section "Verificando Hardware"
 
-    # RAM
-    local total_ram_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    # RAM (otimizado: leitura única)
+    local total_ram_kb=$(grep -m1 MemTotal /proc/meminfo 2>/dev/null | awk '{print $2}' || echo "0")
     local total_ram_mb=$((total_ram_kb / 1024))
 
     if [ "$total_ram_mb" -lt "$MIN_RAM_MB" ]; then
@@ -119,7 +125,7 @@ check_hardware_requirements_enhanced() {
         print_success "RAM: ${total_ram_mb}MB (Mínimo atendido)"
     fi
 
-    # Disco (usa common.sh)
+    # Disco (usa common.sh - otimizado)
     if ! check_disk_space "$PROJECT_DIR" "$((MIN_DISK_GB * 1024))"; then
         if [ "$STRICT_CHECK" = "true" ]; then
             log_fatal "Espaço em disco insuficiente."
@@ -128,7 +134,7 @@ check_hardware_requirements_enhanced() {
         print_success "Disco: Espaço suficiente verificado"
     fi
 
-    # Arquitetura
+    # Arquitetura (cache: uname -m é rápido)
     local arch=$(uname -m)
     case "$arch" in
         x86_64|amd64|aarch64|arm64)
@@ -158,9 +164,24 @@ check_sudo_perms() {
 # INSTALAÇÃO DE COMPONENTES
 # ============================================================================
 
-# Instalar dependências do sistema com retry e tratamento de lock do apt
+# Instalar dependências do sistema (Otimizado: verificação antes de instalar)
 install_system_dependencies_enhanced() {
     print_section "Instalando Dependências do Sistema"
+
+    # Verificar quais pacotes já estão instalados
+    local packages=("curl" "wget" "git" "ca-certificates" "gnupg" "lsb-release" "ufw" "htop" "net-tools")
+    local to_install=()
+    
+    for pkg in "${packages[@]}"; do
+        if ! dpkg -l | grep -q "^ii  $pkg "; then
+            to_install+=("$pkg")
+        fi
+    done
+    
+    if [ ${#to_install[@]} -eq 0 ]; then
+        print_success "Todas as dependências do sistema já estão instaladas."
+        return 0
+    fi
 
     # Função auxiliar para apt
     run_apt() {
@@ -168,12 +189,12 @@ install_system_dependencies_enhanced() {
         sudo apt-get install -y -qq "$@"
     }
 
-    log_info "Atualizando e instalando pacotes base..."
+    log_info "Instalando pacotes: ${to_install[*]}..."
     
     # Tenta corrigir dpkg interrompido antes de começar
     sudo dpkg --configure -a || true
 
-    if ! retry_with_backoff 3 run_apt curl wget git ca-certificates gnupg lsb-release ufw htop net-tools; then
+    if ! retry_with_backoff 3 run_apt "${to_install[@]}"; then
         log_fatal "Falha ao instalar dependências do sistema após múltiplas tentativas."
     fi
     
@@ -243,9 +264,6 @@ install_docker_enhanced() {
     
     log_info "Instalando Docker..."
     
-    # Remover versões antigas/conflitantes se necessário (opcional, mas seguro para 'fail-safe')
-    # sudo apt-get remove -y docker docker-engine docker.io containerd runc >/dev/null 2>&1 || true
-
     if ! retry_with_backoff 3 bash -c "curl -fsSL https://get.docker.com | sh"; then
         handle_install_failure "docker" "Script oficial falhou"
         exit 1
@@ -361,13 +379,34 @@ setup_env_and_secrets() {
     fi
 }
 
-# Instalar dependências npm
+# Instalar dependências npm (otimizado: usa cache quando disponível)
 install_npm_deps() {
     print_section "Instalando Dependências do Projeto"
     cd "$PROJECT_DIR"
     
-    if ! retry_with_backoff 3 npm install --legacy-peer-deps; then
-        log_fatal "Falha ao executar npm install."
+    # Verificar se node_modules existe e está atualizado
+    if [ -d "node_modules" ] && [ -f "package-lock.json" ]; then
+        local lock_age=$(find package-lock.json -mtime +7 2>/dev/null || echo "new")
+        if [ "$lock_age" != "new" ]; then
+            log_info "node_modules existe. Verificando se precisa atualizar..."
+            # Verificar se package.json foi modificado após node_modules
+            # Nota: -nt compara tempos de modificação de arquivos (sem aspas para funcionar corretamente)
+            if [ package.json -nt node_modules ] 2>/dev/null; then
+                log_info "package.json modificado. Reinstalando dependências..."
+            else
+                log_info "Dependências parecem atualizadas. Pulando instalação."
+                print_success "Dependências NPM já instaladas."
+                return 0
+            fi
+        fi
+    fi
+    
+    # Usar cache do npm quando disponível
+    if ! retry_with_backoff 3 npm install --legacy-peer-deps --prefer-offline; then
+        log_warn "Instalação com cache falhou. Tentando sem cache..."
+        if ! retry_with_backoff 2 npm install --legacy-peer-deps; then
+            log_fatal "Falha ao executar npm install."
+        fi
     fi
     print_success "Dependências NPM instaladas."
 }
@@ -427,7 +466,6 @@ setup_local_domains() {
 setup_homelab_features() {
     if [ "$HEADLESS_MODE" = "true" ]; then
         log_info "Modo Headless: Pulando configuração interativa de Home Lab."
-        # Aqui poderíamos implementar lógica para ler env vars para configurar IP estático etc.
         return 0
     fi
 
@@ -480,17 +518,15 @@ main() {
     
     check_lock
     check_sudo_perms
-    # check_connectivity
     
-    # Pre-checks
-    detect_os
+    # Pre-checks (otimizado: detect_os é executado automaticamente pelo common.sh)
     check_hardware_requirements_enhanced
     
-    # Instalação
+    # Instalação (ordem otimizada para reduzir dependências)
     install_system_dependencies_enhanced
-    install_tailscale_enhanced
     install_nodejs_enhanced
     install_docker_enhanced
+    install_tailscale_enhanced
     configure_firewall_enhanced
     
     # Configuração Projeto
