@@ -29,12 +29,12 @@ function loadEnv() {
     if (!fs.existsSync(envPath)) {
       return 0;
     }
-    
+
     const result = dotenv.config({ path: envPath });
     if (result.error) {
       throw result.error;
     }
-    
+
     return Object.keys(result.parsed || {}).length;
   } catch (error) {
     print(`${icons.warn} Erro ao carregar .env: ${error.message}`, 'yellow');
@@ -204,10 +204,80 @@ VITE_GEMINI_API_KEY=
   }
 }
 
+/**
+ * Garante que workspaces dependentes leiam o mesmo .env da raiz.
+ * - Cria symlink apps/api/.env -> ../.env (fallback para cópia se symlink falhar)
+ * - Gera apps/web/.env.local com variáveis VITE_ derivadas do .env da raiz
+ */
+function syncWorkspaceEnvFiles() {
+  const rootDir = process.cwd();
+  const rootEnvPath = path.join(rootDir, '.env');
+  const apiEnvPath = path.join(rootDir, 'apps', 'api', '.env');
+  const webEnvPath = path.join(rootDir, 'apps', 'web', '.env.local');
+
+  if (!fs.existsSync(rootEnvPath)) {
+    print(`${icons.warn} .env da raiz não encontrado; pulei sincronização com workspaces`, 'yellow');
+    return;
+  }
+
+  // apps/api/.env -> symlink (fallback para cópia se symlink não for permitido)
+  try {
+    if (fs.existsSync(apiEnvPath) || fs.lstatSync(apiEnvPath).isSymbolicLink()) {
+      fs.unlinkSync(apiEnvPath);
+    }
+  } catch {/* ignore */ }
+
+  try {
+    fs.symlinkSync(path.relative(path.dirname(apiEnvPath), rootEnvPath), apiEnvPath, 'file');
+    print(`${icons.check} apps/api/.env sincronizado (symlink)`, 'green');
+  } catch (error) {
+    try {
+      fs.copyFileSync(rootEnvPath, apiEnvPath);
+      print(`${icons.warn} Symlink não permitido; apps/api/.env copiado da raiz`, 'yellow');
+    } catch (copyError) {
+      printError('Falha ao sincronizar apps/api/.env', copyError);
+    }
+  }
+
+  // apps/web/.env.local -> derive only VITE_* vars
+  try {
+    const parsed = dotenv.parse(fs.readFileSync(rootEnvPath, 'utf-8'));
+    const viteEntries = Object.entries(parsed).filter(([key]) => key.startsWith('VITE_'));
+
+    if (viteEntries.length === 0) {
+      print(`${icons.warn} Nenhuma variável VITE_ encontrada para gerar apps/web/.env.local`, 'yellow');
+    }
+
+    const content = viteEntries.map(([k, v]) => `${k}=${v}`).join('\n') + '\n';
+    fs.mkdirSync(path.dirname(webEnvPath), { recursive: true });
+    fs.writeFileSync(webEnvPath, content, { mode: 0o600 });
+    print(`${icons.check} apps/web/.env.local gerado a partir do .env da raiz`, 'green');
+  } catch (error) {
+    printError('Falha ao gerar apps/web/.env.local', error);
+  }
+}
+
+/**
+ * Garante diretório de logs da API (evita erros em volumes read-only).
+ */
+function ensureApiLogDir() {
+  const logDir = path.join(process.cwd(), 'apps', 'api', 'logs');
+  try {
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true, mode: 0o755 });
+      print(`${icons.check} Diretório de logs criado: ${logDir}`, 'green');
+    }
+  } catch (error) {
+    printError('Falha ao garantir diretório de logs da API', error);
+  }
+}
+
 module.exports = {
   loadEnv,
   validateExistingEnv,
   createEnvFile,
   generateSecurePassword,
+  syncWorkspaceEnvFiles,
+  ensureApiLogDir,
 };
 

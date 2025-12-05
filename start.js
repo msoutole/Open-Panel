@@ -55,6 +55,8 @@ async function main() {
     print(`${icons.rocket} Configurando ambiente...`, 'blue');
     console.log();
     env.createEnvFile();
+    env.syncWorkspaceEnvFiles();
+    env.ensureApiLogDir();
     console.log();
 
     // Carregar variáveis de ambiente do .env

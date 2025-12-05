@@ -117,7 +117,7 @@ backups.post('/database/:id/restore', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: AuditActions.BACKUP_CREATED, // Using BACKUP_CREATED for restore
+      action: AuditActions.BACKUP_RESTORE,
       resourceType: 'backup',
       resourceId: backupId,
       metadata: {
@@ -272,7 +272,7 @@ backups.delete('/:id', async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: AuditActions.BACKUP_CREATED, // Using BACKUP_CREATED for delete
+      action: AuditActions.BACKUP_DELETE,
       resourceType: 'backup',
       resourceId: backupId,
     })
@@ -307,7 +307,7 @@ backups.post('/cleanup', zValidator('json', cleanupSchema), async (c) => {
 
     // Log audit
     await logAudit(c, {
-      action: AuditActions.BACKUP_CREATED, // Using BACKUP_CREATED for cleanup
+      action: AuditActions.BACKUP_CLEANUP,
       resourceType: 'backup',
       metadata: {
         retentionDays,

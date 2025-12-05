@@ -17,7 +17,7 @@ export interface AuditOptions {
   /** Resource ID (optional) */
   resourceId?: string
   /** Additional metadata */
-  metadata?: Record<string, unknown>  
+  metadata?: Record<string, unknown>
   /** Whether to log synchronously (default: false - async) */
   sync?: boolean
 }
@@ -84,6 +84,7 @@ export const AuditActions = {
   PROJECT_CREATE: 'PROJECT_CREATED' as AuditAction,
   PROJECT_UPDATE: 'PROJECT_UPDATED' as AuditAction,
   PROJECT_DELETE: 'PROJECT_DELETED' as AuditAction,
+  PROJECT_DEPLOY: 'PROJECT_DEPLOYED' as AuditAction,
 
   // Containers
   CONTAINER_CREATE: 'CONTAINER_CREATED' as AuditAction,
@@ -103,13 +104,13 @@ export const AuditActions = {
 
   // Settings
   SETTINGS_UPDATE: 'SETTINGS_UPDATED' as AuditAction,
-  
+
   // Database
   DATABASE_QUERY: 'DATABASE_QUERY' as AuditAction,
   BACKUP_CREATED: 'BACKUP_CREATED' as AuditAction,
-  BACKUP_RESTORE: 'BACKUP_CREATED' as AuditAction, // Using BACKUP_CREATED as base action
-  BACKUP_DELETE: 'BACKUP_CREATED' as AuditAction, // Using BACKUP_CREATED as base action
-  BACKUP_CLEANUP: 'BACKUP_CREATED' as AuditAction, // Using BACKUP_CREATED as base action
+  BACKUP_RESTORE: 'BACKUP_RESTORED' as AuditAction,
+  BACKUP_DELETE: 'BACKUP_DELETED' as AuditAction,
+  BACKUP_CLEANUP: 'BACKUP_CLEANUP' as AuditAction,
 } as const
 
 /**
