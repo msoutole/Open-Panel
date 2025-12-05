@@ -80,17 +80,37 @@ chmod +x scripts/install-server.sh
 sudo ./scripts/install-server.sh
 ```
 
+#### Opção 3: Instalação Headless (Sem Interação)
+
+Ideal para automação, scripts de provisioning ou CI/CD:
+
+```bash
+# Instalação completamente automatizada
+sudo HEADLESS_MODE=true ./scripts/install-server.sh
+
+# Pular configuração do Tailscale
+sudo SKIP_TAILSCALE=true ./scripts/install-server.sh
+
+# Combinar opções
+sudo HEADLESS_MODE=true SKIP_TAILSCALE=true ./scripts/install-server.sh
+
+# Ajustar requisitos mínimos (para hardware mais limitado)
+sudo MIN_RAM_MB=1024 MIN_DISK_GB=5 ./scripts/install-server.sh
+```
+
 **O script irá:**
 1. ✅ Detectar sistema operacional (Ubuntu/Debian)
-2. ✅ Instalar Node.js 20.x LTS
-3. ✅ Instalar Docker Engine + Docker Compose v2
-4. ✅ Configurar firewall (UFW) com regras seguras
-5. ✅ Criar arquivo `.env` na raiz com valores seguros
-6. ✅ Instalar todas as dependências npm
-7. ✅ Iniciar infraestrutura Docker (PostgreSQL, Redis, Traefik)
-8. ✅ Executar migrations do banco de dados
-9. ✅ Criar usuário administrador padrão
-10. ✅ Verificar e testar todos os serviços
+2. ✅ Verificar requisitos de hardware (RAM, disco, arquitetura)
+3. ✅ Instalar Node.js 20.x LTS
+4. ✅ Instalar Docker Engine + Docker Compose v2
+5. ✅ Configurar firewall (UFW) com regras seguras
+6. ✅ Criar arquivo `.env` na raiz com valores seguros
+7. ✅ Gerar senhas criptograficamente seguras
+8. ✅ Instalar todas as dependências npm
+9. ✅ Iniciar infraestrutura Docker (PostgreSQL, Redis, Traefik)
+10. ✅ Executar migrations do banco de dados
+11. ✅ Criar usuário administrador padrão
+12. ✅ Verificar e testar todos os serviços
 
 ⏱️ **Tempo estimado**: 5-15 minutos (dependendo da conexão)
 

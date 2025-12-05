@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# OpenPanel - Script de Instalação para Servidor Ubuntu
+# OpenPanel - Script de Instalação para Servidor Ubuntu (Homelab Optimized)
 # ============================================================================
 # Instalação completa do OpenPanel em servidor Ubuntu com suporte multi-ambiente
 # Configura dev, pre e prod automaticamente
@@ -8,10 +8,28 @@
 # Uso:
 #   chmod +x install-server.sh
 #   ./install-server.sh
+#
+# Opções via variáveis de ambiente:
+#   HEADLESS_MODE=true ./install-server.sh    # Instalação sem interação
+#   SKIP_TAILSCALE=true ./install-server.sh   # Pular configuração Tailscale
+#   MIN_RAM_MB=1024 ./install-server.sh       # Definir RAM mínima (default: 2048)
+#   MIN_DISK_GB=5 ./install-server.sh         # Definir disco mínimo (default: 10)
+#
+# Exemplo de instalação headless completa:
+#   HEADLESS_MODE=true SKIP_TAILSCALE=true ./install-server.sh
 # ============================================================================
 
 set -e
 set -o pipefail
+
+# ============================================================================
+# OTIMIZAÇÕES PARA HOMELAB UBUNTU SERVER
+# ============================================================================
+# - Suporte a Ubuntu Server 20.04, 22.04 e 24.04 LTS
+# - Configurações otimizadas para baixo consumo de recursos
+# - Suporte a instalação headless (sem interação)
+# - Verificações de hardware mínimo
+# ============================================================================
 
 # Cores
 RED='\033[0;31m'
@@ -30,6 +48,12 @@ INFO="${CYAN}ℹ${NC}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOG_FILE="${PROJECT_DIR}/install-server.log"
+
+# Configurações para homelab (podem ser sobrescritas via variáveis de ambiente)
+HEADLESS_MODE="${HEADLESS_MODE:-false}"
+SKIP_TAILSCALE="${SKIP_TAILSCALE:-false}"
+MIN_RAM_MB="${MIN_RAM_MB:-2048}"
+MIN_DISK_GB="${MIN_DISK_GB:-10}"
 
 # Funções de log
 log() {
@@ -51,6 +75,43 @@ log() {
 error_exit() {
     log "ERROR" "$1"
     exit 1
+}
+
+# Verificar requisitos mínimos de hardware para homelab
+check_hardware_requirements() {
+    log "INFO" "Verificando requisitos de hardware para homelab..."
+
+    # Verificar RAM disponível
+    local total_ram_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    local total_ram_mb=$((total_ram_kb / 1024))
+
+    if [ "$total_ram_mb" -lt "$MIN_RAM_MB" ]; then
+        log "WARN" "RAM disponível: ${total_ram_mb}MB (mínimo recomendado: ${MIN_RAM_MB}MB)"
+        log "WARN" "O sistema pode ficar lento com pouca memória"
+    else
+        log "SUCCESS" "RAM disponível: ${total_ram_mb}MB - OK"
+    fi
+
+    # Verificar espaço em disco
+    local available_disk_kb=$(df "$PROJECT_DIR" | tail -1 | awk '{print $4}')
+    local available_disk_gb=$((available_disk_kb / 1024 / 1024))
+
+    if [ "$available_disk_gb" -lt "$MIN_DISK_GB" ]; then
+        log "ERROR" "Espaço em disco insuficiente: ${available_disk_gb}GB (mínimo: ${MIN_DISK_GB}GB)"
+        return 1
+    else
+        log "SUCCESS" "Espaço em disco: ${available_disk_gb}GB - OK"
+    fi
+
+    # Verificar arquitetura do processador
+    local arch=$(uname -m)
+    if [ "$arch" = "x86_64" ] || [ "$arch" = "aarch64" ]; then
+        log "SUCCESS" "Arquitetura do processador: $arch - OK"
+    else
+        log "WARN" "Arquitetura $arch pode ter suporte limitado"
+    fi
+
+    return 0
 }
 
 # Verificar se está rodando como root ou com sudo
@@ -221,26 +282,30 @@ create_env_files() {
         error_exit "Nenhum arquivo .env ou .env.example encontrado"
     fi
     
-    # Perguntar sobre Tailscale Auth Key
-    echo ""
-    echo -e "${CYAN}🔐 Configuração do Tailscale (VPN)${NC}"
-    echo -e "${INFO} Tailscale permite acesso remoto seguro ao servidor."
-    echo -e "${INFO} Se você já tem uma auth key, digite agora (ou pressione Enter para pular):"
-    read -p "TAILSCALE_AUTHKEY (ou Enter para pular): " TAILSCALE_KEY
-    
-    # Adicionar ou atualizar Tailscale Auth Key no .env
-    if [ -n "$TAILSCALE_KEY" ]; then
-        if grep -q "^TAILSCALE_AUTHKEY=" "$TARGET_ENV_FILE" 2>/dev/null; then
-            sed -i "s|^TAILSCALE_AUTHKEY=.*|TAILSCALE_AUTHKEY=$TAILSCALE_KEY|" "$TARGET_ENV_FILE"
+    # Configuração do Tailscale (apenas se não estiver em modo headless e não for pulado)
+    if [ "$HEADLESS_MODE" = "false" ] && [ "$SKIP_TAILSCALE" = "false" ]; then
+        echo ""
+        echo -e "${CYAN}🔐 Configuração do Tailscale (VPN)${NC}"
+        echo -e "${INFO} Tailscale permite acesso remoto seguro ao servidor."
+        echo -e "${INFO} Se você já tem uma auth key, digite agora (ou pressione Enter para pular):"
+        read -p "TAILSCALE_AUTHKEY (ou Enter para pular): " TAILSCALE_KEY
+
+        # Adicionar ou atualizar Tailscale Auth Key no .env
+        if [ -n "$TAILSCALE_KEY" ]; then
+            if grep -q "^TAILSCALE_AUTHKEY=" "$TARGET_ENV_FILE" 2>/dev/null; then
+                sed -i "s|^TAILSCALE_AUTHKEY=.*|TAILSCALE_AUTHKEY=$TAILSCALE_KEY|" "$TARGET_ENV_FILE"
+            else
+                echo "" >> "$TARGET_ENV_FILE"
+                echo "# Tailscale (VPN)" >> "$TARGET_ENV_FILE"
+                echo "TAILSCALE_AUTHKEY=$TAILSCALE_KEY" >> "$TARGET_ENV_FILE"
+            fi
+            log "SUCCESS" "Tailscale Auth Key adicionada ao .env"
         else
-            echo "" >> "$TARGET_ENV_FILE"
-            echo "# Tailscale (VPN)" >> "$TARGET_ENV_FILE"
-            echo "TAILSCALE_AUTHKEY=$TAILSCALE_KEY" >> "$TARGET_ENV_FILE"
+            log "INFO" "Tailscale não configurado. Você pode adicionar depois editando .env"
+            log "INFO" "Obtenha uma auth key em: https://login.tailscale.com/admin/settings/keys"
         fi
-        log "SUCCESS" "Tailscale Auth Key adicionada ao .env"
-    else
-        log "INFO" "Tailscale não configurado. Você pode adicionar depois editando .env"
-        log "INFO" "Obtenha uma auth key em: https://login.tailscale.com/admin/settings/keys"
+    elif [ "$SKIP_TAILSCALE" = "true" ]; then
+        log "INFO" "Configuração do Tailscale pulada (SKIP_TAILSCALE=true)"
     fi
     
     log "SUCCESS" "Arquivos de ambiente criados"
@@ -349,6 +414,12 @@ configure_local_domains() {
 
 # Configurar Home Lab (opcional)
 configure_home_lab() {
+    # Pular em modo headless
+    if [ "$HEADLESS_MODE" = "true" ]; then
+        log "INFO" "Configuração de Home Lab pulada (modo headless)"
+        return 0
+    fi
+
     echo ""
     echo -e "${CYAN}🏠 Configuração de Home Lab (Opcional)${NC}"
     echo ""
@@ -358,7 +429,7 @@ configure_home_lab() {
     echo -e "   3. Domínio externo (Hostinger + No-IP)"
     echo ""
     read -p "Deseja configurar Home Lab? (s/N): " CONFIGURE_HOMELAB
-    
+
     if [[ ! "$CONFIGURE_HOMELAB" =~ ^[Ss]$ ]]; then
         log "INFO" "Configuração de Home Lab pulada"
         return 0
@@ -482,6 +553,7 @@ main() {
     echo ""
     check_sudo
     detect_os
+    check_hardware_requirements || error_exit "Requisitos de hardware não atendidos"
     install_system_dependencies
     install_tailscale
     install_nodejs
