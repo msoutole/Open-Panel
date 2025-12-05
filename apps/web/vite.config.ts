@@ -10,9 +10,17 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0',
+    // Permitir acesso via Traefik com domínios locais
+    allowedHosts: [
+      'dev.openpanel.local',
+      'pre.openpanel.local',
+      'openpanel.local',
+      'localhost',
+      '.local', // Permite qualquer domínio .local
+    ],
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://openpanel-api-dev:3001', // Usar nome do container na rede Docker
         changeOrigin: true,
         secure: false,
       },

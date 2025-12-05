@@ -136,23 +136,30 @@ services:
       - "traefik.http.routers.traefik.service=api@internal"
 
   # AdGuard Home para DNS local e bloqueio de anúncios (opcional - use profile: adguard)
+  # NOTA: AdGuard requer privilégios especiais para portas baixas (53)
+  # Se precisar usar porta 53, execute: sudo setcap 'cap_net_bind_service=+ep' /usr/bin/docker-proxy
+  # Ou use network_mode: host (mas isso pode causar conflitos com outras portas)
   adguard:
     profiles: [ "adguard" ]
     image: adguard/adguardhome:latest
     container_name: openpanel-adguard
     restart: unless-stopped
-    # AdGuard requer privilégios de rede para portas baixas (53)
-    network_mode: host  # Usa network_mode: host para portas privilegiadas
-    # Portas configuradas via network_mode: host
-    # DNS: 53, Admin: 3030 (configurado no AdGuard), DoH: 853, DoQ: 784
+    ports:
+      - "${ADGUARD_DNS_PORT:-53}:53/tcp"
+      - "${ADGUARD_DNS_PORT:-53}:53/udp"
+      - "${ADGUARD_ADMIN_PORT:-3030}:3000/tcp"  # Admin mapeado para 3030 no host
+      - "853:853/tcp"     # DNS-over-HTTPS
+      - "784:784/udp"     # DNS-over-QUIC
     volumes:
       - adguard-work:/opt/adguardhome/work
       - adguard-conf:/opt/adguardhome/conf
-    # Não usa network openpanel quando usa network_mode: host
-    # networks:
-    #   - openpanel
+    networks:
+      - openpanel
     labels:
-      - "traefik.enable=false"  # AdGuard não precisa do Traefik com network_mode: host
+      - "traefik.enable=true"
+      - "traefik.http.routers.adguard.rule=Host(`adguard.openpanel.local`) || Host(`adguard.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.adguard.entrypoints=web"
+      - "traefik.http.services.adguard.loadbalancer.server.port=3000"
 
   # Ollama para modelos de IA locais (opcional - use profile: ollama)
   ollama:

@@ -2,15 +2,15 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package.json ./
-# In a real monorepo we might need to worry about workspace deps, but here we treat it isolated for now
-# or assume we copy root files. For this "Open-Panel" monorepo, usually we run from root.
-# But for simplicity in this generated Dockerfile, I will assume standard build.
+# Copiar package.json do contexto (apps/mcp-server/)
+COPY apps/mcp-server/package.json ./
 
 RUN npm install
 
-COPY . .
+# Copiar código do mcp-server
+COPY apps/mcp-server/ .
 
-RUN npm run build
+# Build apenas se necessário (verificar se package.json tem script build)
+RUN if grep -q '"build"' package.json; then npm run build || true; fi
 
 CMD ["npm", "start"]
