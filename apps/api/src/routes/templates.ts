@@ -6,6 +6,7 @@ import {
   type ApplicationTemplate,
 } from '../services/application-templates'
 import { logInfo, logError } from '../lib/logger'
+import { logAudit, AuditActions } from '../middlewares/audit'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 
@@ -94,10 +95,10 @@ const deploySchema = z.object({
   teamId: z.string().optional(),
 })
 
-templates.post('/:id/deploy', zValidator('json', deploySchema), (c) => {
+templates.post('/:id/deploy', zValidator('json', deploySchema), async (c) => {
   try {
     const templateId = c.req.param('id')
-    const { projectName } = c.req.valid('json')
+    const { projectName, gitUrl, gitBranch, customEnv, customPort, cpuLimit, memoryLimit, teamId } = c.req.valid('json')
     const user = c.get('user')
 
     if (!user?.userId) {
@@ -110,16 +111,19 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), (c) => {
       userId: user.userId,
     })
 
-    // TODO: Implementar ApplicationTemplatesService.createProjectFromTemplate
-    // Temporariamente retorna erro 501 (Not Implemented)
-    return c.json({
-      error: 'Not implemented',
-      message: 'ApplicationTemplatesService.createProjectFromTemplate needs to be implemented',
-    }, 501)
-
-    // O código abaixo será habilitado quando o service for implementado
-    /*
-    const result: unknown = null
+    // Create project from template
+    const result = await ApplicationTemplatesService.createProjectFromTemplate({
+      templateId,
+      projectName,
+      ownerId: user.userId,
+      gitUrl,
+      gitBranch,
+      customEnv,
+      customPort,
+      cpuLimit,
+      memoryLimit,
+      teamId,
+    })
 
     // Log audit
     await logAudit(c, {
@@ -130,7 +134,7 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), (c) => {
         templateId,
         templateName: result.template.name,
         projectName,
-        buildpack: result.buildpack,
+        buildpack: result.template.buildpack,
       },
     })
 
@@ -162,7 +166,6 @@ templates.post('/:id/deploy', zValidator('json', deploySchema), (c) => {
       },
       201
     )
-    */
   } catch (error: unknown) {
     logError('Failed to deploy from template', error)
     const message = error instanceof Error ? error.message : 'Unknown error'

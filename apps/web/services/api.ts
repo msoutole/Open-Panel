@@ -779,3 +779,21 @@ export const deleteUser = async (userId: string): Promise<void> => {
   });
   await handleResponse(response);
 };
+
+export const inviteUser = async (data: { email: string; name?: string; role?: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' }): Promise<User> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/users/invite`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  const result = await handleResponse<{ user: User }>(response);
+  return result.user;
+};
+
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await handleResponse<{ user: User }>(response);
+  return data.user;
+};

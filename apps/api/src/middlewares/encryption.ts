@@ -56,10 +56,17 @@ export function decryptProjectEnvVars(encryptedData: string | null | undefined):
 
     return decrypted
   } catch (error) {
-    // DEPRECATED: Legacy support for unencrypted data (migration compatibility)
-    // This fallback allows reading old data that was stored as plain JSON
-    // NOTE: This fallback will be removed in a future version (v1.0+)
-    // If you see this warning, re-save your project to encrypt the data
+    /**
+     * DEPRECATED: Legacy support for unencrypted data (migration compatibility)
+     * 
+     * Este fallback permite ler dados antigos que foram armazenados como JSON simples.
+     * 
+     * ⚠️ REMOÇÃO PLANEJADA: Este fallback será removido na versão v1.0+
+     * 
+     * Se você ver este aviso, re-salve o projeto para criptografar os dados.
+     * 
+     * @deprecated Será removido em v1.0.0
+     */
     try {
       const parsed = JSON.parse(encryptedData)
 

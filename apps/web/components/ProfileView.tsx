@@ -4,6 +4,7 @@ import { useTranslations } from '../src/i18n/i18n-react';
 import { TwoFactorSetup } from './TwoFactorSetup';
 import { useToast } from '../hooks/useToast';
 import { User as UserType } from '../types';
+import { getCurrentUser } from '../services/api';
 
 export const ProfileView: React.FC = () => {
   const LL = useTranslations();
@@ -12,7 +13,7 @@ export const ProfileView: React.FC = () => {
   const [show2FASetup, setShow2FASetup] = useState(false);
 
   useEffect(() => {
-    // Load user from local storage
+    // Load user from local storage first (for immediate display)
     const storedUser = localStorage.getItem('openpanel_user');
     if (storedUser) {
       try {
@@ -22,7 +23,20 @@ export const ProfileView: React.FC = () => {
       }
     }
     
-    // TODO: Fetch fresh user data from /api/auth/me
+    // Fetch fresh user data from API
+    const fetchUserData = async () => {
+      try {
+        const freshUser = await getCurrentUser();
+        setUser(freshUser);
+        // Update local storage with fresh data
+        localStorage.setItem('openpanel_user', JSON.stringify(freshUser));
+      } catch (error) {
+        console.error('Failed to fetch user data', error);
+        // If fetch fails, keep using stored user data
+      }
+    };
+    
+    fetchUserData();
   }, []);
 
   const handle2FAStatusChange = (enabled: boolean) => {

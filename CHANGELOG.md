@@ -18,16 +18,35 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - docker-compose.prod.yml otimizado para produção
 - Comparação com alternativas no README
 - Badges adicionais no README
+- Endpoint `/api/users/invite` para convidar usuários
+- Método `ApplicationTemplatesService.createProjectFromTemplate` para criar projetos a partir de templates
+- Verificações de performance pós-instalação no script `install-server.sh`
+- Métricas de tempo de instalação no script de instalação
+- Função `getCurrentUser` no frontend para buscar dados frescos do usuário
 
 ### Changed
 - README.md aprimorado com melhor estrutura e navegação
 - .gitignore atualizado para ignorar diretórios de IDEs AI
 - .dockerignore otimizado para builds mais eficientes
+- Script `install-server.sh` otimizado:
+  - Removido `--legacy-peer-deps` como padrão (mantido como fallback)
+  - Melhor uso de cache npm com verificação prévia
+  - Mensagens de erro mais descritivas com sugestões de correção
+  - Verificações de performance pós-instalação (PostgreSQL, Redis, Traefik)
+  - Métricas de tempo de instalação no resumo final
+- Atualizado Prisma de 6.19.0 para 7.1.0 em `apps/api/package.json`
+- `ProfileView.tsx` agora busca dados frescos do usuário via `/api/auth/me`
+- Melhorada documentação de código deprecated em `encryption.ts`
 
 ### Removed
 - Diretórios específicos de IDEs (.cursor, .claude, .gemini)
 - Arquivo de teste test-user.json
 - Arquivo .cursorignore
+
+### Fixed
+- Implementado endpoint de convite de usuário que estava como TODO
+- Implementado método `createProjectFromTemplate` que estava como TODO
+- Corrigido fetch de dados do usuário em ProfileView
 
 ### Security
 - Revisão completa das configurações de segurança

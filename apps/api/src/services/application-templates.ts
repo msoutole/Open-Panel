@@ -4,6 +4,11 @@
  * Compatible with EasyPanel templates
  */
 
+import { prisma } from '../lib/prisma'
+import { ProjectService, type CreateProjectData } from './project.service'
+import { HTTPException } from 'hono/http-exception'
+import type { ProjectType } from '@prisma/client'
+
 export type TemplateCategory = 'framework' | 'cms' | 'database' | 'static' | 'language'
 export type BuildpackType = 'dockerfile' | 'nixpacks' | 'paketo' | 'heroku'
 
@@ -573,6 +578,117 @@ export class ApplicationTemplatesService {
    */
   static getTemplate(id: string): ApplicationTemplate | null {
     return APPLICATION_TEMPLATES[id] || null
+  }
+
+  /**
+   * Create a project from a template
+   * 
+   * @param options - Options for creating project from template
+   * @returns Created project with template information
+   * 
+   * @throws {HTTPException} 404 - Template not found
+   * @throws {HTTPException} 400 - Invalid project name or slug already exists
+   */
+  static async createProjectFromTemplate(options: {
+    templateId: string
+    projectName: string
+    ownerId: string
+    gitUrl?: string
+    gitBranch?: string
+    customEnv?: Record<string, string>
+    customPort?: number
+    cpuLimit?: string
+    memoryLimit?: string
+    teamId?: string
+  }): Promise<{
+    project: Awaited<ReturnType<typeof ProjectService.create>>
+    template: ApplicationTemplate
+    port: number
+  }> {
+    const {
+      templateId,
+      projectName,
+      ownerId,
+      gitUrl,
+      gitBranch = 'main',
+      customEnv = {},
+      customPort,
+      cpuLimit,
+      memoryLimit,
+      teamId,
+    } = options
+
+    // Get template
+    const template = this.getTemplate(templateId)
+    if (!template) {
+      throw new HTTPException(404, { message: `Template ${templateId} not found` })
+    }
+
+    // Generate slug from project name
+    const slug = projectName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    // Determine project type based on template category
+    let projectType: ProjectType = 'WEB'
+    if (template.category === 'database') {
+      projectType = 'DATABASE'
+    } else if (template.category === 'static') {
+      projectType = 'WEB'
+    } else if (template.buildpack === 'dockerfile' && template.dockerfile) {
+      projectType = 'WEB'
+    } else {
+      projectType = 'WEB'
+    }
+
+    // Merge template env vars with custom env vars
+    const mergedEnvVars = {
+      ...template.envVars,
+      ...customEnv,
+    }
+
+    // Determine port (use custom port if provided, otherwise use first port from template)
+    const port = customPort || template.ports[0]?.container || 3000
+
+    // Determine CPU and memory limits (use custom if provided, otherwise use template defaults)
+    const finalCpuLimit = cpuLimit || template.minCpu || '1000m'
+    const finalMemoryLimit = memoryLimit || template.minMemory || '512Mi'
+
+    // Create project
+    const projectData: CreateProjectData = {
+      name: projectName,
+      slug,
+      description: `Project created from ${template.name} template`,
+      type: projectType,
+      gitUrl: gitUrl || null,
+      gitBranch: gitBranch || 'main',
+      cpuLimit: finalCpuLimit,
+      memoryLimit: finalMemoryLimit,
+      ownerId,
+      teamId: teamId || null,
+    }
+
+    const project = await ProjectService.create(projectData)
+
+    // Create environment variables
+    if (Object.keys(mergedEnvVars).length > 0) {
+      await prisma.envVar.createMany({
+        data: Object.entries(mergedEnvVars).map(([key, value]) => ({
+          projectId: project.id,
+          key: key.toUpperCase().replace(/[^A-Z0-9_]/g, '_'),
+          value: String(value),
+          isSecret: false,
+        })),
+        skipDuplicates: true,
+      })
+    }
+
+    return {
+      project,
+      template,
+      port,
+    }
   }
 
 }

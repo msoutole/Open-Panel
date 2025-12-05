@@ -64,6 +64,9 @@ MIN_DISK_GB="${MIN_DISK_GB:-10}"
 STRICT_CHECK="${STRICT_CHECK:-false}"
 DEBIAN_FRONTEND=noninteractive
 
+# Timestamp de início da instalação (para métricas)
+INSTALL_START_TIME=$(date +%s)
+
 # ============================================================================
 # FUNÇÕES AUXILIARES E CHECKS
 # ============================================================================
@@ -401,14 +404,26 @@ install_npm_deps() {
         fi
     fi
     
-    # Usar cache do npm quando disponível
-    if ! retry_with_backoff 3 npm install --legacy-peer-deps --prefer-offline; then
-        log_warn "Instalação com cache falhou. Tentando sem cache..."
-        if ! retry_with_backoff 2 npm install --legacy-peer-deps; then
-            log_fatal "Falha ao executar npm install."
+    # Verificar cache npm antes de instalar
+    local cache_size=$(npm cache verify 2>/dev/null | grep -oP 'cache verified, \K[0-9.]+' || echo "0")
+    if [ "$cache_size" != "0" ]; then
+        log_info "Cache npm disponível: ${cache_size}MB"
+    fi
+    
+    # Tentar instalação sem --legacy-peer-deps primeiro (mais rápido e moderno)
+    local install_start=$(date +%s)
+    if ! retry_with_backoff 3 npm install --prefer-offline; then
+        log_warn "Instalação padrão falhou. Tentando com --legacy-peer-deps..."
+        if ! retry_with_backoff 2 npm install --legacy-peer-deps --prefer-offline; then
+            log_warn "Instalação com cache falhou. Tentando sem cache..."
+            if ! retry_with_backoff 2 npm install --legacy-peer-deps; then
+                log_fatal "Falha ao executar npm install. Verifique:\n  1. Conexão com internet\n  2. Espaço em disco disponível\n  3. Permissões de escrita no diretório\n  4. Logs em: ${LOG_FILE}"
+            fi
         fi
     fi
-    print_success "Dependências NPM instaladas."
+    
+    local install_duration=$(($(date +%s) - install_start))
+    print_success "Dependências NPM instaladas em ${install_duration}s."
 }
 
 # Iniciar Infraestrutura
@@ -491,14 +506,83 @@ setup_homelab_features() {
     fi
 }
 
+# Verificações de Performance Pós-Instalação
+verify_post_installation_performance() {
+    print_section "Verificando Performance dos Serviços"
+    
+    local all_healthy=true
+    
+    # Verificar PostgreSQL
+    log_info "Verificando PostgreSQL..."
+    local pg_start=$(date +%s%N)
+    if docker exec openpanel-postgres pg_isready -U openpanel >/dev/null 2>&1; then
+        local pg_end=$(date +%s%N)
+        local pg_ms=$(( (pg_end - pg_start) / 1000000 ))
+        print_success "PostgreSQL: OK (tempo de resposta: ${pg_ms}ms)"
+    else
+        log_warn "PostgreSQL: Não respondeu corretamente"
+        log_info "  Sugestão: Verifique logs com 'docker logs openpanel-postgres'"
+        all_healthy=false
+    fi
+    
+    # Verificar Redis
+    log_info "Verificando Redis..."
+    local redis_start=$(date +%s%N)
+    if docker exec openpanel-redis redis-cli ping >/dev/null 2>&1; then
+        local redis_end=$(date +%s%N)
+        local redis_ms=$(( (redis_end - redis_start) / 1000000 ))
+        print_success "Redis: OK (tempo de resposta: ${redis_ms}ms)"
+    else
+        log_warn "Redis: Não respondeu corretamente"
+        log_info "  Sugestão: Verifique logs com 'docker logs openpanel-redis'"
+        all_healthy=false
+    fi
+    
+    # Verificar Traefik
+    log_info "Verificando Traefik..."
+    if curl -s --max-time 3 http://localhost:8080/api/overview >/dev/null 2>&1; then
+        print_success "Traefik: OK (Dashboard acessível)"
+    else
+        log_info "Traefik: Dashboard não acessível (pode ser normal se TRAEFIK_DASHBOARD=false)"
+    fi
+    
+    # Verificar uso de recursos
+    log_info "Verificando uso de recursos dos containers..."
+    if command_exists docker; then
+        local container_count=$(docker ps --format "{{.Names}}" | grep -E "openpanel-(postgres|redis|traefik)" | wc -l)
+        if [ "$container_count" -ge 3 ]; then
+            print_success "Containers rodando: $container_count/3"
+        else
+            log_warn "Apenas $container_count/3 containers principais estão rodando"
+        fi
+    fi
+    
+    if [ "$all_healthy" = true ]; then
+        print_success "Todos os serviços críticos estão saudáveis!"
+    else
+        log_warn "Alguns serviços podem precisar de atenção."
+        log_info "  Para diagnosticar problemas:"
+        log_info "    1. Ver logs: docker compose logs"
+        log_info "    2. Ver status: docker compose ps"
+        log_info "    3. Verificar recursos: docker stats"
+    fi
+}
+
 # Resumo Final
 show_final_summary() {
     print_section "Instalação Concluída"
+    
+    local install_end_time=$(date +%s)
+    local total_duration=$((install_end_time - INSTALL_START_TIME))
+    local minutes=$((total_duration / 60))
+    local seconds=$((total_duration % 60))
     
     echo -e "   ${COLOR_GREEN}✔ Sistema Base:${COLOR_NC} OK"
     echo -e "   ${COLOR_GREEN}✔ Docker:${COLOR_NC}       OK (Rodando)"
     echo -e "   ${COLOR_GREEN}✔ Banco de Dados:${COLOR_NC} OK (Healthy)"
     echo -e "   ${COLOR_GREEN}✔ Dependências:${COLOR_NC}  OK"
+    echo ""
+    echo -e "${COLOR_CYAN}⏱️  Tempo Total de Instalação:${COLOR_NC} ${minutes}m ${seconds}s"
     echo ""
     echo -e "${COLOR_CYAN}Próximos Passos:${COLOR_NC}"
     echo "   1. Carregar variáveis:  source .env"
@@ -535,6 +619,9 @@ main() {
     start_services
     setup_local_domains
     setup_homelab_features
+    
+    # Verificações pós-instalação
+    verify_post_installation_performance
     
     show_final_summary
 }

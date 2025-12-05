@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { getUsers, deleteUser } from '../services/api';
+import { getUsers, deleteUser, inviteUser } from '../services/api';
 import { useToast } from '../hooks/useToast';
 import { useTranslations } from '../src/i18n/i18n-react';
 import { Shield, Key, User as UserIcon, HardDrive, GitBranch, Terminal, Cpu, Box, Trash2, Plus, Server, Activity, Github, Gitlab, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
@@ -85,19 +85,40 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
 
     // Actions
     const handleInviteUser = async () => {
-        const email = prompt("Enter email address to invite:");
-        if (email) {
+        const email = prompt("Digite o endereço de email para convidar:");
+        if (email && email.includes('@')) {
             try {
-                // TODO: Implement invite user API endpoint
-                // For now, just show a message
-                alert(`Invitation functionality will be implemented. Email: ${email}`);
+                const name = prompt("Digite o nome do usuário (opcional):") || undefined;
+                const roleInput = prompt("Digite o papel (OWNER/ADMIN/MEMBER/VIEWER, padrão: MEMBER):")?.toUpperCase();
+                const validRoles = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'] as const;
+                const role = validRoles.includes(roleInput as typeof validRoles[number]) ? (roleInput as typeof validRoles[number]) : 'MEMBER';
+                
+                await inviteUser({ email, name, role });
+                
+                showToast({
+                    type: 'success',
+                    title: 'Usuário convidado',
+                    message: `Convite enviado para ${email}`,
+                });
+                
                 // Refresh users list
                 const data = await getUsers();
                 setUsers(data);
             } catch (error) {
                 console.error('Failed to invite user', error);
-                alert('Failed to invite user. Please try again.');
+                const errorMsg = error instanceof Error ? error.message : 'Falha ao convidar usuário';
+                showToast({
+                    type: 'error',
+                    title: 'Erro ao convidar usuário',
+                    message: errorMsg,
+                });
             }
+        } else if (email) {
+            showToast({
+                type: 'error',
+                title: 'Email inválido',
+                message: 'Por favor, digite um endereço de email válido',
+            });
         }
     };
 

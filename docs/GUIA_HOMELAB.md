@@ -124,8 +124,10 @@ sudo MIN_RAM_MB=1024 MIN_DISK_GB=5 ./scripts/install-server.sh
 **Melhorias de Performance:**
 - ✅ Verificações de hardware otimizadas (leitura única de /proc/meminfo)
 - ✅ Instalação de pacotes verifica o que já está instalado antes
-- ✅ npm install usa cache quando disponível
+- ✅ npm install otimizado: tenta sem `--legacy-peer-deps` primeiro, usa cache quando disponível
 - ✅ Verificações de conectividade mais rápidas em modo headless
+- ✅ Verificações de performance pós-instalação (tempo de resposta dos serviços)
+- ✅ Métricas de tempo total de instalação exibidas no final
 
 ⏱️ **Tempo estimado**: 5-15 minutos (dependendo da conexão)
 
