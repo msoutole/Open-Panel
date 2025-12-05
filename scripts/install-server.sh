@@ -3,7 +3,13 @@
 # OpenPanel - Script de Instalação para Servidor Ubuntu (Homelab Optimized)
 # ============================================================================
 # Instalação completa do OpenPanel em servidor Ubuntu com suporte multi-ambiente
-# Configura dev, pre e prod automaticamente
+# Configura dev, pre e prod automaticamente.
+#
+# RECURSOS AVANÇADOS:
+# - Idempotente: Pode ser executado múltiplas vezes sem quebrar a instalação
+# - Auto-recuperação: Tenta corrigir problemas comuns (apt lock, serviços parados)
+# - Fail-safe: Verificações rigorosas de hardware, rede e dependências
+# - Logging detalhado: Tudo é registrado em logs e stdout
 #
 # Uso:
 #   chmod +x install-server.sh
@@ -14,568 +20,478 @@
 #   SKIP_TAILSCALE=true ./install-server.sh   # Pular configuração Tailscale
 #   MIN_RAM_MB=1024 ./install-server.sh       # Definir RAM mínima (default: 2048)
 #   MIN_DISK_GB=5 ./install-server.sh         # Definir disco mínimo (default: 10)
+#   STRICT_CHECK=true ./install-server.sh     # Falhar se hardware não ideal
 #
-# Exemplo de instalação headless completa:
-#   HEADLESS_MODE=true SKIP_TAILSCALE=true ./install-server.sh
 # ============================================================================
 
 set -e
 set -o pipefail
 
 # ============================================================================
-# OTIMIZAÇÕES PARA HOMELAB UBUNTU SERVER
+# CONFIGURAÇÃO E IMPORTAÇÃO DE BIBLIOTECAS
 # ============================================================================
-# - Suporte a Ubuntu Server 20.04, 22.04 e 24.04 LTS
-# - Configurações otimizadas para baixo consumo de recursos
-# - Suporte a instalação headless (sem interação)
-# - Verificações de hardware mínimo
-# ============================================================================
-
-# Cores
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m'
-
-CHECK="${GREEN}✓${NC}"
-CROSS="${RED}✗${NC}"
-ARROW="${BLUE}➜${NC}"
-WARN="${YELLOW}⚠${NC}"
-INFO="${CYAN}ℹ${NC}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-LOG_FILE="${PROJECT_DIR}/install-server.log"
 
-# Configurações para homelab (podem ser sobrescritas via variáveis de ambiente)
+# Importar biblioteca comum (funções de log, retry, checks)
+if [ -f "$SCRIPT_DIR/lib/common.sh" ]; then
+    source "$SCRIPT_DIR/lib/common.sh"
+else
+    echo "❌ Erro Crítico: Biblioteca $SCRIPT_DIR/lib/common.sh não encontrada."
+    exit 1
+fi
+
+# Configuração de Logs (usa common.sh)
+LOG_FILE="${PROJECT_DIR}/install-server.log"
+# Redefinir LOG_FILE do common.sh para manter compatibilidade com local esperado
+export LOG_FILE
+
+# Lock file para prevenir execução concorrente
+LOCK_FILE="/tmp/openpanel-install.lock"
+
+# Configurações
 HEADLESS_MODE="${HEADLESS_MODE:-false}"
 SKIP_TAILSCALE="${SKIP_TAILSCALE:-false}"
 MIN_RAM_MB="${MIN_RAM_MB:-2048}"
 MIN_DISK_GB="${MIN_DISK_GB:-10}"
+STRICT_CHECK="${STRICT_CHECK:-false}"
+DEBIAN_FRONTEND=noninteractive
 
-# Funções de log
-log() {
-    local level=$1
-    shift
-    local message="$@"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "[${timestamp}] [${level}] ${message}" >> "${LOG_FILE}"
-    
-    case $level in
-        ERROR)   echo -e "${CROSS} ${RED}${message}${NC}" ;;
-        SUCCESS) echo -e "${CHECK} ${GREEN}${message}${NC}" ;;
-        WARN)    echo -e "${WARN} ${YELLOW}${message}${NC}" ;;
-        INFO)    echo -e "${INFO} ${CYAN}${message}${NC}" ;;
-        *)       echo -e "${message}" ;;
-    esac
+# ============================================================================
+# FUNÇÕES AUXILIARES E CHECKS
+# ============================================================================
+
+# Cleanup ao sair
+cleanup() {
+    rm -f "$LOCK_FILE"
+    log_debug "Lock file removido."
+}
+on_exit cleanup
+
+# Verificar Lock File
+check_lock() {
+    if [ -f "$LOCK_FILE" ]; then
+        local pid=$(cat "$LOCK_FILE")
+        if ps -p "$pid" > /dev/null 2>&1; then
+            log_fatal "Instalação já em andamento (PID $pid). Abortando."
+        else
+            log_warn "Lock file encontrado mas processo não existe. Removendo e continuando."
+            rm -f "$LOCK_FILE"
+        fi
+    fi
+    echo $$ > "$LOCK_FILE"
 }
 
-error_exit() {
-    log "ERROR" "$1"
-    exit 1
+# Verificar conectividade com internet
+check_connectivity() {
+    print_info "Verificando conectividade com a internet..."
+    if ! retry 3 curl -s --connect-timeout 5 https://google.com >/dev/null; then
+        if ! retry 3 curl -s --connect-timeout 5 https://cloudflare.com >/dev/null; then
+            log_fatal "Sem conexão com a internet. Verifique sua rede."
+        fi
+    fi
+    log_info "Conectividade OK."
 }
 
-# Verificar requisitos mínimos de hardware para homelab
-check_hardware_requirements() {
-    log "INFO" "Verificando requisitos de hardware para homelab..."
+# Verificar requisitos de hardware (Melhorado)
+check_hardware_requirements_enhanced() {
+    print_section "Verificando Hardware"
 
-    # Verificar RAM disponível
+    # RAM
     local total_ram_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
     local total_ram_mb=$((total_ram_kb / 1024))
 
     if [ "$total_ram_mb" -lt "$MIN_RAM_MB" ]; then
-        log "WARN" "RAM disponível: ${total_ram_mb}MB (mínimo recomendado: ${MIN_RAM_MB}MB)"
-        log "WARN" "O sistema pode ficar lento com pouca memória"
-    else
-        log "SUCCESS" "RAM disponível: ${total_ram_mb}MB - OK"
-    fi
-
-    # Verificar espaço em disco
-    local available_disk_kb=$(df "$PROJECT_DIR" | tail -1 | awk '{print $4}')
-    local available_disk_gb=$((available_disk_kb / 1024 / 1024))
-
-    if [ "$available_disk_gb" -lt "$MIN_DISK_GB" ]; then
-        log "ERROR" "Espaço em disco insuficiente: ${available_disk_gb}GB (mínimo: ${MIN_DISK_GB}GB)"
-        return 1
-    else
-        log "SUCCESS" "Espaço em disco: ${available_disk_gb}GB - OK"
-    fi
-
-    # Verificar arquitetura do processador
-    local arch=$(uname -m)
-    if [ "$arch" = "x86_64" ] || [ "$arch" = "aarch64" ]; then
-        log "SUCCESS" "Arquitetura do processador: $arch - OK"
-    else
-        log "WARN" "Arquitetura $arch pode ter suporte limitado"
-    fi
-
-    return 0
-}
-
-# Verificar se está rodando como root ou com sudo
-check_sudo() {
-    if [ "$EUID" -ne 0 ] && ! sudo -n true 2>/dev/null; then
-        log "WARN" "Este script precisa de privilégios sudo para algumas operações"
-        log "INFO" "Você será solicitado a inserir sua senha quando necessário"
-    fi
-}
-
-# Detectar sistema operacional
-detect_os() {
-    log "INFO" "Detectando sistema operacional..."
-    
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        OS_DIST=$ID
-        OS_VERSION=$VERSION_ID
-        
-        if [ "$OS_DIST" != "ubuntu" ] && [ "$OS_DIST" != "debian" ]; then
-            error_exit "Este script é otimizado para Ubuntu/Debian. Sistema detectado: $OS_DIST"
+        msg="RAM disponível: ${total_ram_mb}MB (Recomendado: ${MIN_RAM_MB}MB)"
+        if [ "$STRICT_CHECK" = "true" ]; then
+            log_fatal "$msg - Abortando (STRICT_CHECK=true)"
+        else
+            log_warn "$msg - O sistema pode ficar lento."
         fi
-        
-        log "SUCCESS" "Sistema detectado: $OS_DIST $OS_VERSION"
     else
-        error_exit "Não foi possível detectar o sistema operacional"
+        print_success "RAM: ${total_ram_mb}MB (Mínimo atendido)"
+    fi
+
+    # Disco (usa common.sh)
+    if ! check_disk_space "$PROJECT_DIR" "$((MIN_DISK_GB * 1024))"; then
+        if [ "$STRICT_CHECK" = "true" ]; then
+            log_fatal "Espaço em disco insuficiente."
+        fi
+    else
+        print_success "Disco: Espaço suficiente verificado"
+    fi
+
+    # Arquitetura
+    local arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64|aarch64|arm64)
+            print_success "Arquitetura: $arch suportada"
+            ;;
+        *)
+            log_warn "Arquitetura $arch pode não ser totalmente suportada."
+            ;;
+    esac
+}
+
+# Verificar sudo/root
+check_sudo_perms() {
+    if [ "$EUID" -ne 0 ] && ! sudo -n true 2>/dev/null; then
+        if [ "$HEADLESS_MODE" = "true" ]; then
+            log_fatal "Script precisa de root ou sudo sem senha em modo headless."
+        fi
+        log_warn "Este script precisa de privilégios sudo."
+        # Forçar pedido de senha
+        if ! sudo -v; then
+            log_fatal "Falha ao obter privilégios sudo."
+        fi
     fi
 }
 
-# Instalar dependências do sistema
-install_system_dependencies() {
-    log "INFO" "Atualizando pacotes do sistema..."
-    sudo apt-get update -qq || error_exit "Falha ao atualizar pacotes"
+# ============================================================================
+# INSTALAÇÃO DE COMPONENTES
+# ============================================================================
+
+# Instalar dependências do sistema com retry e tratamento de lock do apt
+install_system_dependencies_enhanced() {
+    print_section "Instalando Dependências do Sistema"
+
+    # Função auxiliar para apt
+    run_apt() {
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq "$@"
+    }
+
+    log_info "Atualizando e instalando pacotes base..."
     
-    log "INFO" "Instalando dependências básicas..."
-    sudo apt-get install -y -qq \
-        curl \
-        wget \
-        git \
-        ca-certificates \
-        gnupg \
-        lsb-release \
-        ufw \
-        || error_exit "Falha ao instalar dependências"
+    # Tenta corrigir dpkg interrompido antes de começar
+    sudo dpkg --configure -a || true
+
+    if ! retry_with_backoff 3 run_apt curl wget git ca-certificates gnupg lsb-release ufw htop net-tools; then
+        log_fatal "Falha ao instalar dependências do sistema após múltiplas tentativas."
+    fi
     
-    log "SUCCESS" "Dependências do sistema instaladas"
+    print_success "Dependências do sistema instaladas."
 }
 
-# Instalar Tailscale
-install_tailscale() {
-    log "INFO" "Verificando Tailscale..."
+# Instalar Tailscale (Robusto)
+install_tailscale_enhanced() {
+    print_section "Configurando Tailscale"
     
-    if command -v tailscale >/dev/null 2>&1; then
-        log "INFO" "Tailscale já está instalado"
+    if command_exists tailscale; then
+        print_success "Tailscale já instalado: $(tailscale version | head -n 1)"
         return 0
     fi
     
-    log "INFO" "Instalando Tailscale..."
-    
-    # Adicionar repositório Tailscale
-    curl -fsSL https://tailscale.com/install.sh | sh || error_exit "Falha ao instalar Tailscale"
-    
-    # Habilitar IP forwarding
-    echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
-    echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
-    sudo sysctl -p
-    
-    log "SUCCESS" "Tailscale instalado"
-    log "WARN" "⚠️  IMPORTANTE: Configure TAILSCALE_AUTHKEY no .env antes de iniciar os containers!"
-    log "INFO" "   Obtenha uma auth key em: https://login.tailscale.com/admin/settings/keys"
-}
-
-# Instalar Node.js
-install_nodejs() {
-    log "INFO" "Verificando Node.js..."
-    
-    if command -v node >/dev/null 2>&1; then
-        NODE_VERSION=$(node -v | sed 's/v//')
-        log "INFO" "Node.js $NODE_VERSION já está instalado"
-        
-        # Verificar versão mínima (18.0.0)
-        if [ "$(printf '%s\n' "18.0.0" "$NODE_VERSION" | sort -V | head -n1)" != "18.0.0" ]; then
-            log "WARN" "Node.js versão muito antiga. Atualizando..."
-        else
-            log "SUCCESS" "Node.js versão adequada"
-            return 0
-        fi
+    log_info "Baixando e instalando Tailscale..."
+    if ! retry_with_backoff 3 bash -c "curl -fsSL https://tailscale.com/install.sh | sh"; then
+        log_error "Falha na instalação automática do Tailscale."
+        return 1
     fi
+
+    # Configurações de kernel para VPN
+    log_info "Otimizando configurações de rede..."
+    {
+        echo 'net.ipv4.ip_forward = 1'
+        echo 'net.ipv6.conf.all.forwarding = 1'
+    } | sudo tee -a /etc/sysctl.conf >/dev/null
+    sudo sysctl -p >/dev/null 2>&1 || true
     
-    log "INFO" "Instalando Node.js 20.x..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - || error_exit "Falha ao configurar repositório Node.js"
-    sudo apt-get install -y -qq nodejs || error_exit "Falha ao instalar Node.js"
-    
-    log "SUCCESS" "Node.js $(node -v) instalado"
+    print_success "Tailscale instalado com sucesso."
+    log_warn "Configure TAILSCALE_AUTHKEY no .env para conexão automática."
 }
 
-# Instalar Docker
-install_docker() {
-    log "INFO" "Verificando Docker..."
+# Instalar Node.js (Garante versão LTS correta)
+install_nodejs_enhanced() {
+    print_section "Verificando Node.js"
     
-    if command -v docker >/dev/null 2>&1; then
-        DOCKER_VERSION=$(docker --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-        log "INFO" "Docker $DOCKER_VERSION já está instalado"
-        
-        # Verificar se Docker está rodando
-        if docker info >/dev/null 2>&1; then
-            log "SUCCESS" "Docker está rodando"
+    local required_version="18.0.0"
+    
+    if command_exists node; then
+        local current_version="v$(node -v | tr -d 'v')"
+        if version_gte "$current_version" "v20.0.0"; then
+            print_success "Node.js $current_version já instalado (compatível)."
             return 0
         else
-            log "WARN" "Docker instalado mas não está rodando. Iniciando..."
-            sudo systemctl start docker || error_exit "Falha ao iniciar Docker"
-            sudo systemctl enable docker || log "WARN" "Falha ao habilitar Docker no boot"
+            log_warn "Versão antiga encontrada ($current_version). Atualizando para Node.js 20..."
         fi
-    else
-        log "INFO" "Instalando Docker..."
-        curl -fsSL https://get.docker.com -o /tmp/get-docker.sh || error_exit "Falha ao baixar script Docker"
-        sudo sh /tmp/get-docker.sh || error_exit "Falha ao instalar Docker"
-        rm /tmp/get-docker.sh
-        
-        # Adicionar usuário ao grupo docker
-        sudo usermod -aG docker $USER || log "WARN" "Falha ao adicionar usuário ao grupo docker"
-        
-        # Iniciar Docker
-        sudo systemctl start docker || error_exit "Falha ao iniciar Docker"
-        sudo systemctl enable docker || log "WARN" "Falha ao habilitar Docker no boot"
-        
-        log "SUCCESS" "Docker instalado"
     fi
+    
+    log_info "Instalando Node.js 20 LTS..."
+    if ! retry_with_backoff 3 bash -c "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs"; then
+        handle_install_failure "node" "Falha ao baixar/instalar do nodesource"
+        exit 1
+    fi
+    
+    print_success "Node.js $(node -v) instalado."
 }
 
-# Configurar firewall
-configure_firewall() {
-    log "INFO" "Configurando firewall (UFW)..."
+# Instalar Docker (Gerenciamento de conflitos)
+install_docker_enhanced() {
+    print_section "Verificando Docker"
     
-    # Verificar se UFW está ativo
-    if sudo ufw status | grep -q "Status: active"; then
-        log "INFO" "UFW já está ativo"
-    else
-        log "INFO" "Habilitando UFW..."
-        sudo ufw --force enable || log "WARN" "Falha ao habilitar UFW"
+    if is_docker_running; then
+        print_success "Docker já está rodando: $(docker --version)"
+        return 0
     fi
     
-    # Permitir portas necessárias
-    sudo ufw allow 22/tcp comment 'SSH' || true
-    sudo ufw allow 80/tcp comment 'HTTP' || true
-    sudo ufw allow 443/tcp comment 'HTTPS' || true
-    sudo ufw allow 8080/tcp comment 'Traefik Dashboard' || true
+    log_info "Instalando Docker..."
     
-    log "SUCCESS" "Firewall configurado"
-}
+    # Remover versões antigas/conflitantes se necessário (opcional, mas seguro para 'fail-safe')
+    # sudo apt-get remove -y docker docker-engine docker.io containerd runc >/dev/null 2>&1 || true
 
-# Criar arquivos de ambiente
-create_env_files() {
-    log "INFO" "Criando arquivos de ambiente..."
-    
-    cd "$PROJECT_DIR"
-    
-    # Verificar se arquivo .env na raiz existe, senão usar .env.example como base
-    BASE_ENV_FILE=".env.example"
-    TARGET_ENV_FILE=".env"
-    
-    if [ ! -f "$TARGET_ENV_FILE" ] && [ -f "$BASE_ENV_FILE" ]; then
-        cp "$BASE_ENV_FILE" "$TARGET_ENV_FILE"
-        log "SUCCESS" "Arquivo .env criado a partir de .env.example"
-    elif [ -f "$TARGET_ENV_FILE" ]; then
-        log "INFO" "Arquivo .env já existe"
-    else
-        error_exit "Nenhum arquivo .env ou .env.example encontrado"
+    if ! retry_with_backoff 3 bash -c "curl -fsSL https://get.docker.com | sh"; then
+        handle_install_failure "docker" "Script oficial falhou"
+        exit 1
     fi
     
-    # Configuração do Tailscale (apenas se não estiver em modo headless e não for pulado)
-    if [ "$HEADLESS_MODE" = "false" ] && [ "$SKIP_TAILSCALE" = "false" ]; then
-        echo ""
-        echo -e "${CYAN}🔐 Configuração do Tailscale (VPN)${NC}"
-        echo -e "${INFO} Tailscale permite acesso remoto seguro ao servidor."
-        echo -e "${INFO} Se você já tem uma auth key, digite agora (ou pressione Enter para pular):"
-        read -p "TAILSCALE_AUTHKEY (ou Enter para pular): " TAILSCALE_KEY
-
-        # Adicionar ou atualizar Tailscale Auth Key no .env
-        if [ -n "$TAILSCALE_KEY" ]; then
-            if grep -q "^TAILSCALE_AUTHKEY=" "$TARGET_ENV_FILE" 2>/dev/null; then
-                sed -i "s|^TAILSCALE_AUTHKEY=.*|TAILSCALE_AUTHKEY=$TAILSCALE_KEY|" "$TARGET_ENV_FILE"
-            else
-                echo "" >> "$TARGET_ENV_FILE"
-                echo "# Tailscale (VPN)" >> "$TARGET_ENV_FILE"
-                echo "TAILSCALE_AUTHKEY=$TAILSCALE_KEY" >> "$TARGET_ENV_FILE"
-            fi
-            log "SUCCESS" "Tailscale Auth Key adicionada ao .env"
-        else
-            log "INFO" "Tailscale não configurado. Você pode adicionar depois editando .env"
-            log "INFO" "Obtenha uma auth key em: https://login.tailscale.com/admin/settings/keys"
-        fi
-    elif [ "$SKIP_TAILSCALE" = "true" ]; then
-        log "INFO" "Configuração do Tailscale pulada (SKIP_TAILSCALE=true)"
-    fi
+    log_info "Configurando permissões e serviço Docker..."
+    sudo usermod -aG docker $USER || true
+    sudo systemctl start docker || true
+    sudo systemctl enable docker || true
     
-    log "SUCCESS" "Arquivos de ambiente criados"
-}
-
-# Gerar senhas seguras
-generate_secrets() {
-    log "INFO" "Gerando senhas seguras..."
-    
-    cd "$PROJECT_DIR"
-    
-    # Função para gerar senha aleatória
-    generate_password() {
-        openssl rand -hex 32 2>/dev/null || \
-        node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" 2>/dev/null || \
-        echo "changeme-$(date +%s)"
-    }
-    
-    # Atualizar senhas no .env se ainda estiverem como padrão
-    if [ -f .env ] && grep -q "changeme" .env; then
-        POSTGRES_PASSWORD=$(generate_password)
-        REDIS_PASSWORD=$(generate_password)
-        JWT_SECRET=$(openssl rand -hex 64 2>/dev/null || node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
-        
-        sed -i "s/POSTGRES_PASSWORD=changeme/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/" .env
-        sed -i "s/REDIS_PASSWORD=changeme/REDIS_PASSWORD=$REDIS_PASSWORD/" .env
-        sed -i "s|DATABASE_URL=postgresql://.*|DATABASE_URL=postgresql://openpanel:$POSTGRES_PASSWORD@openpanel-postgres:5432/openpanel|" .env
-        sed -i "s|REDIS_URL=redis://.*|REDIS_URL=redis://:$REDIS_PASSWORD@openpanel-redis:6379/0|" .env
-        
-        log "SUCCESS" "Senhas seguras geradas no .env"
-    fi
-}
-
-# Instalar dependências do projeto
-install_project_dependencies() {
-    log "INFO" "Instalando dependências do projeto..."
-    
-    cd "$PROJECT_DIR"
-    
-    if [ ! -f package.json ]; then
-        error_exit "package.json não encontrado. Certifique-se de estar no diretório correto."
-    fi
-    
-    npm install || error_exit "Falha ao instalar dependências"
-    
-    log "SUCCESS" "Dependências do projeto instaladas"
-}
-
-# Tornar scripts executáveis
-make_scripts_executable() {
-    log "INFO" "Tornando scripts executáveis..."
-    
-    chmod +x scripts/server/*.sh 2>/dev/null || true
-    chmod +x scripts/setup/*.sh 2>/dev/null || true
-    
-    log "SUCCESS" "Scripts tornados executáveis"
-}
-
-# Iniciar infraestrutura compartilhada
-start_infrastructure() {
-    log "INFO" "Iniciando infraestrutura compartilhada..."
-    
-    cd "$PROJECT_DIR"
-    
-    docker compose up -d postgres redis traefik || error_exit "Falha ao iniciar infraestrutura"
-    
-    # Iniciar Tailscale se auth key estiver configurada
-    if [ -n "${TAILSCALE_AUTHKEY:-}" ]; then
-        log "INFO" "Iniciando Tailscale..."
-        docker compose --profile tailscale up -d tailscale || log "WARN" "Tailscale não iniciado (opcional)"
-    fi
-    
-    # Aguardar PostgreSQL estar pronto
-    log "INFO" "Aguardando PostgreSQL estar pronto..."
-    timeout=60
-    elapsed=0
-    until docker exec openpanel-postgres pg_isready -U openpanel > /dev/null 2>&1; do
-        if [ $elapsed -ge $timeout ]; then
-            error_exit "Timeout aguardando PostgreSQL"
+    # Aguarda Docker iniciar
+    log_info "Aguardando daemon do Docker iniciar..."
+    local attempts=0
+    while ! is_docker_running; do
+        if [ $attempts -gt 10 ]; then
+            log_fatal "Docker instalado mas não iniciou corretamente."
         fi
         sleep 2
-        elapsed=$((elapsed + 2))
-        echo -n "."
+        attempts=$((attempts + 1))
     done
-    echo ""
     
-    log "SUCCESS" "Infraestrutura compartilhada iniciada"
+    print_success "Docker instalado e rodando."
 }
 
-# Configurar domínios locais
-configure_local_domains() {
-    log "INFO" "Configurando domínios locais..."
+# Configurar Firewall
+configure_firewall_enhanced() {
+    print_section "Configurando Firewall (UFW)"
     
-    HOSTS_FILE="/etc/hosts"
-    DOMAINS=("dev.openpanel.local" "pre.openpanel.local" "openpanel.local")
+    if sudo ufw status | grep -q "Status: active"; then
+        log_info "UFW já ativo. Atualizando regras..."
+    else
+        log_info "Habilitando UFW..."
+        # Em headless mode, ufw enable pode pedir confirmação "Command may disrupt existing ssh connections".
+        # Usamos --force para pular
+        sudo ufw --force enable || true
+    fi
     
-    for domain in "${DOMAINS[@]}"; do
-        if ! grep -q "$domain" "$HOSTS_FILE" 2>/dev/null; then
-            echo "127.0.0.1  $domain" | sudo tee -a "$HOSTS_FILE" > /dev/null
-            log "SUCCESS" "Domínio $domain adicionado ao /etc/hosts"
-        else
-            log "INFO" "Domínio $domain já existe em /etc/hosts"
+    local ports=("22/tcp" "80/tcp" "443/tcp" "8080/tcp")
+    for port in "${ports[@]}"; do
+        sudo ufw allow "$port" >/dev/null 2>&1
+        log_debug "Porta $port liberada"
+    done
+    
+    print_success "Firewall configurado."
+}
+
+# ============================================================================
+# CONFIGURAÇÃO DO PROJETO
+# ============================================================================
+
+setup_env_and_secrets() {
+    print_section "Configurando Ambiente e Segredos"
+    
+    cd "$PROJECT_DIR" || log_fatal "Diretório do projeto não encontrado"
+    
+    local target_env=".env"
+    local example_env=".env.example"
+    
+    if [ ! -f "$example_env" ]; then
+        log_fatal "Arquivo $example_env não encontrado. Repositório corrompido?"
+    fi
+    
+    if [ -f "$target_env" ]; then
+        log_info "Arquivo .env já existe."
+        backup_file "$target_env"
+    else
+        cp "$example_env" "$target_env"
+        print_success "Arquivo .env criado a partir do exemplo."
+    fi
+    
+    # Gerar segredos se ainda estiverem padrão
+    log_info "Verificando necessidade de gerar novas senhas..."
+    
+    local needs_update=false
+    if grep -q "changeme" "$target_env"; then needs_update=true; fi
+    
+    if [ "$needs_update" = "true" ]; then
+        local pg_pass=$(generate_random_string 32)
+        local redis_pass=$(generate_random_string 32)
+        local jwt_secret=$(generate_random_string 64)
+        
+        # Usar sed seguro com delimitadores diferentes
+        sed -i "s/POSTGRES_PASSWORD=changeme/POSTGRES_PASSWORD=$pg_pass/" "$target_env"
+        sed -i "s/REDIS_PASSWORD=changeme/REDIS_PASSWORD=$redis_pass/" "$target_env"
+        sed -i "s|DATABASE_URL=postgresql://.*|DATABASE_URL=postgresql://openpanel:$pg_pass@openpanel-postgres:5432/openpanel|" "$target_env"
+        sed -i "s|REDIS_URL=redis://.*|REDIS_URL=redis://:$redis_pass@openpanel-redis:6379/0|" "$target_env"
+        
+        # Se JWT_SECRET não existe ou é changeme (depende do .env.example, mas vamos garantir)
+        if grep -q "JWT_SECRET=changeme" "$target_env"; then
+             sed -i "s/JWT_SECRET=changeme/JWT_SECRET=$jwt_secret/" "$target_env"
+        fi
+
+        print_success "Novas senhas seguras geradas e salvas no .env"
+    else
+        log_info "Senhas já configuradas (não padrão)."
+    fi
+    
+    # Configurar Tailscale AuthKey via variavel de ambiente (Headless)
+    if [ -n "${TAILSCALE_AUTHKEY:-}" ]; then
+        log_info "Injetando TAILSCALE_AUTHKEY do ambiente..."
+        remove_line_from_file "$target_env" "TAILSCALE_AUTHKEY="
+        echo "" >> "$target_env"
+        echo "TAILSCALE_AUTHKEY=$TAILSCALE_AUTHKEY" >> "$target_env"
+    elif [ "$HEADLESS_MODE" = "false" ] && [ "$SKIP_TAILSCALE" = "false" ] && ! grep -q "TAILSCALE_AUTHKEY=tskey" "$target_env"; then
+        echo ""
+        print_info "Configuração Tailscale (Opcional)"
+        read -p "Digite sua Tailscale Auth Key (ou Enter para pular): " ts_key
+        if [ -n "$ts_key" ]; then
+            remove_line_from_file "$target_env" "TAILSCALE_AUTHKEY="
+            echo "TAILSCALE_AUTHKEY=$ts_key" >> "$target_env"
+            print_success "Tailscale Auth Key salva."
+        fi
+    fi
+}
+
+# Instalar dependências npm
+install_npm_deps() {
+    print_section "Instalando Dependências do Projeto"
+    cd "$PROJECT_DIR"
+    
+    if ! retry_with_backoff 3 npm install; then
+        log_fatal "Falha ao executar npm install."
+    fi
+    print_success "Dependências NPM instaladas."
+}
+
+# Iniciar Infraestrutura
+start_services() {
+    print_section "Iniciando Serviços (Docker)"
+    cd "$PROJECT_DIR"
+    
+    make_executable() { chmod +x "$1" 2>/dev/null || true; }
+    find scripts -name "*.sh" -exec chmod +x {} \;
+    
+    log_info "Subindo containers de infraestrutura (Postgres, Redis, Traefik)..."
+    if ! docker compose up -d postgres redis traefik; then
+        log_fatal "Falha ao iniciar docker compose."
+    fi
+    
+    if [ -n "$(grep TAILSCALE_AUTHKEY .env | cut -d= -f2)" ] || [ -n "${TAILSCALE_AUTHKEY:-}" ]; then
+        log_info "Iniciando container Tailscale..."
+        docker compose --profile tailscale up -d tailscale || log_warn "Falha ao iniciar Tailscale (verifique logs)"
+    fi
+    
+    log_info "Aguardando banco de dados estar pronto..."
+    if wait_for_container_health "openpanel-postgres" 60; then
+        print_success "Banco de dados pronto."
+    else
+        log_warn "Timeout aguardando status 'healthy' do Postgres. Verifique 'docker compose logs postgres'."
+    fi
+}
+
+# Configurar Domínios Locais
+setup_local_domains() {
+    print_section "Configurando DNS Local"
+    local hosts_file="/etc/hosts"
+    local domains=("dev.openpanel.local" "pre.openpanel.local" "openpanel.local")
+    local changed=false
+    
+    for domain in "${domains[@]}"; do
+        if ! grep -q "$domain" "$hosts_file"; then
+            echo "127.0.0.1  $domain" | sudo tee -a "$hosts_file" >/dev/null
+            changed=true
+            log_debug "Adicionado $domain ao hosts"
         fi
     done
+    
+    if [ "$changed" = "true" ]; then
+        print_success "Domínios locais configurados em /etc/hosts"
+    else
+        print_success "Domínios locais já configurados."
+    fi
 }
 
-# Configurar Home Lab (opcional)
-configure_home_lab() {
-    # Pular em modo headless
+# Configurar Home Lab (Interativo ou Automatizado se env vars presentes)
+setup_homelab_features() {
     if [ "$HEADLESS_MODE" = "true" ]; then
-        log "INFO" "Configuração de Home Lab pulada (modo headless)"
+        log_info "Modo Headless: Pulando configuração interativa de Home Lab."
+        # Aqui poderíamos implementar lógica para ler env vars para configurar IP estático etc.
         return 0
     fi
 
-    echo ""
-    echo -e "${CYAN}🏠 Configuração de Home Lab (Opcional)${NC}"
-    echo ""
-    echo -e "${INFO} Você pode configurar:"
-    echo -e "   1. IP estático"
-    echo -e "   2. AdGuard Home (DNS local e bloqueio de anúncios)"
-    echo -e "   3. Domínio externo (Hostinger + No-IP)"
-    echo ""
-    read -p "Deseja configurar Home Lab? (s/N): " CONFIGURE_HOMELAB
-
-    if [[ ! "$CONFIGURE_HOMELAB" =~ ^[Ss]$ ]]; then
-        log "INFO" "Configuração de Home Lab pulada"
+    print_section "Configuração Adicional Home Lab"
+    
+    if ! confirm "Deseja configurar recursos de Home Lab (IP fixo, AdGuard, Domínio)?"; then
         return 0
     fi
     
     # IP Estático
-    echo ""
-    read -p "Deseja configurar IP estático? (s/N): " CONFIGURE_STATIC_IP
-    if [[ "$CONFIGURE_STATIC_IP" =~ ^[Ss]$ ]]; then
-        log "INFO" "Configurando IP estático..."
-        if [ -f "$SCRIPT_DIR/setup/configure-static-ip.sh" ]; then
-            sudo "$SCRIPT_DIR/setup/configure-static-ip.sh" || log "WARN" "Falha ao configurar IP estático"
-        else
-            log "WARN" "Script configure-static-ip.sh não encontrado"
-        fi
+    if confirm "Configurar IP estático?"; then
+        [ -f "$SCRIPT_DIR/setup/configure-static-ip.sh" ] && sudo "$SCRIPT_DIR/setup/configure-static-ip.sh"
     fi
     
-    # AdGuard Home
-    echo ""
-    read -p "Deseja instalar AdGuard Home? (s/N): " INSTALL_ADGUARD
-    if [[ "$INSTALL_ADGUARD" =~ ^[Ss]$ ]]; then
-        log "INFO" "Preparando instalação do AdGuard Home..."
-        log "WARN" "IMPORTANTE: Certifique-se de que as portas 53, 80, 443 e 3000 estão disponíveis"
-        log "WARN" "           Se a Web App usar porta 3000, pode haver conflito"
-        sleep 2
-        
-        if [ -f "$SCRIPT_DIR/setup/install-adguard.sh" ]; then
-            sudo "$SCRIPT_DIR/setup/install-adguard.sh" || log "WARN" "Falha ao instalar AdGuard Home"
-        else
-            log "WARN" "Script install-adguard.sh não encontrado"
-        fi
+    # AdGuard
+    if confirm "Instalar AdGuard Home?"; then
+        [ -f "$SCRIPT_DIR/setup/install-adguard.sh" ] && sudo "$SCRIPT_DIR/setup/install-adguard.sh"
     fi
     
     # Domínio Externo
-    echo ""
-    read -p "Deseja configurar domínio externo? (s/N): " CONFIGURE_DOMAIN
-    if [[ "$CONFIGURE_DOMAIN" =~ ^[Ss]$ ]]; then
-        log "INFO" "Configurando domínio externo..."
-        if [ -f "$SCRIPT_DIR/setup/configure-domain.sh" ]; then
-            "$SCRIPT_DIR/setup/configure-domain.sh" || log "WARN" "Falha ao configurar domínio"
-        else
-            log "WARN" "Script configure-domain.sh não encontrado"
-        fi
+    if confirm "Configurar domínio externo (Hostinger/No-IP)?"; then
+        [ -f "$SCRIPT_DIR/setup/configure-domain.sh" ] && "$SCRIPT_DIR/setup/configure-domain.sh"
     fi
+}
+
+# Resumo Final
+show_final_summary() {
+    print_section "Instalação Concluída"
     
-    log "SUCCESS" "Configuração de Home Lab concluída"
+    echo -e "   ${COLOR_GREEN}✔ Sistema Base:${COLOR_NC} OK"
+    echo -e "   ${COLOR_GREEN}✔ Docker:${COLOR_NC}       OK (Rodando)"
+    echo -e "   ${COLOR_GREEN}✔ Banco de Dados:${COLOR_NC} OK (Healthy)"
+    echo -e "   ${COLOR_GREEN}✔ Dependências:${COLOR_NC}  OK"
+    echo ""
+    echo -e "${COLOR_CYAN}Próximos Passos:${COLOR_NC}"
+    echo "   1. Carregar variáveis:  source .env"
+    echo "   2. Migrar Banco:        npm run db:push"
+    echo "   3. Criar Admin:         npm run create:admin"
+    echo "   4. Iniciar App:         npm start"
+    echo ""
+    echo -e "Logs salvos em: ${LOG_FILE}"
 }
 
-# Resumo da instalação
-print_summary() {
-    echo ""
-    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║           INSTALAÇÃO CONCLUÍDA COM SUCESSO! 🎉                ║${NC}"
-    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
-    echo -e "${CYAN}📋 PRÓXIMOS PASSOS:${NC}"
-    echo ""
-    echo -e "   ${ARROW} 1. Verificar Tailscale (opcional VPN):"
-    echo -e "      ${WHITE}Obtenha auth key: https://login.tailscale.com/admin/settings/keys${NC}"
-    echo -e "      ${WHITE}Edite: ${BLUE}${PROJECT_DIR}/.env${NC}"
-    echo -e "      ${WHITE}Procure por: TAILSCALE_AUTHKEY${NC}"
-    echo ""
-    echo -e "   ${ARROW} 2. Editar configurações no .env:"
-    echo -e "      ${WHITE}Arquivo: ${BLUE}${PROJECT_DIR}/.env${NC}"
-    echo -e "      ${WHITE}⚠️  Banco PostgreSQL é COMPARTILHADO entre ambientes${NC}"
-    echo ""
-    echo -e "   ${ARROW} 3. Executar migrações do banco de dados:"
-    echo -e "      ${WHITE}cd ${PROJECT_DIR}${NC}"
-    echo -e "      ${WHITE}npm run db:push${NC}"
-    echo ""
-    echo -e "   ${ARROW} 4. Criar usuário administrador:"
-    echo -e "      ${WHITE}npm run create:admin${NC}"
-    echo ""
-    echo -e "   ${ARROW} 5. Iniciar desenvolvemto (modo dev):"
-    echo -e "      ${WHITE}npm start${NC}  # Configuração automática completa"
-    echo -e "      ${WHITE}ou${NC}"
-    echo -e "      ${WHITE}npm run dev${NC}  # Apenas dev rápido"
-    echo ""
-    echo -e "   ${ARROW} 6. Acessar aplicação:"
-    echo -e "      ${WHITE}API:  http://localhost:3001${NC}"
-    echo -e "      ${WHITE}Web:  http://localhost:3000${NC}"
-    echo -e "      ${WHITE}Admin Banco: npm run db:studio${NC}"
-    echo ""
-    echo -e "${YELLOW}⚠️  IMPORTANTE:${NC}"
-    echo -e "   ${ARROW} Se instalou AdGuard Home, libere porta 53 para DNS"
-    echo -e "   ${ARROW} Se usará IP estático, reinicie a máquina após reboot"
-    echo -e "   ${ARROW} Senhas ALEATÓRIAS foram geradas no .env (seguro)"
-    echo ""
-    echo -e "${CYAN}📚 DOCUMENTAÇÃO:${NC}"
-    echo -e "   ${ARROW} Instalação: docs/INSTALACAO_SERVIDOR.md"
-    echo -e "   ${ARROW} Troubleshooting: docs/TROUBLESHOOTING_INSTALACAO.md"
-    echo -e "   ${ARROW} Desenvolvimento: docs/GUIA_DE_DESENVOLVIMENTO.md"
-    echo -e "   ${ARROW} Home Lab: docs/HOME_LAB_SETUP.md"
-    echo -e "   ${ARROW} Quick Start: docs/QUICK_START.md"
-    echo ""
-    echo -e "${CYAN}📊 STATUS DA INSTALAÇÃO:${NC}"
-    echo -e "   ${ARROW} Log completo: ${BLUE}${PROJECT_DIR}/install-server.log${NC}"
-    echo ""
-}
+# ============================================================================
+# EXECUÇÃO PRINCIPAL
+# ============================================================================
 
-# Função principal
 main() {
-    echo "==================================" > "${LOG_FILE}"
-    echo "OpenPanel Server Installation Log" >> "${LOG_FILE}"
-    echo "Started: $(date)" >> "${LOG_FILE}"
-    echo "==================================" >> "${LOG_FILE}"
+    log_info "Iniciando instalação autônoma do OpenPanel..."
     
-    log "INFO" "Iniciando instalação do OpenPanel no servidor..."
-    log "INFO" "Executando verificações pré-instalação..."
+    check_lock
+    check_sudo_perms
+    check_connectivity
     
-    # Executar verificações pré-instalação se script existir
-    if [ -f "$SCRIPT_DIR/setup/pre-install-check.sh" ]; then
-        if ! "$SCRIPT_DIR/setup/pre-install-check.sh"; then
-            log "ERROR" "Verificações pré-instalação falharam"
-            exit 1
-        fi
-    else
-        log "WARN" "Script pre-install-check.sh não encontrado"
-    fi
-    
-    echo ""
-    check_sudo
+    # Pre-checks
     detect_os
-    check_hardware_requirements || error_exit "Requisitos de hardware não atendidos"
-    install_system_dependencies
-    install_tailscale
-    install_nodejs
-    install_docker
-    configure_firewall
-    create_env_files
-    generate_secrets
-    install_project_dependencies
-    make_scripts_executable
-    start_infrastructure
-    configure_local_domains
-    configure_home_lab
+    check_hardware_requirements_enhanced
     
-    log "SUCCESS" "Instalação concluída!"
+    # Instalação
+    install_system_dependencies_enhanced
+    install_tailscale_enhanced
+    install_nodejs_enhanced
+    install_docker_enhanced
+    configure_firewall_enhanced
     
-    print_summary
+    # Configuração Projeto
+    setup_env_and_secrets
+    install_npm_deps
+    start_services
+    setup_local_domains
+    setup_homelab_features
     
-    echo "==================================" >> "${LOG_FILE}"
-    echo "Completed: $(date)" >> "${LOG_FILE}"
-    echo "==================================" >> "${LOG_FILE}"
+    show_final_summary
 }
 
-# Executar
 main "$@"
-

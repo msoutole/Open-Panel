@@ -1,5 +1,5 @@
 import { Pool } from 'pg'
-import { createConnection } from 'mysql2/promise'
+import { createConnection, Connection } from 'mysql2/promise'
 import { MongoClient } from 'mongodb'
 import Redis from 'ioredis'
 import { prisma } from '../lib/prisma'
@@ -100,8 +100,7 @@ export class DatabaseClientService {
     query: string
   ): Promise<QueryResult> {
     const startTime = Date.now()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mysqlConnection: any = null // mysql2 types are complex, using any for connection
+    let mysqlConnection: Connection | null = null
 
     try {
       // Validate query
@@ -119,7 +118,7 @@ export class DatabaseClientService {
       })
 
       // Execute query
-      const [rows, fields] = await mysqlConnection.execute(query)
+      const [rows] = await mysqlConnection.execute(query)
       const executionTime = Date.now() - startTime
 
       logInfo('MySQL query executed', {
@@ -248,9 +247,8 @@ export class DatabaseClientService {
         retryStrategy: () => null, // No retry
       })
 
-      // Execute command
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      const result = await (redis as any)[cmd.toLowerCase()](...args)
+      // Execute command safely using .call()
+      const result = await redis.call(cmd, ...args)
       const executionTime = Date.now() - startTime
 
       logInfo('Redis command executed', {
@@ -357,7 +355,7 @@ export class DatabaseClientService {
       const envVars: Record<string, string> = {}
       if (container.envVars) {
         // Use container's specific env vars first
-        const vars = container.envVars as unknown as Array<{ key: string; value: string }>
+        const vars = container.envVars as Array<{ key: string; value: string }>
         vars.forEach((env) => {
           envVars[env.key] = env.value
         })

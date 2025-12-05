@@ -293,6 +293,88 @@ export const openAPISchema = {
         },
       },
     },
+    '/api/health/system': {
+      get: {
+        tags: ['Health'],
+        summary: 'Get system health',
+        description: 'Get overall system health status',
+        operationId: 'getSystemHealth',
+        responses: {
+          '200': {
+            description: 'System health status',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string' },
+                    components: { type: 'object' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/health/containers': {
+      get: {
+        tags: ['Health'],
+        summary: 'Get all containers health',
+        description: 'Get health status for all containers',
+        operationId: 'getAllContainersHealth',
+        responses: {
+          '200': {
+            description: 'Containers health status',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    containers: { type: 'array', items: { type: 'object' } },
+                    total: { type: 'number' },
+                    healthy: { type: 'number' },
+                    unhealthy: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/health/containers/{id}': {
+      get: {
+        tags: ['Health'],
+        summary: 'Get container health',
+        description: 'Get health status for a specific container',
+        operationId: 'getContainerHealth',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Container health status',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    status: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     '/api/auth/register': {
       post: {
         tags: ['Auth'],

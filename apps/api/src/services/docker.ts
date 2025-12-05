@@ -815,6 +815,10 @@ export class DockerService {
     return result
   }
 
+  async getEvents(options?: { filters?: Record<string, string[]> }) {
+    return await this.docker.getEvents(options)
+  }
+
   /**
    * Faz pull de uma imagem Docker do registry
    * 

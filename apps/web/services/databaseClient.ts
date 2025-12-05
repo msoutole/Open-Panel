@@ -45,9 +45,11 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 // Types
 export type DatabaseType = 'postgresql' | 'mysql' | 'mongodb' | 'redis' | 'mariadb';
 
+export type QueryRow = Record<string, unknown>;
+
 export interface ExecuteQueryResult {
   success: boolean;
-  data: any[];
+  data: QueryRow[] | unknown; // Allow unknown for Redis/Mongo results that might not be rows
   executionTime?: number;
   rowsAffected?: number;
   error?: string;
@@ -67,6 +69,15 @@ export interface ExecuteQueryOptions {
   };
 }
 
+export interface DatabaseConnectionInfo {
+  type: DatabaseType;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password?: string;
+}
+
 /**
  * Execute a query against a database container
  */
@@ -84,10 +95,10 @@ export const executeQuery = async (options: ExecuteQueryOptions): Promise<Execut
 /**
  * Get connection details for a database container
  */
-export const getConnectionInfo = async (containerId: string, type: DatabaseType): Promise<any> => {
+export const getConnectionInfo = async (containerId: string, type: DatabaseType): Promise<DatabaseConnectionInfo> => {
   const response = await fetch(`${getApiBaseUrl()}/api/databases/${containerId}/connection?type=${type}`, {
     headers: getAuthHeaders(),
   });
   
-  return handleResponse<any>(response);
+  return handleResponse<DatabaseConnectionInfo>(response);
 };

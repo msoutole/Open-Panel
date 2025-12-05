@@ -15,13 +15,28 @@ interface WebSocketClient extends WebSocket {
   lastMessageTime: number
 }
 
+interface BaseMessage {
+  type: string
+}
+
+interface AuthMessage extends BaseMessage {
+  type: 'auth'
+  token: string
+}
+
+interface PingMessage extends BaseMessage {
+  type: 'ping'
+}
+
+type WebSocketMessage = AuthMessage | PingMessage | BaseMessage
+
 /**
  * LogsWebSocketGateway - Manages real-time Docker events and system logs
  */
 export class LogsWebSocketGateway {
   private wss: WebSocketServer
   private clients: Map<string, WebSocketClient> = new Map()
-  private dockerEventsStream: any = null
+  private dockerEventsStream: NodeJS.ReadableStream | null = null
   private heartbeatInterval: NodeJS.Timeout
 
   constructor(server: Server) {
@@ -111,9 +126,9 @@ export class LogsWebSocketGateway {
   /**
    * Handle incoming message from client
    */
-  private async handleMessage(client: WebSocketClient, data: any) {
+  private async handleMessage(client: WebSocketClient, data: WebSocket.RawData) {
     try {
-      const message = JSON.parse(data.toString())
+      const message = JSON.parse(data.toString()) as WebSocketMessage
 
       // Rate limiting: max 100 messages per minute
       const now = Date.now()
@@ -134,7 +149,7 @@ export class LogsWebSocketGateway {
 
       switch (message.type) {
         case 'auth':
-          await this.handleAuth(client, message)
+          await this.handleAuth(client, message as AuthMessage)
           break
 
         case 'ping':
@@ -147,11 +162,12 @@ export class LogsWebSocketGateway {
             message: `Unknown message type: ${message.type}`,
           })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       logError('Error handling WebSocket message', error, { clientId: client.id })
       this.sendToClient(client, {
         type: 'error',
-        message: error.message,
+        message: errorMessage,
       })
     }
   }
@@ -159,7 +175,7 @@ export class LogsWebSocketGateway {
   /**
    * Handle authentication
    */
-  private async handleAuth(client: WebSocketClient, message: any) {
+  private async handleAuth(client: WebSocketClient, message: AuthMessage) {
     try {
       const { token } = message
 
@@ -181,12 +197,13 @@ export class LogsWebSocketGateway {
         type: 'authenticated',
         userId: client.userId,
       })
-    } catch (error: any) {
-      logError('Authentication failed for client', new Error(error.message), { clientId: client.id })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
+      logError('Authentication failed for client', error, { clientId: client.id })
       client.authenticated = false
       this.sendToClient(client, {
         type: 'error',
-        message: 'Authentication failed: Invalid or expired token',
+        message: `Authentication failed: ${errorMessage}`,
       })
       setTimeout(() => client.close(), 1000)
     }
@@ -197,15 +214,7 @@ export class LogsWebSocketGateway {
    */
   private async startDockerEventsStream() {
     try {
-      // Get Docker instance
-      const docker = (dockerService as any).docker
-      if (!docker) {
-        logWarn('Docker instance not available, skipping events stream')
-        return
-      }
-
-      // Get events stream
-      const events = await docker.getEvents({
+      const events = await dockerService.getEvents({
         filters: {
           type: ['container'],
         },
@@ -231,7 +240,7 @@ export class LogsWebSocketGateway {
         }
       })
 
-      events.on('error', (error: any) => {
+      events.on('error', (error: Error) => {
         logError('Docker events stream error', error)
         // Try to restart stream after delay
         setTimeout(() => this.startDockerEventsStream(), 5000)
@@ -255,7 +264,7 @@ export class LogsWebSocketGateway {
   /**
    * Send message to specific client
    */
-  private sendToClient(client: WebSocketClient, message: any) {
+  private sendToClient(client: WebSocketClient, message: unknown) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(message))
     }
@@ -264,7 +273,7 @@ export class LogsWebSocketGateway {
   /**
    * Broadcast message to all authenticated clients
    */
-  private broadcastToAuthenticated(message: any) {
+  private broadcastToAuthenticated(message: unknown) {
     this.clients.forEach((client) => {
       if (client.authenticated) {
         this.sendToClient(client, message)
@@ -290,7 +299,11 @@ export class LogsWebSocketGateway {
 
     // Stop Docker events stream
     if (this.dockerEventsStream) {
-      this.dockerEventsStream.destroy()
+      // The readable stream might not have a destroy method typed in NodeJS.ReadableStream
+      // but most implementations (like fs or socket) do. Safe check:
+      if ('destroy' in this.dockerEventsStream && typeof (this.dockerEventsStream as any).destroy === 'function') {
+        (this.dockerEventsStream as any).destroy()
+      }
     }
 
     // Close all client connections

@@ -11,18 +11,20 @@ Instale e configure o OpenPanel em seu homelab em menos de 10 minutos!
 git clone https://github.com/msoutole/openpanel.git
 cd openpanel
 
-# 2. Execute o script de instalação
-sudo bash scripts/install.sh
+# 2. Execute o script de instalação (Autônomo e à prova de falhas)
+sudo bash scripts/install-server.sh
 
 # 3. Acesse o painel
 # http://seu-ip:3000
 ```
 
-**Pronto!** O script instala automaticamente:
-- ✅ Node.js 20.x
-- ✅ Docker e Docker Compose
-- ✅ Todas as dependências
-- ✅ Configura e inicia todos os serviços
+**Pronto!** O script instala e configura automaticamente:
+- ✅ **Node.js 20 LTS** (Verifica e atualiza se necessário)
+- ✅ **Docker e Docker Compose** (Gerencia conflitos)
+- ✅ **Todas as dependências** com auto-recuperação de erros
+- ✅ **Serviços de Infra:** Postgres, Redis, Traefik (com Health Checks reais)
+
+> **Dica Pro:** Tem pouco hardware? Use `MIN_RAM_MB=1024 sudo bash scripts/install-server.sh` para instalar em máquinas menores sem avisos.
 
 ### Opção 2: Instalação Manual (Controle Total)
 

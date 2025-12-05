@@ -33,7 +33,7 @@ Este documento consolida todas as instruções para instalação, configuração
 
 ### Instalação Automática
 
-O script `install-server.sh` gerencia dependências (Docker, Node.js), firewall (UFW), banco de dados e configurações iniciais.
+O script `install-server.sh` foi totalmente reescrito para ser **robusto, idempotente e à prova de falhas**. Ele gerencia dependências (Docker, Node.js LTS), firewall (UFW), banco de dados e configurações iniciais com auto-recuperação.
 
 ```bash
 # 1. Clonar repositório
@@ -46,9 +46,27 @@ chmod +x scripts/install-server.sh
 sudo ./scripts/install-server.sh
 ```
 
-**Opções de Instalação:**
-- `sudo HEADLESS_MODE=true ./scripts/install-server.sh` (Sem interação)
-- `sudo SKIP_TAILSCALE=true ./scripts/install-server.sh` (Pular VPN)
+**Opções de Instalação (Variáveis de Ambiente):**
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `HEADLESS_MODE` | Instalação sem interação humana (ideal para automação) | `false` |
+| `SKIP_TAILSCALE` | Pula a configuração da VPN Tailscale | `false` |
+| `STRICT_CHECK` | Falha se requisitos de hardware não forem atendidos (vs aviso) | `false` |
+| `MIN_RAM_MB` | Define mínimo de RAM exigido em MB | `2048` |
+| `MIN_DISK_GB` | Define mínimo de disco exigido em GB | `10` |
+| `TAILSCALE_AUTHKEY` | Chave de autenticação para setup automático do Tailscale | - |
+
+Exemplos:
+- **Automação total:** `sudo HEADLESS_MODE=true TAILSCALE_AUTHKEY=tskey-xxx ./scripts/install-server.sh`
+- **Hardware modesto:** `sudo MIN_RAM_MB=1024 ./scripts/install-server.sh`
+- **Validação rigorosa:** `sudo STRICT_CHECK=true ./scripts/install-server.sh`
+
+### Características do Instalador
+- **Idempotente:** Pode ser executado múltiplas vezes sem quebrar a instalação existente.
+- **Auto-Recuperação:** Tenta corrigir travamentos do `apt` e serviços parados automaticamente.
+- **Logs Detalhados:** Tudo é registrado em `install-server.log`.
+- **Health Checks:** Aguarda ativamente o banco de dados e Docker estarem saudáveis antes de concluir.
 
 ### Variáveis de Ambiente
 O instalador cria um `.env` na raiz. **Configure imediatamente:**
