@@ -25,7 +25,7 @@ const en = {
   auth: {
     login: 'Login',
     loginTitle: 'Welcome back!',
-    loginSubtitle: 'Sign in to continue',
+    loginSubtitle: 'Your smarter server.',
     emailPlaceholder: 'your@email.com',
     passwordPlaceholder: 'Your password',
     invalidCredentials: 'Invalid email or password',
@@ -36,7 +36,7 @@ const en = {
 
   // Onboarding
   onboarding: {
-    title: 'Welcome to Open Panel! 🎉',
+    title: 'Welcome to SOU+SER by SOULLABS! 🎉',
     subtitle: "Let's set up your environment in a few steps",
 
     // Step 1 - Theme
@@ -111,7 +111,7 @@ const en = {
     },
 
     // Actions
-    complete: 'Start using Open Panel',
+    complete: 'Start using SOU+SER by SOULLABS',
     completing: 'Finishing...',
 
     // Footer
@@ -154,7 +154,7 @@ const en = {
     avg: 'avg',
     noDataAvailable: 'No data available',
     // Empty State
-    welcomeTitle: 'Welcome to Open Panel! 🚀',
+    welcomeTitle: 'Welcome to SOU+SER by SOULLABS! 🚀',
     welcomeSubtitle: 'Start by creating your first project and deploy your applications in minutes.',
     emptyStateTitle: 'No projects yet',
     emptyStateDescription: 'Create your first project to start managing your applications and services.',
@@ -177,7 +177,7 @@ const en = {
     gettingStartedCompleted: 'Completed',
     gettingStartedPending: 'Pending',
     // Welcome Banner
-    welcomeBannerTitle: 'Welcome to Open Panel! 👋',
+    welcomeBannerTitle: 'Welcome to SOU+SER by SOULLABS! 👋',
     welcomeBannerDescription: 'Set up your first project in less than 2 minutes.',
     welcomeBannerDismiss: 'Dismiss',
     welcomeBannerGetStarted: 'Get Started',

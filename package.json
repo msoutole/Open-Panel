@@ -38,7 +38,7 @@
     "create:admin": "tsx scripts/create-admin.ts",
     "preview": "npm run preview -w apps/web",
     "type-check": "npm run type-check -w apps/api && npm run type-check -w apps/web && npm run type-check -w packages/shared",
-    "lint": "eslint . --ext .ts,.tsx --max-warnings 500",
+    "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",

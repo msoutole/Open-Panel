@@ -9,11 +9,10 @@ import {
   HardDrive,
   Activity,
   ChevronLeft,
-  ChevronRight,
-  Menu,
-  X
+  Menu
 } from 'lucide-react';
 import { useTranslations } from '../src/i18n/i18n-react';
+import { Logo } from './ui/Logo';
 
 interface SidebarProps {
   currentView: ViewState;
@@ -77,17 +76,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Logo e Branding */}
         <button
           onClick={() => onChangeView('dashboard')}
-          className={`flex items-center gap-3 border-b border-border w-full ${isCollapsed ? 'justify-center p-4' : 'p-4 sm:p-6'} hover:bg-background transition-colors duration-200`}
+          className={`flex items-center border-b border-border w-full ${isCollapsed ? 'justify-center p-4' : 'p-4 sm:p-6'} hover:bg-background transition-colors duration-200`}
         >
-          <div className={`bg-primary text-white shadow-sm flex-shrink-0 transition-all duration-200 ${isCollapsed ? 'p-2.5 rounded-xl' : 'p-2 rounded-xl'} hover:bg-primaryHover`}>
-            <Box size={isCollapsed ? 28 : 24} strokeWidth={1.5} />
-          </div>
-          {!isCollapsed && (
-            <div className="min-w-0 text-left">
-              <span className="font-bold text-xl text-textPrimary tracking-tight block leading-none">Open Panel</span>
-              <span className="text-xs text-textSecondary font-medium">by Soullabs</span>
-            </div>
-          )}
+          <Logo collapsed={isCollapsed} size={isCollapsed ? 'sm' : 'md'} showTagline={!isCollapsed} />
         </button>
 
         {/* Botão Toggle */}

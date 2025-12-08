@@ -25,7 +25,7 @@ const pt_BR = {
   auth: {
     login: 'Entrar',
     loginTitle: 'Bem-vindo de volta!',
-    loginSubtitle: 'Faça login para continuar',
+    loginSubtitle: 'Seu Servidor mais inteligente.',
     emailPlaceholder: 'seu@email.com',
     passwordPlaceholder: 'Sua senha',
     invalidCredentials: 'Email ou senha inválidos',
@@ -36,7 +36,7 @@ const pt_BR = {
 
   // Onboarding
   onboarding: {
-    title: 'Bem-vindo ao Open Panel! 🎉',
+    title: 'Bem-vindo ao SOU+SER by SOULLABS! 🎉',
     subtitle: 'Vamos configurar seu ambiente em poucos passos',
 
     // Step 1 - Theme
@@ -111,7 +111,7 @@ const pt_BR = {
     },
 
     // Actions
-    complete: 'Começar a usar Open Panel',
+    complete: 'Começar a usar SOU+SER by SOULLABS',
     completing: 'Finalizando...',
 
     // Footer
@@ -296,7 +296,7 @@ const pt_BR = {
     avg: 'média',
     noDataAvailable: 'Nenhum dado disponível',
     // Empty State
-    welcomeTitle: 'Bem-vindo ao Open Panel! 🚀',
+    welcomeTitle: 'Bem-vindo ao SOU+SER by SOULLABS! 🚀',
     welcomeSubtitle: 'Comece criando seu primeiro projeto e implante suas aplicações em minutos.',
     emptyStateTitle: 'Nenhum projeto ainda',
     emptyStateDescription: 'Crie seu primeiro projeto para começar a gerenciar suas aplicações e serviços.',
@@ -319,7 +319,7 @@ const pt_BR = {
     gettingStartedCompleted: 'Concluído',
     gettingStartedPending: 'Pendente',
     // Welcome Banner
-    welcomeBannerTitle: 'Bem-vindo ao Open Panel! 👋',
+    welcomeBannerTitle: 'Bem-vindo ao SOU+SER by SOULLABS! 👋',
     welcomeBannerDescription: 'Configure seu primeiro projeto em menos de 2 minutos.',
     welcomeBannerDismiss: 'Dispensar',
     welcomeBannerGetStarted: 'Começar Agora',

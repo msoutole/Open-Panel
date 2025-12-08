@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, AlertCircle, Loader2, Shield, Key } from 'lucide-react';
+import { AlertCircle, Loader2, Shield, Key } from 'lucide-react';
 import { useTranslations } from '../src/i18n/i18n-react';
 import { Input } from '../components/ui/Input';
 import { Checkbox } from '../components/ui/Checkbox';
 import { Button } from '../components/ui/Button';
+import { Logo } from '../components/ui/Logo';
 
 interface LoginProps {
   onLogin: () => void;
@@ -125,15 +126,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <div className="w-full max-w-md bg-card rounded-xl shadow-lg border border-border p-8">
         {/* Logo e Branding */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-primary p-2 rounded-lg text-white">
-              <Box size={24} strokeWidth={1.5} />
-            </div>
-            <div className="text-left">
-              <h1 className="text-2xl font-bold text-textPrimary tracking-tight leading-none">Open Panel</h1>
-              <p className="text-xs text-textSecondary font-medium">by Soullabs</p>
-            </div>
-          </div>
+          <Logo size="lg" className="mb-4" />
           <h2 className="text-center text-base font-semibold text-textPrimary mb-1">{LL.auth.loginTitle()}</h2>
           <p className="text-center text-sm text-textSecondary">{LL.auth.loginSubtitle()}</p>
         </div>

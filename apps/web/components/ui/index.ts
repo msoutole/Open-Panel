@@ -10,3 +10,5 @@ export { Badge } from './Badge';
 export type { BadgeProps } from './Badge';
 export { ProgressRing } from './ProgressRing';
 export type { ProgressRingProps } from './ProgressRing';
+export { Logo } from './Logo';
+export type { LogoProps } from './Logo';

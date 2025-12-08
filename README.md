@@ -1,4 +1,4 @@
-# OpenPanel 🚀
+# SOU+SER by SOULLABS 🚀
 
 <div align="center">
 
@@ -111,7 +111,7 @@ powershell scripts/rotate-credentials.ps1
 
 ## Overview
 
-OpenPanel is a privacy-first, AI-powered server control panel for managing Docker containers, deployments, and infrastructure. Built as a modern monorepo with TypeScript, it offers an intuitive interface for DevOps and server management.
+SOU+SER by SOULLABS is a privacy-first, AI-powered server control panel for managing Docker containers, deployments, and infrastructure. Built as a modern monorepo with TypeScript, it offers an intuitive interface for DevOps and server management. Seu Servidor mais inteligente.
 
 ## ✨ What's New
 
@@ -352,9 +352,9 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - 💡 [Feature Requests](https://github.com/msoutole/openpanel/issues/new?template=feature_request.md)
 - 🔒 [Security Policy](SECURITY.md)
 
-## 🔄 OpenPanel vs. Alternatives
+## 🔄 SOU+SER vs. Alternatives
 
-| Feature | OpenPanel | Portainer | Dokku | CasaOS |
+| Feature | SOU+SER by SOULLABS | Portainer | Dokku | CasaOS |
 |---------|-----------|-----------|-------|--------|
 | **AI Assistant** | ✅ Multiple providers | ❌ | ❌ | ❌ |
 | **Git Deployments** | ✅ Automated | ❌ | ✅ | ❌ |
@@ -365,7 +365,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 | **WebTerminal** | ✅ | ✅ Paid | ❌ | ❌ |
 | **Template Marketplace** | ✅ | ⚠️ Limited | ❌ | ✅ |
 
-**Why OpenPanel?**
+**Why SOU+SER?**
 - 🎯 **Purpose-built for homelabs** with security and ease-of-use in mind
 - 🤖 **AI-powered assistance** for troubleshooting and deployment
 - 🔓 **100% Free & Open Source** - no paid tiers or limitations

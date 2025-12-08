@@ -1864,7 +1864,7 @@ export type TranslationFunctions = {
 	}
 	onboarding: {
 		/**
-		 * Bem-vindo ao Open Panel! 🎉
+		 * Bem-vindo ao SOU+SER by SOULLABS! 🎉
 		 */
 		title: () => LocalizedString
 		/**
@@ -2074,7 +2074,7 @@ export type TranslationFunctions = {
 			warning: () => LocalizedString
 		}
 		/**
-		 * Começar a usar Open Panel
+		 * Começar a usar SOU+SER by SOULLABS
 		 */
 		complete: () => LocalizedString
 		/**
@@ -2676,7 +2676,7 @@ export type TranslationFunctions = {
 		 */
 		noDataAvailable: () => LocalizedString
 		/**
-		 * Bem-vindo ao Open Panel! 🚀
+		 * Bem-vindo ao SOU+SER by SOULLABS! 🚀
 		 */
 		welcomeTitle: () => LocalizedString
 		/**
@@ -2756,7 +2756,7 @@ export type TranslationFunctions = {
 		 */
 		gettingStartedPending: () => LocalizedString
 		/**
-		 * Bem-vindo ao Open Panel! 👋
+		 * Bem-vindo ao SOU+SER by SOULLABS! 👋
 		 */
 		welcomeBannerTitle: () => LocalizedString
 		/**

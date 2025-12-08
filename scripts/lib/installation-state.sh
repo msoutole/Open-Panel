@@ -3,7 +3,7 @@
 ################################################################################
 # Sistema de Gerenciamento de Estado de Instalação
 #
-# Este módulo gerencia o estado da instalação do Open Panel,
+# Este módulo gerencia o estado da instalação do SOU+SER by SOULLABS,
 # permitindo execuções idempotentes e rastreamento de progresso.
 ################################################################################
 
