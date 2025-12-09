@@ -67,7 +67,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ view }) => {
         };
         
         if (view === 'users') {
-            fetchUsers();
+            void fetchUsers();
         }
     }, [view, showToast]);
 

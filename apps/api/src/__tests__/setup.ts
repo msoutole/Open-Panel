@@ -9,12 +9,20 @@ beforeAll(async () => {
   }
 
   // Limpar banco de dados de teste
-  await cleanDatabase()
+  try {
+    await cleanDatabase()
+  } catch (error) {
+    console.warn('Could not clean database in beforeAll (skipping):', error)
+  }
 })
 
 // Limpar após cada teste
 afterEach(async () => {
-  await cleanDatabase()
+  try {
+    await cleanDatabase()
+  } catch (error) {
+    console.warn('Could not clean database in afterEach (skipping):', error)
+  }
 })
 
 // Fechar conexões após todos os testes

@@ -9,7 +9,7 @@
 import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../../../types'
-import { ProjectService } from '../../../services/project.service'
+import { projectService } from '../../../services/project.service'
 
 /**
  * Lista todos os projetos acessíveis pelo usuário autenticado.
@@ -59,7 +59,7 @@ export const listProjectsHandler = async (
   const user = c.get('user')
 
   try {
-    const projects = await ProjectService.listAccessibleProjects(user.userId)
+    const projects = await projectService.listAccessibleProjects(user.userId)
     return c.json({ projects })
   } catch (error) {
     if (error instanceof HTTPException) {

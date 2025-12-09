@@ -8,7 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsup",
     "start": "node dist/index.js",
-    "test": "cross-env NODE_ENV=test vitest",
+    "test": "cross-env NODE_ENV=test DATABASE_URL=\"postgresql://test:test@localhost:5432/test_db\" vitest",
     "test:watch": "vitest --watch",
     "db:generate": "npx prisma generate --config ../../prisma.config.mjs",
     "db:migrate": "npx prisma migrate dev --config ../../prisma.config.mjs",

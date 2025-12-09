@@ -9,7 +9,7 @@
 import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../../../types'
-import { ProjectService } from '../../../services/project.service'
+import { projectService } from '../../../services/project.service'
 
 /**
  * Retorna detalhes completos de um projeto específico.
@@ -68,7 +68,7 @@ export const readProjectHandler = async (
   const user = c.get('user')
 
   try {
-    const project = await ProjectService.findById(projectId, user.userId)
+    const project = await projectService.findById(projectId, user.userId)
     return c.json({ project })
   } catch (error) {
     if (error instanceof HTTPException) {

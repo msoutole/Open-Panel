@@ -9,7 +9,7 @@
 import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import type { Variables } from '../../../types'
-import { ProjectService } from '../../../services/project.service'
+import { projectService } from '../../../services/project.service'
 
 /**
  * Deleta um projeto do sistema.
@@ -57,7 +57,7 @@ export const deleteProjectHandler = async (
   const user = c.get('user')
 
   try {
-    await ProjectService.delete(projectId, user.userId)
+    await projectService.delete(projectId, user.userId)
     return c.json({ message: 'Project deleted successfully' }, 200)
   } catch (error) {
     if (error instanceof HTTPException) {

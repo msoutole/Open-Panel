@@ -5,7 +5,7 @@
  */
 
 import { prisma } from '../lib/prisma'
-import { ProjectService, type CreateProjectData } from './project.service'
+import { projectService, ProjectService, type CreateProjectData } from './project.service'
 import { HTTPException } from 'hono/http-exception'
 import type { ProjectType } from '@prisma/client'
 
@@ -601,7 +601,7 @@ export class ApplicationTemplatesService {
     memoryLimit?: string
     teamId?: string
   }): Promise<{
-    project: Awaited<ReturnType<typeof ProjectService.create>>
+    project: Awaited<ReturnType<typeof projectService.create>>
     template: ApplicationTemplate
     port: number
   }> {
@@ -669,7 +669,7 @@ export class ApplicationTemplatesService {
       teamId: teamId || null,
     }
 
-    const project = await ProjectService.create(projectData)
+    const project = await projectService.create(projectData)
 
     // Create environment variables
     if (Object.keys(mergedEnvVars).length > 0) {

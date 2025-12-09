@@ -22,14 +22,17 @@ for (const possibleRoot of possibleRoots) {
   const envPath = resolve(possibleRoot, '.env')
   if (existsSync(envPath)) {
     rootDir = possibleRoot
-    // Load .env (override: true to ensure DATABASE_URL is loaded)
-    const result = config({ path: envPath, override: true })
+    // Load .env
+    // Only override if DATABASE_URL is NOT already set (e.g. by CI or CLI)
+    const shouldOverride = !process.env.DATABASE_URL
+    const result = config({ path: envPath, override: shouldOverride })
+    
     if (result.error) {
       console.warn(`⚠️  Warning: Could not load .env from ${envPath}:`, result.error.message)
     } else {
       envLoaded = true
-      // Force load DATABASE_URL into process.env
-      if (result.parsed?.DATABASE_URL) {
+      // Force load DATABASE_URL into process.env if we are overriding or if it was missing
+      if (shouldOverride && result.parsed?.DATABASE_URL) {
         process.env.DATABASE_URL = result.parsed.DATABASE_URL
       }
     }
@@ -41,9 +44,12 @@ for (const possibleRoot of possibleRoots) {
 if (!envLoaded) {
   const cwdEnvPath = resolve(process.cwd(), '.env')
   if (existsSync(cwdEnvPath)) {
-    const result = config({ path: cwdEnvPath, override: true })
+    const shouldOverride = !process.env.DATABASE_URL
+    const result = config({ path: cwdEnvPath, override: shouldOverride })
     if (!result.error && result.parsed?.DATABASE_URL) {
-      process.env.DATABASE_URL = result.parsed.DATABASE_URL
+       if (shouldOverride) {
+          process.env.DATABASE_URL = result.parsed.DATABASE_URL
+       }
       envLoaded = true
     }
   }

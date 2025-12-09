@@ -11,7 +11,7 @@ import { HTTPException } from 'hono/http-exception'
 import { prisma } from '../../../lib/prisma'
 import { createEnvVarSchema } from '@openpanel/shared'
 import type { Variables } from '../../../types'
-import { ProjectService } from '../../../services/project.service'
+import { projectService } from '../../../services/project.service'
 
 const envVars = new Hono<{ Variables: Variables }>()
 
@@ -40,7 +40,7 @@ envVars.get('/', async (c: Context<{ Variables: Variables }>) => {
 
   try {
     // Verificar acesso ao projeto
-    await ProjectService.findById(projectId, user.userId)
+    await projectService.findById(projectId, user.userId)
 
     const envVars = await prisma.envVar.findMany({
       where: { projectId },
@@ -97,7 +97,7 @@ envVars.post('/', async (c: Context<{ Variables: Variables }>) => {
     const data = createEnvVarSchema.parse(body)
 
     // Verificar acesso ao projeto
-    await ProjectService.findById(projectId, user.userId)
+    await projectService.findById(projectId, user.userId)
 
     // Verificar se chave já existe
     const existing = await prisma.envVar.findUnique({
@@ -170,7 +170,7 @@ envVars.put('/:envVarId', async (c: Context<{ Variables: Variables }>) => {
 
   try {
     // Verificar acesso ao projeto
-    await ProjectService.findById(projectId, user.userId)
+    await projectService.findById(projectId, user.userId)
 
     const envVar = await prisma.envVar.update({
       where: { id: envVarId },
@@ -222,7 +222,7 @@ envVars.delete('/:envVarId', async (c: Context<{ Variables: Variables }>) => {
 
   try {
     // Verificar acesso ao projeto
-    await ProjectService.findById(projectId, user.userId)
+    await projectService.findById(projectId, user.userId)
 
     await prisma.envVar.delete({
       where: { id: envVarId }

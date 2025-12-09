@@ -394,7 +394,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
         setIsLoading(false);
       }
     };
-    fetchProjects();
+    void fetchProjects();
   }, [showToast]);
 
   // Fetch initial metrics
@@ -414,10 +414,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onProjectSelect, v
         setIsLoadingMetrics(false);
       }
     };
-    fetchMetrics();
+    void fetchMetrics();
     
     // Refresh metrics every 5 seconds (less frequent since we have WebSocket)
-    const interval = setInterval(fetchMetrics, 5000);
+    const interval = setInterval(() => void fetchMetrics(), 5000);
     return () => clearInterval(interval);
   }, [metricsHistory]);
 

@@ -10,7 +10,7 @@ import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { updateProjectSchema } from '@openpanel/shared'
 import type { Variables } from '../../../types'
-import { ProjectService } from '../../../services/project.service'
+import { projectService } from '../../../services/project.service'
 
 /**
  * Atualiza um projeto existente.
@@ -69,7 +69,7 @@ export const updateProjectHandler = async (c: Context<{ Variables: Variables }>)
     const body = await c.req.json() as unknown
     const data = updateProjectSchema.parse(body)
 
-    const project = await ProjectService.update(projectId, user.userId, data)
+    const project = await projectService.update(projectId, user.userId, data)
     return c.json({ project })
   } catch (error) {
     if (error instanceof HTTPException) {

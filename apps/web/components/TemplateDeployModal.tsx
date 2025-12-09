@@ -210,11 +210,11 @@ export const TemplateDeployModal: React.FC<TemplateDeployModalProps> = ({
                       <div className="text-gray-900">{template.dependencies.join(', ')}</div>
                     </>
                   )}
-                </div>
-              </div>
-            </div>
-          )}
-
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
           {/* Step: Git */}
           {currentStep === 'git' && (
             <div className="space-y-4">

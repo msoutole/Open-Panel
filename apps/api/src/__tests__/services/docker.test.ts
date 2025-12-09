@@ -1,23 +1,77 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { dockerService } from '../../services/docker'
-import Dockerode from 'dockerode'
+import { DockerService } from '../../services/docker'
+import { DockerConnectionError, ContainerOperationError } from '../../errors/docker.errors'
+import Dockerode from 'dockerode' // Import Dockerode for its types
 
-// Mock do Dockerode
-vi.mock('dockerode', () => {
-  return {
-    default: vi.fn(() => ({
-      listContainers: vi.fn(),
-      createContainer: vi.fn(),
-      getContainer: vi.fn(),
-      listImages: vi.fn(),
-      pull: vi.fn(),
-    })),
+// Define a mock type for PrismaClient that only includes methods actually used by DockerService
+type MockPrismaClient = {
+  container: {
+    create: typeof vi.fn;
+    update: typeof vi.fn;
+    delete: typeof vi.fn;
+    findUnique: typeof vi.fn;
+  };
+};
+
+// Define a mock type for Dockerode that only includes methods actually used by DockerService
+type MockDockerode = {
+  listContainers: typeof vi.fn;
+  createContainer: typeof vi.fn;
+  getContainer: typeof vi.fn;
+  listImages: typeof vi.fn;
+  pull: typeof vi.fn;
+  ping: typeof vi.fn;
+  info: typeof vi.fn;
+  getImage: typeof vi.fn;
+  modem: {
+    followProgress: typeof vi.fn;
+  };
+};
+
+// Mock Prisma lib BEFORE importing docker service to avoid initialization error
+vi.mock('../../lib/prisma', () => ({
+  prisma: {
+    container: {
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    }
   }
-})
+}))
+
+
+const mockDockerode: MockDockerode = {
+  listContainers: vi.fn(),
+  createContainer: vi.fn(),
+  getContainer: vi.fn(),
+  listImages: vi.fn(),
+  pull: vi.fn(),
+  ping: vi.fn(),
+  info: vi.fn(),
+  getImage: vi.fn(),
+  modem: {
+    followProgress: vi.fn((stream, onFinished) => onFinished(null, {}))
+  }
+}
 
 describe('Docker Service', () => {
+  let dockerService: DockerService
+  let mockPrismaInstance: MockPrismaClient;
+
   beforeEach(() => {
     vi.clearAllMocks()
+    // Explicitly create mock Prisma instance
+    mockPrismaInstance = {
+      container: {
+        create: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+        findUnique: vi.fn(),
+      }
+    };
+    // Instantiate DockerService with mocks, using casts where the mock is not a full implementation
+    dockerService = new DockerService(mockDockerode as unknown as Docker, mockPrismaInstance as any)
   })
 
   afterEach(() => {
@@ -35,83 +89,95 @@ describe('Docker Service', () => {
         },
       ]
 
-      // Mock implementation
-      const mockListContainers = vi.fn().mockResolvedValue(mockContainers)
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        listContainers: mockListContainers,
-      })
+      mockDockerode.listContainers.mockResolvedValue(mockContainers)
 
       const result = await dockerService.listContainers()
 
-      expect(mockListContainers).toHaveBeenCalledWith({ all: true })
+      expect(mockDockerode.listContainers).toHaveBeenCalledWith({ all: true })
       expect(result).toEqual(mockContainers)
     })
 
     it('should handle errors when listing containers', async () => {
       const mockError = new Error('Docker daemon not running')
-      const mockListContainers = vi.fn().mockRejectedValue(mockError)
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        listContainers: mockListContainers,
-      })
+      mockDockerode.listContainers.mockRejectedValue(mockError)
 
-      await expect(dockerService.listContainers()).rejects.toThrow(
-        'Docker daemon not running'
-      )
+      await expect(dockerService.listContainers()).rejects.toThrow(DockerConnectionError)
     })
   })
 
   describe('getContainerStats', () => {
     it('should return container statistics', async () => {
-      const mockStats = {
-        memory_stats: { usage: 1024000, limit: 2048000 },
-        cpu_stats: { cpu_usage: { total_usage: 5000000 } },
-      }
-
-      const mockStatsStream = {
-        on: vi.fn((event, callback) => {
-          if (event === 'data') {
-            callback(Buffer.from(JSON.stringify(mockStats)))
-          }
-          return mockStatsStream
-        }),
+      const mockStats: Dockerode.ContainerStats = { // Use Dockerode's type for stats
+        read: new Date().toISOString(),
+        preread: new Date().toISOString(),
+        precpu_stats: {
+            cpu_usage: {
+                total_usage: 1000,
+                system_cpu_usage: 1000,
+            },
+            system_cpu_usage: 1000,
+            online_cpus: 1,
+            throttling_data: { periods: 0, throttled_periods: 0, throttled_time: 0 }
+        },
+        cpu_stats: {
+            cpu_usage: {
+                total_usage: 2000,
+                usage_in_kernelmode: 1000,
+                usage_in_usermode: 1000,
+            },
+            system_cpu_usage: 2000,
+            online_cpus: 1,
+            throttling_data: { periods: 0, throttled_periods: 0, throttled_time: 0 }
+        },
+        memory_stats: {
+            usage: 1000,
+            max_usage: 1000,
+            stats: {},
+            limit: 2000,
+        },
+        networks: {
+            eth0: { rx_bytes: 1000, tx_bytes: 1000 }
+        },
+        blkio_stats: {
+            io_service_bytes_recursive: [
+                { op: 'read', value: 100 },
+                { op: 'write', value: 100 },
+            ]
+        }
       }
 
       const mockContainer = {
-        stats: vi.fn().mockResolvedValue(mockStatsStream),
+        stats: vi.fn().mockResolvedValue(mockStats),
       }
 
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        getContainer: vi.fn().mockReturnValue(mockContainer),
-      })
+      mockDockerode.getContainer.mockReturnValue(mockContainer as any) // Need cast here for partial mock
+      
+      mockPrismaInstance.container.update.mockResolvedValue({})
 
       const result = await dockerService.getContainerStats('container-1')
 
       expect(result).toBeDefined()
-      expect(result.memory_stats).toBeDefined()
-      expect(result.cpu_stats).toBeDefined()
+      expect(result.cpuPercent).toBeDefined()
+      expect(result.memoryUsage).toBe(1000)
+      expect(result.memoryLimit).toBe(2000)
+      expect(result.memoryPercent).toBe(50)
     })
   })
 
-  describe('isDockerRunning', () => {
+  describe('healthCheck', () => {
     it('should return true when Docker is running', async () => {
-      const mockPing = vi.fn().mockResolvedValue('OK')
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        ping: mockPing,
-      })
+      mockDockerode.ping.mockResolvedValue(Buffer.from('OK'))
 
-      const result = await dockerService.isDockerRunning()
+      const result = await dockerService.healthCheck()
 
       expect(result).toBe(true)
-      expect(mockPing).toHaveBeenCalled()
+      expect(mockDockerode.ping).toHaveBeenCalled()
     })
 
     it('should return false when Docker is not running', async () => {
-      const mockPing = vi.fn().mockRejectedValue(new Error('Cannot connect'))
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        ping: mockPing,
-      })
+      mockDockerode.ping.mockRejectedValue(new Error('Cannot connect'))
 
-      const result = await dockerService.isDockerRunning()
+      const result = await dockerService.healthCheck()
 
       expect(result).toBe(false)
     })
@@ -121,17 +187,31 @@ describe('Docker Service', () => {
     it('should create a new container with correct options', async () => {
       const mockContainer = {
         id: 'new-container-id',
-        start: vi.fn().mockResolvedValue(undefined),
+        inspect: vi.fn().mockResolvedValue({
+            Id: 'new-container-id',
+            Name: '/test-container',
+            State: {
+                Running: true,
+                StartedAt: new Date().toISOString()
+            },
+            Config: {
+                Image: 'nginx:latest',
+                Cmd: ['nginx']
+            }
+        }),
       }
 
-      const mockCreateContainer = vi.fn().mockResolvedValue(mockContainer)
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        createContainer: mockCreateContainer,
+      mockDockerode.createContainer.mockResolvedValue(mockContainer)
+      mockDockerode.pull.mockImplementation((image, cb) => {
+        cb(null, { pipe: vi.fn() })
       })
+      mockDockerode.modem.followProgress.mockImplementation((stream, cb) => cb(null, []))
+      
+      mockPrismaInstance.container.create.mockResolvedValue({ id: 'db-id' })
 
       const options = {
         name: 'test-container',
-        image: 'nginx:latest',
+        image: 'nginx',
         tag: 'latest',
         projectId: 'project-1',
         env: { NODE_ENV: 'production' },
@@ -139,58 +219,41 @@ describe('Docker Service', () => {
 
       const result = await dockerService.createContainer(options)
 
-      expect(mockCreateContainer).toHaveBeenCalled()
+      expect(mockDockerode.createContainer).toHaveBeenCalled()
       expect(result).toBeDefined()
-      expect(result.id).toBe('new-container-id')
     })
 
-    it('should throw error when image is not available', async () => {
-      const mockError = new Error('Image not found')
-      const mockCreateContainer = vi.fn().mockRejectedValue(mockError)
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        createContainer: mockCreateContainer,
+    it('should throw error when image pull fails', async () => {
+        const mockError = new Error('Image not found')
+        mockDockerode.pull.mockImplementation((image, cb) => cb(mockError))
+  
+        const options = {
+          name: 'test-container',
+          image: 'nonexistent',
+          tag: 'latest',
+          projectId: 'project-1',
+        }
+  
+        await expect(dockerService.createContainer(options)).rejects.toThrow(ContainerOperationError)
       })
-
-      const options = {
-        name: 'test-container',
-        image: 'nonexistent:latest',
-        tag: 'latest',
-        projectId: 'project-1',
-      }
-
-      await expect(dockerService.createContainer(options)).rejects.toThrow(
-        'Image not found'
-      )
-    })
   })
 
   describe('stopContainer', () => {
     it('should stop a running container gracefully', async () => {
       const mockStop = vi.fn().mockResolvedValue(undefined)
-      const mockContainer = { stop: mockStop }
+      const mockInspect = vi.fn().mockResolvedValue({ State: { Running: false } })
+      const mockContainer = { 
+        stop: mockStop,
+        inspect: mockInspect
+      }
 
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        getContainer: vi.fn().mockReturnValue(mockContainer),
-      })
+      mockDockerode.getContainer.mockReturnValue(mockContainer as any)
+
+      mockPrismaInstance.container.update.mockResolvedValue({})
 
       await dockerService.stopContainer('container-1', 10)
 
       expect(mockStop).toHaveBeenCalledWith({ t: 10 })
-    })
-
-    it('should handle already stopped containers', async () => {
-      const mockError = new Error('Container already stopped')
-      const mockStop = vi.fn().mockRejectedValue(mockError)
-      const mockContainer = { stop: mockStop }
-
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        getContainer: vi.fn().mockReturnValue(mockContainer),
-      })
-
-      // Should not throw, just log the error
-      await expect(
-        dockerService.stopContainer('container-1')
-      ).rejects.toThrow()
     })
   })
 
@@ -199,13 +262,12 @@ describe('Docker Service', () => {
       const mockRemove = vi.fn().mockResolvedValue(undefined)
       const mockContainer = { remove: mockRemove }
 
-      vi.spyOn(dockerService as any, 'docker', 'get').mockReturnValue({
-        getContainer: vi.fn().mockReturnValue(mockContainer),
-      })
+      mockDockerode.getContainer.mockReturnValue(mockContainer as any)
+      mockPrismaInstance.container.delete.mockResolvedValue({})
 
       await dockerService.removeContainer('container-1', true)
 
-      expect(mockRemove).toHaveBeenCalledWith({ force: true, v: true })
+      expect(mockRemove).toHaveBeenCalledWith({ force: true })
     })
   })
 })

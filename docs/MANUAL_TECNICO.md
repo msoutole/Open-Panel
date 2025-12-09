@@ -2,29 +2,29 @@
 
 Referência enxuta para arquitetura, desenvolvimento e operações avançadas.
 
+### Fluxo de desenvolvimento
+- Instalação: `npm install`.
+- Execução: `npm run dev` (inicia API e Web) ou individualmente `npm run dev:api` / `npm run dev:web`.
+- Lint: `npm run lint` (avisos de tipo são tolerados; erros não).
+- Build: `npm run build` ou `npm run build:api` / `npm run build:web`.
+- Testes: `npm test` (executa testes da API e Web). **Nota:** Testes de integração da API requerem `DATABASE_URL` configurada.
+- Verificação de Segredos: `npm run check-secrets`.
+
 ### Arquitetura e stack
 - **Backend:** Node.js 18+, Hono, Prisma, Postgres + pgvector, Redis/BullMQ.
 - **Frontend:** React 19, Vite, TailwindCSS, i18n.
+- **AI Services:**
+  - `apps/ai-service`: Serviço Python (FastAPI) para lógica complexa de IA e processamento.
+  - `apps/mcp-server`: Servidor MCP (Model Context Protocol) em Node.js para integração com LLMs.
 - **Infra:** Traefik (proxy/TLS), Docker Compose, métricas e health checks.
 - **Monorepo:** `apps/api`, `apps/web`, `packages/shared` para tipos/validação.
 
-### Layout do repositório
-```
-apps/
-  api/        # REST + WebSocket, Prisma, serviços
-  web/        # SPA React, componentes e páginas
-packages/
-  shared/     # Tipos comuns e utilitários
-scripts/      # Automação (install, deploy, lint)
-docker-compose*.yml
-```
+### Qualidade de Código
+- **Linting:** ESLint com regras estritas para TypeScript.
+- **Promises:** Tratamento obrigatório de Promises ("Floating Promises" são proibidas para evitar erros de concorrência).
+- **Testes:** Vitest configurado para API e Web.
 
-### Fluxo de desenvolvimento
-- Instalação: `npm install`.
-- Execução: `npm run dev:api` e `npm run dev:web`.
-- Lint: `npm run lint` (avisos de tipo são tolerados; erros não).
-- Build: `npm run build` ou `npm run build:api` / `npm run build:web`.
-- Testes: em `apps/api/src/__tests__`; use Jest/Vitest conforme configurado.
+### Layout do repositório
 
 ### API e contratos
 - Endpoints e autenticação: `API_REST.md`.

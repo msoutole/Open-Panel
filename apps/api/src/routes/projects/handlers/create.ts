@@ -10,7 +10,7 @@ import { Context } from 'hono'
 import { HTTPException } from 'hono/http-exception'
 import { createProjectSchema } from '@openpanel/shared'
 import type { Variables } from '../../../types'
-import { ProjectService } from '../../../services/project.service'
+import { projectService } from '../../../services/project.service'
 
 /**
  * Cria um novo projeto no sistema.
@@ -72,7 +72,7 @@ export const createProjectHandler = async (c: Context<{ Variables: Variables }>)
     const body = await c.req.json() as unknown
     const data = createProjectSchema.parse(body)
 
-    const project = await ProjectService.create({
+    const project = await projectService.create({
       ...data,
       ownerId: user.userId
     })

@@ -44,7 +44,7 @@ export const SecurityView: React.FC = () => {
       }
     };
 
-    fetchAuditLogs();
+    fetchAuditLogs().catch(console.error);
   }, [page, showToast]);
 
   // Fetch audit stats
@@ -58,9 +58,9 @@ export const SecurityView: React.FC = () => {
       }
     };
 
-    fetchStats();
+    fetchStats().catch(console.error);
     // Refresh stats every 30 seconds
-    const interval = setInterval(fetchStats, 30000);
+    const interval = setInterval(() => void fetchStats(), 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -201,7 +201,7 @@ export const SecurityView: React.FC = () => {
             <p className="text-textSecondary text-sm">Monitor system access, audit trails, and real-time docker events.</p>
         </div>
         <button 
-            onClick={handleAnalyze} 
+            onClick={() => void handleAnalyze()} 
             disabled={analyzing}
             className="flex items-center gap-2 bg-primary hover:bg-primaryHover active:bg-primaryActive text-white px-4 py-2 rounded-xl font-medium shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
         >

@@ -9,7 +9,7 @@
 
 import { prisma } from '../lib/prisma'
 import { HTTPException } from 'hono/http-exception'
-import type { ProjectType } from '@prisma/client'
+import type { PrismaClient, ProjectType } from '@prisma/client'
 
 /**
  * Dados necessários para criar um projeto
@@ -75,6 +75,20 @@ export interface UpdateProjectData {
  * Service para operações relacionadas a projetos
  */
 export class ProjectService {
+  private prisma: PrismaClient
+  private static instance: ProjectService
+
+  public constructor(prismaClient?: PrismaClient) {
+    this.prisma = prismaClient || prisma
+  }
+
+  public static getInstance(): ProjectService {
+    if (!ProjectService.instance) {
+      ProjectService.instance = new ProjectService()
+    }
+    return ProjectService.instance
+  }
+
   /**
    * Verifica se um usuário tem acesso a um projeto.
    * 
@@ -86,8 +100,8 @@ export class ProjectService {
    * @param userId - ID do usuário
    * @returns true se o usuário tem acesso, false caso contrário
    */
-  static async hasAccess(projectId: string, userId: string): Promise<boolean> {
-    const project = await prisma.project.findUnique({
+  async hasAccess(projectId: string, userId: string): Promise<boolean> {
+    const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
         team: {
@@ -127,8 +141,8 @@ export class ProjectService {
    * @param userId - ID do usuário
    * @returns Lista de projetos com contadores de recursos relacionados
    */
-  static async listAccessibleProjects(userId: string) {
-    return await prisma.project.findMany({
+  async listAccessibleProjects(userId: string) {
+    return await this.prisma.project.findMany({
       where: {
         OR: [
           { ownerId: userId },
@@ -167,8 +181,8 @@ export class ProjectService {
    * 
    * @throws {HTTPException} 404 - Projeto não encontrado ou sem acesso
    */
-  static async findById(projectId: string, userId: string) {
-    const project = await prisma.project.findUnique({
+  async findById(projectId: string, userId: string) {
+    const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
         envVars: {
@@ -216,8 +230,8 @@ export class ProjectService {
    * @param slug - Slug a verificar
    * @returns true se o slug já existe, false caso contrário
    */
-  static async slugExists(slug: string): Promise<boolean> {
-    const existing = await prisma.project.findFirst({
+  async slugExists(slug: string): Promise<boolean> {
+    const existing = await this.prisma.project.findFirst({
       where: { slug }
     })
     return !!existing
@@ -230,8 +244,8 @@ export class ProjectService {
    * @param teamId - ID do team
    * @returns true se o usuário é OWNER ou ADMIN do team
    */
-  static async isTeamOwnerOrAdmin(userId: string, teamId: string): Promise<boolean> {
-    const teamMember = await prisma.teamMember.findUnique({
+  async isTeamOwnerOrAdmin(userId: string, teamId: string): Promise<boolean> {
+    const teamMember = await this.prisma.teamMember.findUnique({
       where: {
         userId_teamId: {
           userId,
@@ -257,7 +271,7 @@ export class ProjectService {
    * @throws {HTTPException} 400 - Slug já existe
    * @throws {HTTPException} 403 - Usuário não tem permissão no team
    */
-  static async create(data: CreateProjectData) {
+  async create(data: CreateProjectData) {
     // Verificar unicidade do slug
     const slugExists = await this.slugExists(data.slug)
     if (slugExists) {
@@ -273,7 +287,7 @@ export class ProjectService {
     }
 
     // Criar projeto
-    const project = await prisma.project.create({
+    const project = await this.prisma.project.create({
       data: {
         name: data.name,
         slug: data.slug,
@@ -319,12 +333,12 @@ export class ProjectService {
    * @throws {HTTPException} 403 - Usuário não é owner
    * @throws {HTTPException} 400 - Novo slug já existe
    */
-  static async update(
+  async update(
     projectId: string,
     userId: string,
     data: UpdateProjectData
   ) {
-    const project = await prisma.project.findUnique({
+    const project = await this.prisma.project.findUnique({
       where: { id: projectId }
     })
 
@@ -346,7 +360,7 @@ export class ProjectService {
     }
 
     // Atualizar projeto
-    const updatedProject = await prisma.project.update({
+    const updatedProject = await this.prisma.project.update({
       where: { id: projectId },
       data: {
         name: data.name,
@@ -388,8 +402,8 @@ export class ProjectService {
    * @throws {HTTPException} 404 - Projeto não encontrado
    * @throws {HTTPException} 403 - Usuário não é owner
    */
-  static async delete(projectId: string, userId: string): Promise<void> {
-    const project = await prisma.project.findUnique({
+  async delete(projectId: string, userId: string): Promise<void> {
+    const project = await this.prisma.project.findUnique({
       where: { id: projectId }
     })
 
@@ -403,9 +417,11 @@ export class ProjectService {
     }
 
     // Deletar projeto (cascade delete remove recursos relacionados)
-    await prisma.project.delete({
+    await this.prisma.project.delete({
       where: { id: projectId }
     })
   }
 }
 
+// Export singleton instance
+export const projectService = ProjectService.getInstance()
