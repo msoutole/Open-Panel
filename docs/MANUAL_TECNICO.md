@@ -39,6 +39,7 @@ docker-compose*.yml
 
 ### Dados e resiliência
 - Prisma com Postgres; migrations em `apps/api/prisma`.
+- Prisma 7: a URL do banco está em `prisma.config.mjs` (usa `DATABASE_URL` do `.env` e carrega o arquivo automaticamente para CLI); o provider segue no `schema.prisma`.
 - Backups: `pg_dump` + retenção; restaure com `psql`/`pg_restore`.
 - Zero downtime: blue/green via Traefik quando health checks estiverem corretos.
 

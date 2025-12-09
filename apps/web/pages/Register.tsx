@@ -8,7 +8,6 @@ export const Register: React.FC = () => {
         <div className="flex flex-col items-center mb-6">
           <Logo size="lg" className="mb-4" />
           <h2 className="text-center text-base font-semibold text-textPrimary mb-1">Crie sua conta</h2>
-          <p className="text-center text-sm text-textSecondary">Seu Servidor mais inteligente.</p>
         </div>
       </div>
     </div>

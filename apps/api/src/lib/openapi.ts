@@ -9,7 +9,7 @@ export const openAPISchema = {
   openapi: '3.0.0',
   info: {
     title: 'OpenPanel API',
-    version: '0.3.0',
+    version: '1.0.0',
     description: 'Modern self-hosted server control panel API with Docker management, templates, and real-time monitoring.',
     contact: {
       name: 'OpenPanel Support',

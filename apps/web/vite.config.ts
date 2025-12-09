@@ -20,9 +20,10 @@ export default defineConfig({
     ],
     proxy: {
       '/api': {
-        target: 'http://openpanel-api-dev:3001', // Usar nome do container na rede Docker
+        target: process.env.VITE_API_URL || 'http://localhost:3001', // Usar localhost em dev local, container em Docker
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path, // Não reescrever o path
       },
     },
   },

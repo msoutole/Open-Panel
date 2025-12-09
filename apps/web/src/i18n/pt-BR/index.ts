@@ -36,7 +36,7 @@ const pt_BR = {
 
   // Onboarding
   onboarding: {
-    title: 'Bem-vindo ao SOU+SER by SOULLABS! 🎉',
+    title: 'Bem-vindo ao SOU+TECH by SOULLABS! 🎉',
     subtitle: 'Vamos configurar seu ambiente em poucos passos',
 
     // Step 1 - Theme
@@ -111,7 +111,7 @@ const pt_BR = {
     },
 
     // Actions
-    complete: 'Começar a usar SOU+SER by SOULLABS',
+    complete: 'Começar a usar SOU+TECH by SOULLABS',
     completing: 'Finalizando...',
 
     // Footer
@@ -296,7 +296,7 @@ const pt_BR = {
     avg: 'média',
     noDataAvailable: 'Nenhum dado disponível',
     // Empty State
-    welcomeTitle: 'Bem-vindo ao SOU+SER by SOULLABS! 🚀',
+    welcomeTitle: 'Bem-vindo ao SOU+TECH by SOULLABS! 🚀',
     welcomeSubtitle: 'Comece criando seu primeiro projeto e implante suas aplicações em minutos.',
     emptyStateTitle: 'Nenhum projeto ainda',
     emptyStateDescription: 'Crie seu primeiro projeto para começar a gerenciar suas aplicações e serviços.',
@@ -319,7 +319,7 @@ const pt_BR = {
     gettingStartedCompleted: 'Concluído',
     gettingStartedPending: 'Pendente',
     // Welcome Banner
-    welcomeBannerTitle: 'Bem-vindo ao SOU+SER by SOULLABS! 👋',
+    welcomeBannerTitle: 'Bem-vindo ao SOU+TECH by SOULLABS! 👋',
     welcomeBannerDescription: 'Configure seu primeiro projeto em menos de 2 minutos.',
     welcomeBannerDismiss: 'Dispensar',
     welcomeBannerGetStarted: 'Começar Agora',
@@ -509,7 +509,7 @@ const pt_BR = {
     type: 'Tipo',
     version: 'Versão',
     username: 'Nome de Usuário',
-    database: 'Banco de Dados',
+    databaseName: 'Nome do Banco de Dados',
     passwordGenerated: 'A senha será gerada automaticamente e exibida após a criação',
     nameRequired: 'Nome do serviço é obrigatório',
     nameMinLength: 'O nome deve ter pelo menos 3 caracteres',

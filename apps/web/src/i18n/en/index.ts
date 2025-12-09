@@ -36,7 +36,7 @@ const en = {
 
   // Onboarding
   onboarding: {
-    title: 'Welcome to SOU+SER by SOULLABS! 🎉',
+    title: 'Welcome to SOU+TECH by SOULLABS! 🎉',
     subtitle: "Let's set up your environment in a few steps",
 
     // Step 1 - Theme
@@ -111,7 +111,7 @@ const en = {
     },
 
     // Actions
-    complete: 'Start using SOU+SER by SOULLABS',
+    complete: 'Start using SOU+TECH by SOULLABS',
     completing: 'Finishing...',
 
     // Footer
@@ -154,7 +154,7 @@ const en = {
     avg: 'avg',
     noDataAvailable: 'No data available',
     // Empty State
-    welcomeTitle: 'Welcome to SOU+SER by SOULLABS! 🚀',
+    welcomeTitle: 'Welcome to SOU+TECH by SOULLABS! 🚀',
     welcomeSubtitle: 'Start by creating your first project and deploy your applications in minutes.',
     emptyStateTitle: 'No projects yet',
     emptyStateDescription: 'Create your first project to start managing your applications and services.',
@@ -177,7 +177,7 @@ const en = {
     gettingStartedCompleted: 'Completed',
     gettingStartedPending: 'Pending',
     // Welcome Banner
-    welcomeBannerTitle: 'Welcome to SOU+SER by SOULLABS! 👋',
+    welcomeBannerTitle: 'Welcome to SOU+TECH by SOULLABS! 👋',
     welcomeBannerDescription: 'Set up your first project in less than 2 minutes.',
     welcomeBannerDismiss: 'Dismiss',
     welcomeBannerGetStarted: 'Get Started',
@@ -506,7 +506,7 @@ const en = {
     type: 'Type',
     version: 'Version',
     username: 'Username',
-    database: 'Database',
+    databaseName: 'Database Name',
     passwordGenerated: 'Password will be automatically generated and displayed after creation',
     nameRequired: 'Service name is required',
     nameMinLength: 'Name must be at least 3 characters',

@@ -1,4 +1,4 @@
-# 📚 SOU+SER by SOULLABS — Documentação Enxuta
+# 📚 SOU+TECH by SOULLABS — Documentação Enxuta
 
 **Última atualização:** 08/12/2025  
 Documentação consolidada para reduzir fragmentação e focar nos tópicos essenciais.
@@ -16,6 +16,10 @@ Documentação consolidada para reduzir fragmentação e focar nos tópicos esse
 - Orquestração via Docker Compose com Traefik, Postgres, Redis e serviços auxiliares.
 - Segurança: JWT + 2FA, rate limiting, headers seguros e logging estruturado.
 - Objetivo: painel self-hosted com automação de deploy, bancos e integrações MCP/Hostinger.
+
+## Arranque rápido (local)
+- `npm start` na raiz: cria `.env` seguro, instala dependências, sobe Docker (Postgres/Redis/Traefik), roda Prisma (`db:generate` + `db:push`), cria admin padrão e inicia API/Web (3001/3000).
+- Alternativa manual detalhada em `docs/GUIDE_QUICKSTART.md`.
 
 ## Convenções
 - Comandos assumem **Node 18+** e **Docker** instalados.

@@ -110,8 +110,10 @@ const envSchema = z.object({
 
   SSL_EMAIL: z
     .string()
-    .email()
     .optional()
+    .refine((val) => !val || z.string().email().safeParse(val).success, {
+      message: 'Invalid email address',
+    })
     .describe('Email for SSL certificate notifications'),
 
   // Backups

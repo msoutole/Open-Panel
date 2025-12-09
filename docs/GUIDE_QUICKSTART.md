@@ -1,26 +1,35 @@
 ## 🚀 Guia Rápido
 
-Objetivo: levar o SOU+SER by SOULLABS do zero ao painel acessível em poucos passos, em ambiente local ou homelab.
+Objetivo: levar o SOU+TECH by SOULLABS do zero ao painel acessível em poucos passos, em ambiente local ou homelab.
 
 ### Pré-requisitos mínimos
 - **Sistema:** Ubuntu/Debian ou Windows/macOS com Docker Desktop.
 - **Ferramentas:** Node 18+, npm 10+, Docker e Docker Compose.
 - **Recursos:** 2 vCPU, 4 GB RAM e 15 GB livres para serviços base.
 
-### Passo a passo (local)
-1) Clone e instale dependências:
+### Passo a passo (local) — recomendado
+1) Clone o repositório:
    - `git clone https://github.com/msoutole/open-panel.git`
-   - `cd open-panel && npm install`
-2) Gere variáveis padrão: `cp .env.example .env` e ajuste domínios/ports se necessário.
-3) Suba serviços base: `docker compose up -d`.
-4) Inicie API e Web:
-   - `npm run dev:api`
-   - `npm run dev:web`
-5) Acesse:
+2) Rode o orquestrador único:
+   - `cd open-panel && npm start`
+   - O que ele faz automaticamente:
+     - Cria um `.env` seguro e sincroniza com `apps/api/.env` e `apps/web/.env.local`.
+     - Instala dependências (`npm install`), sobe infraestrutura Docker (Postgres, Redis, Traefik).
+     - Executa Prisma (`db:generate` + `db:push`) e cria usuário admin padrão.
+     - Sobe API (3001) e Web (3000) em modo desenvolvimento.
+3) Acesse:
    - Painel: `http://localhost:3000`
    - API: `http://localhost:3001`
    - Traefik: `http://localhost:8080`
-6) Credenciais iniciais: `admin@admin.com.br` / `admin123` (altere no primeiro login).
+4) Credenciais iniciais: `admin@admin.com.br` / `admin123` (altere no primeiro login).
+
+### Fluxo manual (alternativo)
+Use apenas se preferir controlar cada etapa:
+- `npm install`
+- `cp .env.example .env` (ou ajuste manualmente)
+- `docker compose up -d`
+- `npm run db:push` e `npm run create:admin`
+- `npm run dev:api` e `npm run dev:web`
 
 ### Passo a passo (homelab/servidor)
 1) Atualize o sistema e instale Docker + Compose.

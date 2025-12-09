@@ -1075,10 +1075,10 @@ send_error_email() {
         return 0
     fi
 
-    local subject="[SOU+SER by SOULLABS] Falha na Instalação - $cmd"
+    local subject="[SOU+TECH by SOULLABS] Falha na Instalação - $cmd"
     local body="
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SOU+SER by SOULLABS - Relatório de Erro de Instalação
+SOU+TECH by SOULLABS - Relatório de Erro de Instalação
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Sistema Operacional: $OS ($DISTRO ${DISTRO_VERSION:-unknown})

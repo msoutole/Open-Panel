@@ -27,7 +27,7 @@ export default [
       },
       rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+        '@typescript-eslint/no-explicit-any': 'warn',
         '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-misused-promises': 'warn',
@@ -44,7 +44,7 @@ export default [
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
       '@typescript-eslint/prefer-promise-reject-errors': 'warn',
-      'no-console': ['warn', { allow: ['warn', 'error'] }]
+        'no-console': ['warn', { allow: ['warn', 'error'] }]
       }
     }
   )

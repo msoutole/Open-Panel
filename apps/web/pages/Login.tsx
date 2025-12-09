@@ -128,7 +128,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="flex flex-col items-center mb-8">
           <Logo size="lg" className="mb-4" />
           <h2 className="text-center text-base font-semibold text-textPrimary mb-1">{LL.auth.loginTitle()}</h2>
-          <p className="text-center text-sm text-textSecondary">{LL.auth.loginSubtitle()}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

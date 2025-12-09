@@ -42,26 +42,33 @@ export const Logo: React.FC<LogoProps> = ({
   return (
     <div
       className={`flex items-center ${collapsed ? 'justify-center' : gap} ${className}`}
-      aria-label="SOU+SER by SOULLABS"
+      aria-label="SOU+TECH by SOULLABS"
     >
+      {/* Ícone com gradiente */}
       <div
         className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primaryDark shadow-lg text-white ${icon} flex-shrink-0 overflow-hidden`}
       >
         <span className="font-black leading-none tracking-tight">S</span>
-        <span className="absolute -top-0.5 -right-1.5 text-[8px] font-black text-white/90 rotate-[12deg]">+</span>
+        <span 
+          className="absolute -top-0.5 -right-1.5 text-[8px] font-black text-white/90"
+          style={{ transform: 'rotate(12deg)' }}
+        >
+          +
+        </span>
         <div className="absolute top-0.5 left-0.5 h-1.5 w-1.5 rounded-full bg-white/30" />
       </div>
 
       {!collapsed && (
         <div className="flex flex-col min-w-0 leading-tight">
+          {/* Nome da marca */}
           <div className={`flex items-baseline ${gap === 'gap-2' ? 'gap-1' : 'gap-1.5'}`}>
             <span className={`${text} font-extrabold text-textPrimary dark:text-white`}>SOU</span>
-            <span className={`${plus} font-black text-primary`}>+</span>
-            <span className={`${text} font-extrabold text-textPrimary dark:text-white`}>SER</span>
+            <span className={`${plus} font-black text-primary mx-0.5`}>+</span>
+            <span className={`${text} font-extrabold text-textPrimary dark:text-white`}>TECH</span>
           </div>
           {showTagline && (
             <div className="flex flex-col leading-tight">
-              <span className={`${tagline} text-slate-500 dark:text-slate-400 tracking-[0.2em] uppercase`}>
+              <span className={`${tagline} text-gray-400 dark:text-gray-500 tracking-widest uppercase`}>
                 by SOULLABS
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 tracking-wide">
