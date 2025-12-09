@@ -56,6 +56,9 @@ if (!envLoaded) {
 }
 
 // Verify DATABASE_URL is set after loading .env
+console.log('Verificando DATABASE_URL:', process.env.DATABASE_URL);
+console.log('Conteúdo do process.env:', JSON.stringify(process.env));
+
 if (!process.env.DATABASE_URL) {
   const errorMsg = [
     '❌ DATABASE_URL is not set. Please check your .env file.',
@@ -69,21 +72,34 @@ if (!process.env.DATABASE_URL) {
 
 // Import PrismaClient only after DATABASE_URL is confirmed to be set
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
 declare global {
   var prisma: PrismaClient | undefined
+  var prismaPool: Pool | undefined
+  var prismaPgAdapter: PrismaPg | undefined
 }
 
 // Create PrismaClient (it will use DATABASE_URL from process.env)
 // Use lazy initialization to ensure DATABASE_URL is available
-function getPrismaClient(): PrismaClient {
+export const prisma = (() => {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not set. Cannot initialize PrismaClient.')
   }
-  return new PrismaClient()
-}
+  // Reuse connection pool and adapter across reloads to satisfy Prisma Client engine requirements
+  const pool = global.prismaPool ?? new Pool({ connectionString: process.env.DATABASE_URL })
+  const adapter = global.prismaPgAdapter ?? new PrismaPg(pool)
 
-export const prisma = global.prisma || getPrismaClient()
+  if (!global.prismaPool) {
+    global.prismaPool = pool
+  }
+  if (!global.prismaPgAdapter) {
+    global.prismaPgAdapter = adapter
+  }
+
+  return global.prisma || new PrismaClient({ adapter })
+})()
 
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma

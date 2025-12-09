@@ -12,5 +12,6 @@ export default defineConfig({
   outDir: 'dist',
   // Otimizações adicionais
   treeshake: true, // Tree-shaking automático
-  noExternal: [], // Manter dependências externas (Node.js)
+  // Bundle shared workspace package so Node doesn't try to load raw TS files
+  noExternal: ['@openpanel/shared'],
 })
